@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="./css/oa-theme.css">
+    <link rel="stylesheet" href="./css/parser-tree.css">
+  </head>
+  <body>
+    <!-- jQuery -->
+    <ul class="operationBar">
+      <li><a class="oaBtn" href ="javascript:void(0)" onclick="drawBtnDown(this)">show tree</a></li>
+    </ul>
+    <div class="content-box" id = "id_container" >
+      <div class="straight-box" id = "id_leftPage">
+        <textarea class="oaText" id = "id_inputArea">int @a = 0</textarea>
+        <div class="oaText" id = "id_tokenStream"></div>
+      </div>
+      <div class="treeContainer" id = "id_treeContain"/>
+    </div>
+    <script>
+      var jQuery = require('./js/jquery-1.11.3.min.js');
+      var $ = require('./js/jquery-1.11.3.min.js').$;
+    </script>
+    <script>
+      var tree = require('./js/components').treeGraph;
+      var parser = require('./build/Release/parser');
+      function drawBtnDown(btn){
+        var rawText = document.getElementById('id_inputArea').value;
+        tree.drawTree(parser.getTree(rawText),'id_treeContain','id_treeGraph');
+      }
+    </script>
+  </body>
+</html>
