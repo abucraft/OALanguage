@@ -12,7 +12,6 @@ exports.visualize = function (filename) {
 			alert(err);
 			return;
 		}
-		alert(textJson);
 		tree.drawTree(textJson);
 		try {
 			fs.readFile(tokenPath, 'utf-8', function (err, content) {

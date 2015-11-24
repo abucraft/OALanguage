@@ -17,13 +17,21 @@
 	function drawTree(rawText) {
 		if (tree != null) {
 			var treeGraph = document.getElementById(treeId);
-			treeGraph.parentNode.removeChild(treeGraph);
+			if(treeGraph!=null){
+				treeGraph.parentNode.removeChild(treeGraph);
+			}
 		}
 		var margin = { top: 20, right: 120, bottom: 20, left: 120 },
 			width = 960 - margin.right - margin.left,
 			height = 800 - margin.top - margin.bottom;
 
-		var jsonobj = JSON.parse(rawText);
+		try{
+			alert(rawText);
+			var jsonobj = JSON.parse(rawText);
+		}catch(err){
+			alert('json parse:'+err);
+			return;
+		}
 		//alert(rawText);
 		//alert(JSON.stringify(jsonobj));
 		tree = d3.layout.tree()

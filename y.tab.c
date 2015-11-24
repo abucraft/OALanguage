@@ -1669,7 +1669,6 @@ int executeParser(const char *filename)
 {
   extern FILE *tokenStream;
   extern struct ParseTree *parseTree;
-	printf("execute\n");
 	tokenStream = NULL;
 	tokenStream = fopen("tokenStream.txt", "w");
 	if(!tokenStream){

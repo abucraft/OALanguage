@@ -48,7 +48,6 @@ namespace OAparser{
 			cb->Call(Null(isolate), argc, argv);
 			return;
 		}
-		printf("break1\n");
 		Local<Value> argv[argc] = { String::NewFromUtf8(isolate, "null"),String::NewFromUtf8(isolate, result.c_str()) };
   		cb->Call(Null(isolate), argc, argv);
 	}

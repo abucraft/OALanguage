@@ -15,15 +15,15 @@ void parseVarAssignNode(std::string &result, struct VarAssignNode *seg);
 void parseArrayDeclareNode(std::string &result, struct ArrayDeclareNode *seg);
 void parseArrayDefineNode(std::string &result, struct ArrayDefineNode *seg);
 void parseArrayAssignNode(std::string &result, struct ArrayAssignNode *seg);
-void parseIfNode(std::string &result, struct IfNode *seg);//----
-void parseElifNode(std::string &result, struct ElifNode *seg);//----
-void parseElseNode(std::string &result, struct ElseNode *seg);//----
-void parseWhileNode(std::string &result, struct WhileNode *seg);//----
-void parseForeachNode(std::string &result, struct ForeachNode *seg);//----
-void parseClassDefineNode(std::string &result, struct ClassDefineNode *seg);//----
+void parseIfNode(std::string &result, struct IfNode *seg);
+void parseElifNode(std::string &result, struct ElifNode *seg);
+void parseElseNode(std::string &result, struct ElseNode *seg);
+void parseWhileNode(std::string &result, struct WhileNode *seg);//----A
+void parseForeachNode(std::string &result, struct ForeachNode *seg);//----A
+void parseClassDefineNode(std::string &result, struct ClassDefineNode *seg);//----A
 void parseFunctionDeclareNode(std::string &result, struct FunctionDeclareNode *seg);
-void parseFunctionDefineNode(std::string &result, struct FunctionDefineNode *seg);//----
-void parseClassMethodDefineNode(std::string &result, struct ClassMethodDefineNode *seg);//----
+void parseFunctionDefineNode(std::string &result, struct FunctionDefineNode *seg);//----A
+void parseClassMethodDefineNode(std::string &result, struct ClassMethodDefineNode *seg);//----A
 void parseBreakNode(std::string &result);
 void parseContinueNode(std::string &result);
 void parseReturnNode(std::string &result, struct ReturnNode *seg);
@@ -222,116 +222,97 @@ void parseArrayAssignNode(std::string&result,ArrayAssignNode*seg){
 }
 
 void parseIfNode(std::string&result,IfNode*seg){
-	if(seg == NULL){
+	if (seg == NULL) {
 		return;
 	}
+	char numStr[N_INT_CHAR];
+	sprintf(numStr, "%d", ++lineno);
 
-lineno++;
-printf("%d if\n", lineno);
-return;
-
-
-
-	result+="{\"name\":\"if node\",\"children\":[";
-	parseExpression(result,seg->exp);
-	result+=',';
-	parseNodeList(result,seg->stmts,"stmts");
-	result+=',';
-	parseNodeList(result,seg->elifStmts,"elifStmts");
-	result+=',';
-	parseNodeList(result,seg->elseStmts,"elseStmts");
-	result+="]}";
+	result += "{\"name\":\"" + std::string(numStr) + ": if node\",\"children\":[";
+	result += "{\"name\":\"condition\",\"children\":[{\"name\":\"";
+	parseExpression(result, seg->exp);
+	result += "\"}]},";
+	parseNodeList(result, seg->stmts, "if_stmts");
+	result += ",";
+	struct TreeNode * tmp = seg->elifStmts;
+	char tmpNumC[N_INT_CHAR];
+	int tmpNum = 0;
+	while (tmp != NULL) {
+		tmpNum++;
+		sprintf(tmpNumC, "%d", tmpNum);
+		result += "{\"name\":\"elif_part" + std::string(tmpNumC) + "\",\"children\":[";
+		parseTreeNode(result, seg->elifStmts);
+		result += "]},";
+		tmp = tmp->next;
+	}
+	result += "{\"name\":\"else_part\",\"children\":[";
+	parseTreeNode(result, seg->elseStmts);
+	result += "]}";
+	result += "]}";
 }
 
 void parseElifNode(std::string&result,ElifNode*seg){
-	if(seg == NULL){
+	if (seg == NULL) {
 		return;
 	}
 
-lineno++;
-printf("%d elif\n", lineno);
-return;
-
-
-
-	result+="{\"name\":\"else if node\",\"children\":[";
-	parseExpression(result,seg->exp);
-	result+=',';
-	parseNodeList(result,seg->stmts,"stmts");
-	result+="]}";
+	result += "{\"name\":\"condition\",\"children\":[{\"name\":\"";
+	parseExpression(result, seg->exp);
+	result += "\"}]},";
+	parseNodeList(result, seg->stmts, "elif_stmts");
 }
 
 void parseElseNode(std::string&result,ElseNode*seg){
-	if(seg == NULL){
+	if (seg == NULL) {
 		return;
 	}
 
-lineno++;
-printf("%d else\n", lineno);
-return;
-
-
-
-	result+="{\"name\":\"else node\",\"children\":[";
-	parseNodeList(result,seg->stmts,"stmts");
-	result+="]}";
+	parseNodeList(result, seg->stmts, "else_stmts");
 }
 
 void parseWhileNode(std::string&result,WhileNode*seg){
-	if(seg == NULL){
+	if (seg == NULL) {
 		return;
 	}
+	char numStr[N_INT_CHAR];
+	sprintf(numStr, "%d", ++lineno);
 
-lineno++;
-printf("%d while\n", lineno);
-return;
-
-
-
-	result+="{\"name\":\"while node\",\"children\":[";
-	parseExpression(result,seg->exp);
-	result+=',';
+	result += "{\"name\":\"" + std::string(numStr) + ": while node\",\"children\":[";
+	result += "{\"name\":\"condition\",\"children\":[{\"name\":\"";
+	parseExpression(result, seg->exp);
+	result += "\"}]},";
 	parseNodeList(result,seg->stmts,"stmts");
 	result+="]}";
 }
 
 void parseForeachNode(std::string &result ,ForeachNode *seg){
-	if(seg == NULL){
+	if (seg == NULL) {
 		return;
 	}
+	char numStr[N_INT_CHAR];
+	sprintf(numStr, "%d", ++lineno);
 
-lineno++;
-printf("%d foreach\n", lineno);
-return;
-
-
-/*
-	result+="{\"name\":\"foreach node\",\"children\":[";
-	result+="{\"name\":\""+seg->nameIn+"\"},";
-	result+="{\"name\":\""+seg->nameOut+"\"},";
-	parseNodeList(result,seg->stmts,"stmts");
-	result+="]}";
-	*/
+	result += "{\"name\":\"" + std::string(numStr) + ": foreach node\",\"children\":[";
+	result += "{\"name\":\"" + std::string(seg->nameIn) + "\"},";
+	result += "{\"name\":\"in " + std::string(seg->nameOut) + "\"},";
+	parseNodeList(result, seg->stmts, "stmts");
+	result += "]}";
 }
 
 void parseClassDefineNode(std::string&result, struct ClassDefineNode *seg){
-	if(seg == NULL){
+	if (seg == NULL) {
 		return;
 	}
+	char numStr[N_INT_CHAR];
+	sprintf(numStr, "%d", ++lineno);
 
-lineno++;
-printf("%d class define\n", lineno);
-return;
-
-
-/*
-	result+="{\"name\":\"class node\",\"children\":[";
-	result+="{\"name\":\""+seg->type+"\"},";
-	if(seg->typeParent!=NULL)
-		result+="{\"name\":\"extends "+seg->typeParent+"\"},";
-	parseNodeList(result,seg->stmts,"stmts");
-	result+="]}";
-	*/
+	result += "{\"name\":\"" + std::string(numStr) + ": class define\",\"children\":[";
+	result += "{\"name\":\"" + std::string(seg->type) + "\"},";
+	if (seg->typeParent) {
+		result += "{\"name\":\"parent: " + std::string(seg->typeParent) + "\"},";
+	}
+	parseNodeList(result, seg->stmts, "stmts");
+	result += "]}";
 }
 
 void parseFunctionDeclareNode(std::string&result,FunctionDeclareNode*seg){
@@ -340,12 +321,13 @@ void parseFunctionDeclareNode(std::string&result,FunctionDeclareNode*seg){
 	}
 	char numStr[N_INT_CHAR];
 	sprintf(numStr, "%d", ++lineno);
-	result+="{\"name\":\"function dec node\",\"children\":[";
+	
+	result+="{\"name\":\"" + std::string(numStr) + ": function dec\",\"children\":[";
 	if (seg->type) {
 		result += "{\"ret type\":\"" + std::string(seg->type) + "\"},";
 	}
 	else {
-		result += "{\"name\":\"void\"},";
+		result += "{\"ret type\":\"void\"},";
 	}
 	result+="{\"name\":\"" + std::string(seg->name) + "\"},";
 	result += "{\"name\":\"args\",\"children\":[{\"name\":\"";
@@ -355,46 +337,50 @@ void parseFunctionDeclareNode(std::string&result,FunctionDeclareNode*seg){
 }
 
 void parseFunctionDefineNode(std::string&result,FunctionDefineNode*seg){
-	if(seg == NULL){
+	if (seg == NULL) {
 		return;
 	}
+	char numStr[N_INT_CHAR];
+	sprintf(numStr, "%d", ++lineno);
 
-lineno++;
-printf("%d func define\n", lineno);
-return;
-
-/*
-
-	result+="{\"name\":\"function def node\",\"children\":[";
-	result+="{\"name\":\""+seg->type+"\"},";
-	result+="{\"name\":\""+seg->name+"\"},";
-	parseFormParam(result,seg->formParams);
-	result+=',';
-	parseNodeList(result,seg->stmts,"stmts");
-	result+="]}";
-	*/
+	result += "{\"name\":\"" + std::string(numStr) + ": function def\",\"children\":[";
+	if (seg->type) {
+		result += "{\"ret type\":\"" + std::string(seg->type) + "\"},";
+	}
+	else {
+		result += "{\"ret type\":\"void\"},";
+	}
+	result += "{\"name\":\"" + std::string(seg->name) + "\"},";
+	result += "{\"name\":\"args\",\"children\":[{\"name\":\"";
+	parseFormParam(result, seg->formParams);
+	result += "\"}]},";
+	parseNodeList(result, seg->stmts, "stmts");
+	result += "]}";
 }
 
 void parseClassMethodDefineNode(std::string&result,ClassMethodDefineNode*seg){
-	if(seg == NULL){
+	if (seg == NULL) {
 		return;
 	}
+	char numStr[N_INT_CHAR];
+	sprintf(numStr, "%d", ++lineno);
 
-lineno++;
-printf("%d class method def\n", lineno);
-return;
-
-/*
-
-	result+="{\"name\":\"class method node\",\"children\":[";
-	result+="{\"name\":\""+seg->classType+"\"},";
-	result+="{\"name\":\""+seg->type+"\"},";
-	result+="{\"name\":\""+seg->name+"\"},";
-	parseFormParam(result,seg->formParams);
-	result+=',';
-	parseNodeList(result,seg->stmts,"stmts");
-	result+="]}";
-	*/
+	result += "{\"name\":\"" + std::string(numStr) + ": class method def\",\"children\":[";
+	if (seg->type) {
+		result += "{\"ret type\":\"" + std::string(seg->type) + "\"},";
+	}
+	else {
+		result += "{\"ret type\":\"void\"},";
+	}
+	result += "{\"name\":\"class " + std::string(seg->classType) + "\"},";
+	result += "{\"name\":\"" + std::string(seg->name) + "\"},";
+	if(seg->formParams){
+		result += "{\"name\":\"args\",\"children\":[{\"name\":\"";
+		parseFormParam(result, seg->formParams);
+		result += "\"}]},";
+	}
+	parseNodeList(result, seg->stmts, "stmts");
+	result += "]}";
 }
 
 void parseBreakNode(std::string &result){
@@ -606,13 +592,12 @@ int getTreeRaw(const char* filename){
 		printf("error\n");
 	}
 
-lineno = 0;
+	lineno = 0;
 	parseNodeList(result,parseTree->root,"root");
-	printf("result: %s\n",result.c_str());
 	return rtcode;
 }
 
-/*int main() {
+int main() {
 	getTreeRaw("hello.oa");
 	std::cin.get();
-}*/
+}
