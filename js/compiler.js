@@ -1,23 +1,22 @@
 var tree = require('./tree-graph');
-var compilerNative = require('../build/Release/parser');
+var compilerNative = require('../build/Release/compiler');
 var fs = require('fs');
-var tokenPath = "../tokenStream";
+var tokenPath = "tokenStream.txt";
 exports.visualize = function (filename) {
 	if(filename == null||typeof filename != 'string'){
 		alert('文件名为空');
 		return;
 	}
-	alert('文件名为空');
-		return;
 	compilerNative.getTree(filename, function (err, textJson) {
-		if (err != null) {
+		if (err!= 'null') {
 			alert(err);
 			return;
 		}
+		alert(textJson);
 		tree.drawTree(textJson);
 		try {
 			fs.readFile(tokenPath, 'utf-8', function (err, content) {
-				if (err != null) {
+				if (err ) {
 					alert(err);
 				}
 				tree.showToken(content);
@@ -26,5 +25,8 @@ exports.visualize = function (filename) {
 			alert(err);
 		}
 	});
+	/*compilerNative.callback(function(result){
+		alert(result);
+	});*/
 
 }

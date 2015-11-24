@@ -1,6 +1,10 @@
 #ifndef OA_H
 #define OA_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 //expression variable type
 #define OA_INT				0
 #define OA_DOUBLE			1
@@ -25,6 +29,9 @@
 #define FUNCTION_DECLARE_NODE		12
 #define FUNCTION_DEFINE_NODE		13
 #define CLASS_METHOD_DEFINE_NODE	14
+#define BREAK_NODE					15
+#define CONTINUE_NODE				16
+#define RETURN_NODE					17
 
 //expression operator type
 #define OA_EXP_NONE		0
@@ -47,6 +54,20 @@
 #include <stdlib.h>
 #include <string.h>
 
+//---------------------parameter part---------------------
+struct FormParam{
+	char *type;
+	char *name;
+	struct FormParam *next;
+};
+struct FactParam{
+	struct Expression *exp;
+	struct FactParam *next;
+};
+struct FormParam *createFormParam(char *type, char *name);
+struct FactParam *createFactParam(struct Expression *exp);
+
+
 //---------------------expression part---------------------
 struct LeftValue{
 	char *name;
@@ -56,14 +77,6 @@ struct ArrayValue{
 	struct LeftValue *name;
 	struct Expression *index;
 };
-struct LeftValue *createLeftValue(char *name);
-
-struct FactParam{
-	struct Expression *exp;
-	struct FactParam *next;
-};
-struct FactParam *createFactParam(struct Expression *exp);
-
 struct FunctionValue{
 	struct LeftValue *name;
 	struct FactParam *factParam;
@@ -83,6 +96,7 @@ struct Expression{
 		struct FunctionValue * functionValue;
 	};
 };
+struct LeftValue *createLeftValue(char *name);
 struct Expression *createExpression(struct Expression *left, struct Expression *right, int op);
 struct Expression *createExpressionIntLeaf(int value);
 struct Expression *createExpressionDoubleLeaf(double value);
@@ -90,6 +104,9 @@ struct Expression *createExpressionCharLeaf(char value);
 struct Expression *createExpressionLeftValueLeaf(struct LeftValue *name);
 struct Expression *createExpressionArrayValue(struct LeftValue *name, struct Expression *index);
 struct Expression *createExpressionFunctionValue(struct LeftValue *name, struct FactParam *factParam);
+
+//---------------------type part---------------------
+char *createArrayType(char *type);
 
 //---------------------tree node part---------------------
 struct VarDeclareNode{
@@ -104,6 +121,7 @@ struct VarDefineNode{
 struct VarAssignNode{
 	struct LeftValue *name;
 	struct Expression *exp;
+	struct Expression *expOfVar;
 };
 struct ArrayDeclareNode{
 	char *type;
@@ -164,12 +182,16 @@ struct ClassMethodDefineNode{
 	struct FormParam *formParams;
 	struct TreeNode *stmts;
 };
+struct ReturnNode{
+	struct Expression *exp;
+};
 
 struct TreeNode {
 	int type;
 	char *str;
 	struct TreeNode *next;
 	union{
+		//[WANING] break and continue statement has no node
 		struct VarDeclareNode *varDeclareNode;
 		struct VarDefineNode *varDefineNode;
 		struct VarAssignNode *varAssignNode;
@@ -185,26 +207,17 @@ struct TreeNode {
 		struct FunctionDeclareNode *functionDeclareNode;
 		struct FunctionDefineNode *functionDefineNode;
 		struct ClassMethodDefineNode *classMethodDefineNode;
+		struct ReturnNode *returnNode;
 	};
 };
 struct ParseTree{
 	struct TreeNode *root;
 };
 
-struct ParseTree *parseTree= NULL;
-
-//---------------------parameter part---------------------
-struct FormParam{
-	char *type;
-	char *name;
-	struct FormParam *next;
-};
-struct FormParam *createFormParam(char *type, char *name);
-
 //---------------------statement part---------------------
 struct TreeNode *createVarDeclare(char *type, char *name);
 struct TreeNode *createVarDefine(char *type, char *name, struct Expression *exp);
-struct TreeNode *createVarAssign(struct LeftValue *name, struct Expression *exp);
+struct TreeNode *createVarAssign(struct LeftValue *name, struct Expression *exp, struct Expression *expOfVar);
 struct TreeNode *createArrayDeclare(char *type, char *name);
 struct TreeNode *createArrayDefine(char *type, char *name, char *type2, struct Expression *exp);
 struct TreeNode *createArrayAssign(struct LeftValue *name, char *type, struct Expression *exp);
@@ -217,15 +230,20 @@ struct TreeNode *createClassDefine(char *type, char *typeParent, struct TreeNode
 struct TreeNode *createFunctionDeclare(char *type, char *name, struct FormParam *formParams);
 struct TreeNode *createFunctionDefine(char *type, char *name, struct FormParam *formParams, struct TreeNode *stmts);
 struct TreeNode *createClassMethodDefine(char *type, char *name, struct FormParam *formParams, struct TreeNode *stmts, char *classType);
+struct TreeNode *createBreak();
+struct TreeNode *createContinue();
+struct TreeNode *createReturn(struct Expression *exp);
 
 
-//---------------------type part---------------------
-char *createArrayType(char *type);
-
-
+//-----------------token stream and AST part-----------------
+extern struct ParseTree *parseTree;
+int executeParser(const char *filename);
 //for testing
 void printJason(struct TreeNode *node);
 void printExpression(struct Expression *exp);
-int execute(const char* filename);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

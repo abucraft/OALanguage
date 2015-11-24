@@ -24,11 +24,8 @@
 			height = 800 - margin.top - margin.bottom;
 
 		var jsonobj = JSON.parse(rawText);
-		if(jsonobj.error != null){
-			alert(jsonobj.error);
-			return ;
-		}
-		alert(JSON.stringify(jsonobj));
+		//alert(rawText);
+		//alert(JSON.stringify(jsonobj));
 		tree = d3.layout.tree()
 			.size([height, width]);
 

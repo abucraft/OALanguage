@@ -1,19 +1,13 @@
 #include "oa.h"
 #include <stdio.h>
-
+FILE *tokenStream;
+struct ParseTree *parseTree;
 //---------------------expression part---------------------
 struct LeftValue *createLeftValue(char *name){
 	struct LeftValue *leftValue = (struct LeftValue*)malloc(sizeof(struct LeftValue));
 	leftValue->name = name;
 	leftValue->next = NULL;
 	return leftValue;
-}
-
-struct FactParam *createFactParam(struct Expression *exp){
-	struct FactParam *factParam = (struct FactParam*)malloc(sizeof(struct FactParam));
-	factParam->exp = exp;
-	factParam->next = NULL;
-	return factParam;
 }
 
 struct Expression *createExpression(struct Expression *left, struct Expression *right, int op){
@@ -116,12 +110,15 @@ struct TreeNode *createVarDefine(char *type, char *name, struct Expression *exp)
 	node->varDefineNode = varNode;
 	return node;
 }
-struct TreeNode *createVarAssign(struct LeftValue *name ,struct Expression *exp){
+struct TreeNode *createVarAssign(struct LeftValue *name ,struct Expression *exp, struct Expression *expOfVar){
 	//@a = 1
+	//@a[exp] = exp;
+	//exp;
 	//name is malloced by caller
 	struct VarAssignNode *varNode = (struct VarAssignNode*)malloc(sizeof(struct VarAssignNode));
 	varNode->name = name;
 	varNode->exp = exp;
+	varNode->expOfVar = expOfVar;
 	
 	struct TreeNode *node = (struct TreeNode*)malloc(sizeof(struct TreeNode));
 	node->type = VAR_ASSIGN_NODE;
@@ -256,9 +253,16 @@ struct TreeNode *createClassDefine(char *type, char *typeParent, struct TreeNode
 }
 
 struct TreeNode *createFunctionDeclare(char *type, char *name, struct FormParam *formParams){
-	//int @func(int @a, int @b)
+	//void @func(int @a, int @b)
 	struct FunctionDeclareNode *functionDeclareNode = (struct FunctionDeclareNode*)malloc(sizeof(struct FunctionDeclareNode));
-	functionDeclareNode->type = type;
+	if(type = NULL){
+		char *voidType = (char*)malloc(sizeof(char) * 5);
+		strcpy(voidType, "void");
+		voidType[4] = '\0';
+		functionDeclareNode->type = voidType;
+	}else{
+		functionDeclareNode->type = type;
+	}
 	functionDeclareNode->name = name;
 	functionDeclareNode->formParams = formParams;
 	
@@ -272,7 +276,14 @@ struct TreeNode *createFunctionDeclare(char *type, char *name, struct FormParam 
 struct TreeNode *createFunctionDefine(char *type, char *name, struct FormParam *formParams, struct TreeNode *stmts){
 	//int @func(int @a, int @b)
 	struct FunctionDefineNode *functionDefineNode = (struct FunctionDefineNode*)malloc(sizeof(struct FunctionDefineNode));
-	functionDefineNode->type = type;
+	if(type == NULL){
+		char *voidType = (char*)malloc(sizeof(char) * 5);
+		strcpy(voidType, "void");
+		voidType[4] = '\0';
+		functionDefineNode->type = voidType;
+	}else{
+		functionDefineNode->type = type;
+	}
 	functionDefineNode->name = name;
 	functionDefineNode->formParams = formParams;
 	functionDefineNode->stmts = stmts;
@@ -287,16 +298,51 @@ struct TreeNode *createFunctionDefine(char *type, char *name, struct FormParam *
 struct TreeNode *createClassMethodDefine(char *type, char *name, struct FormParam *formParams, struct TreeNode *stmts, char *classType){
 	//int #A::@func(int @a, int @b)
 	struct ClassMethodDefineNode *classMethodDefineNode = (struct ClassMethodDefineNode*)malloc(sizeof(struct ClassMethodDefineNode));
-	classMethodDefineNode->type = type;
+	
+	if(type = NULL){
+		char *voidType = (char*)malloc(sizeof(char) * 5);
+		strcpy(voidType, "void");
+		voidType[4] = '\0';
+		classMethodDefineNode->type = voidType;
+	}else{
+		classMethodDefineNode->type = type;
+	}
 	classMethodDefineNode->name = name;
 	classMethodDefineNode->formParams = formParams;
 	classMethodDefineNode->stmts = stmts;
 	classMethodDefineNode->classType = classType;
 	
 	struct TreeNode *node = (struct TreeNode*)malloc(sizeof(struct TreeNode));
-	node->type = FUNCTION_DEFINE_NODE;
+	node->type = CLASS_METHOD_DEFINE_NODE;
 	node->next = NULL;
 	node->classMethodDefineNode = classMethodDefineNode;
+	return node;
+}
+
+struct TreeNode *createBreak(){
+	//break
+	struct TreeNode *node = (struct TreeNode*)malloc(sizeof(struct TreeNode));
+	node->type = BREAK_NODE;
+	node->next = NULL;
+	return node;
+}
+struct TreeNode *createContinue(){
+	//continue
+	struct TreeNode *node = (struct TreeNode*)malloc(sizeof(struct TreeNode));
+	node->type = CONTINUE_NODE;
+	node->next = NULL;
+	return node;
+}
+struct TreeNode *createReturn(struct Expression *exp){
+	//return exp
+	//return
+	struct ReturnNode *returnNode = (struct ReturnNode*)malloc(sizeof(struct ReturnNode));
+	returnNode->exp = exp;
+	
+	struct TreeNode *node = (struct TreeNode*)malloc(sizeof(struct TreeNode));
+	node->type = RETURN_NODE;
+	node->next = NULL;
+	node->returnNode = returnNode;
 	return node;
 }
 
@@ -307,6 +353,13 @@ struct FormParam *createFormParam(char *type, char *name){
 	formParam->name = name;
 	formParam->next = NULL;
 	return formParam;
+}
+
+struct FactParam *createFactParam(struct Expression *exp){
+	struct FactParam *factParam = (struct FactParam*)malloc(sizeof(struct FactParam));
+	factParam->exp = exp;
+	factParam->next = NULL;
+	return factParam;
 }
 
 //---------------------type part---------------------
@@ -337,7 +390,7 @@ void printExpression(struct Expression *exp){
 	case OA_EXP_NONE:
 		if(exp->leafType == OA_INT) printf("%d ", exp->number_int);
 		else if(exp->leafType == OA_DOUBLE) printf("%lf ", exp->number_double);
-		else if(exp->leafType == OA_LEFT_VALUE) printf("%s ", exp->name);
+		else if(exp->leafType == OA_LEFT_VALUE) printf("%s ", exp->name->name);
 		break;
 	case OA_EXP_NOT:
 		printf("! ");
