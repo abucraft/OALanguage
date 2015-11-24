@@ -1,33 +1,94 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="utf-8">
-    <link rel="stylesheet" href="./css/oa-theme.css">
-    <link rel="stylesheet" href="./css/parser-tree.css">
-  </head>
-  <body>
-    <!-- jQuery -->
-    <ul class="operationBar">
-      <li><a class="oaBtn" href ="javascript:void(0)" onclick="drawBtnDown(this)">show tree</a></li>
-    </ul>
-    <div class="content-box" id = "id_container" >
-      <div class="straight-box" id = "id_leftPage">
-        <textarea class="oaText" id = "id_inputArea">int @a = 0</textarea>
-        <div class="oaText" id = "id_tokenStream"></div>
-      </div>
-      <div class="treeContainer" id = "id_treeContain"/>
+
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="./css/oa-theme.css">
+  <link rel="stylesheet" href="./css/parser-tree.css">
+</head>
+
+<body>
+  <!-- jQuery -->
+  <ul class="operationBar">
+    <li><a class="oaBtn" href="javascript:void(0)" onclick="openFile(this)">打开</a></li>
+    <li><a class="oaBtn" id="id_saveBtn" href="javascript:void(0)" onclick="saveFile(this)">保存</a></li>
+    <li><a class="oaBtn" href="javascript:void(0)" onclick="drawBtnDown(this)">语法树</a></li>
+  </ul>
+  <div class="content-box" id="id_container">
+    <div class="straight-box" id="id_leftPage">
+      <textarea class="oaText oaScroll" id="id_inputArea" oninput="onTextChange()" placeholder="请输入代码或打开文件"></textarea>
+      <div class="oaText oaScroll" id="id_tokenStream"></div>
     </div>
-    <script>
-      var jQuery = require('./js/jquery-1.11.3.min.js');
-      var $ = require('./js/jquery-1.11.3.min.js').$;
-    </script>
-    <script>
-      var tree = require('./js/components').treeGraph;
-      var parser = require('./build/Release/parser');
+    <div class="treeContainer oaScroll" id="id_treeContain" />
+  </div>
+  <script>
+    var jQuery = require('./js/jquery-1.11.3.min.js');
+      var $ = jQuery;
+  </script>
+  <script>
+      const remote = require('remote');
+      var compiler = require('./js/compiler');
+      var main = remote.require('./main');
+      var fs = require('fs');
+      var filepath = null;
+      var isEdit = false;
       function drawBtnDown(btn){
-        var rawText = document.getElementById('id_inputArea').value;
-        tree.drawTree(parser.getTree(rawText),'id_treeContain','id_treeGraph');
+        compiler.visualize(filepath);
       }
-    </script>
-  </body>
+      function saveFile(btn){
+        if(filepath == null){
+          main.saveDialog(function(filename){
+            try{
+              filename = filename.toString();
+              filepath = filename;
+              var content = $('#id_inputArea').val();
+              fs.writeFile(filepath,content,function(err){
+                if(err)
+                  alert(err);
+                isEdit = false;
+                $('#id_saveBtn').removeClass('oaSaveBtn').addClass('oaBtn');
+              });
+            }catch(err){
+              alert(err);
+            }
+          });
+        }else{
+          var content = $('#id_inputArea').val();
+          fs.writeFile(filepath,content,function(err){
+            if(err)
+              alert(err);
+            isEdit = false;
+            $('#id_saveBtn').removeClass('oaSaveBtn').addClass('oaBtn');
+          });
+        }
+        
+      }
+      function openFile(btn){
+        main.openDialog(function(filename){
+          try{
+          filename = filename.toString();
+          fs.readFile(filename,'utf-8',function(err,content){
+            if(err !=null){
+              alert(err);
+              return;
+            }
+            filepath = filename;
+            $('#id_inputArea').val(content);
+          });
+          }catch(err){
+            alert(err);
+          }
+        });
+      }
+      function onTextChange(){
+        if(isEdit === false){
+          isEdit = true;
+          //alert('changed');
+          $('#id_saveBtn').removeClass('oaBtn').addClass('oaSaveBtn');
+          //css('background-color','mediumslateblue');
+        }
+      }
+  </script>
+</body>
+
 </html>

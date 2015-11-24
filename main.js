@@ -1,6 +1,6 @@
 var app = require('app');  // Module to control application life.
 var BrowserWindow = require('browser-window');  // Module to create native browser window.
-
+const dialog = require('dialog');
 // Report crashes to our server.
 require('crash-reporter').start();
 
@@ -37,3 +37,19 @@ app.on('ready', function() {
     mainWindow = null;
   });
 });
+
+exports.openDialog = function(callback){
+  dialog.showOpenDialog({ properties: [ 'openFile' ]},function(filename){
+    if(callback!=null){
+      callback(filename);
+    }
+  });
+};
+
+exports.saveDialog = function(callback){
+  dialog.showSaveDialog({},function(filename){
+    if(callback!=null){
+      callback(filename);
+    }
+  });
+};

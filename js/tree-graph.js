@@ -5,10 +5,16 @@
 		duration = 750,
 		root;
 	var diagonal, svg;
+	var treeId = "id_treeGraph";
+	var containerId = "id_treeContain";
+	var tokenAreaId = "id_tokenStream";
+	function showToken(tokenStream){
+		document.getElementById(tokenAreaId).innerHTML = tokenStream;
+	}
 	/*
 	draw a parser tree in container
 	*/
-	function drawTree(rawText, containerId, treeId) {
+	function drawTree(rawText) {
 		if (tree != null) {
 			var treeGraph = document.getElementById(treeId);
 			treeGraph.parentNode.removeChild(treeGraph);
@@ -154,5 +160,6 @@
 	}
 	var treeGraph = {};
 	treeGraph.drawTree = drawTree;
+	treeGraph.showToken = showToken;
 	module.exports = treeGraph;
 } ();
