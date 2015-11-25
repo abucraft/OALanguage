@@ -62,44 +62,22 @@ outerStatements
 	;
 
 
-/*testing : all statements are outer statements*/
+
 outerStatement
 	:varDeclareStatement		SEMICOLON
 	|varDefineStatement			SEMICOLON
-	|varAssignStatement			SEMICOLON
 	|arrayDeclareStatement		SEMICOLON
 	|arrayDefineStatement		SEMICOLON
-	|arrayAssignStatement		SEMICOLON
-	|ifStatement
-	|whileStatement
-	|foreachStatement
 	|classDefineStatement 
 	|functionDeclareStatement	SEMICOLON
 	|functionDefineStatement
 	|classMethodDefineStatement
-	|breakStatement				SEMICOLON
-	|continueStatement			SEMICOLON
 	|returnStatement			SEMICOLON
 	|SEMICOLON{
 		$$ = NULL;
 	}
 	;
 
-/*outerStatement
-	:varDeclareStatement		SEMICOLON
-	|varDefineStatement			SEMICOLON
-	|arrayDeclareStatement		SEMICOLON
-	|arrayDefineStatement		SEMICOLON
-	|classDefineStatement 
-	|functionDeclareStatement	SEMICOLON
-	|functionDefineStatement
-	|classMethodDefineStatement
-	|returnStatement			SEMICOLON
-	|SEMICOLON{
-		$$ = NULL;
-	}
-	;
-*/
 functionStatements
 	:/*empty*/{
 		$$ = NULL;

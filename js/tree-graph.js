@@ -51,8 +51,8 @@
 		root.x0 = height / 2;
 		root.y0 = 0;
 
-		root.children.forEach(collapse);
-		update(root);
+		//root.children.forEach(collapse);
+		//update(root);
 
 		function collapse(d) {
 			if (d.children) {

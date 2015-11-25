@@ -9,7 +9,6 @@ class #Arrarysort extends #Array{
 }
 
 
-
 void #Arrarysort::@Qsort() {
 	if(@low >= @high) { 
 		return;
