@@ -1,5 +1,9 @@
 ###OALanguage Compiler and Shell
-编译原理的大作业---自定义强类型语言OALanguage
+编译原理的大作业---自定义强类型语言OALanguage  
+目前做到显示语法树和token stream  
+
+using lex & yacc  
+gui using electron
 
 usage
 ```
