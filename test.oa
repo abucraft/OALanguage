@@ -1,7 +1,7 @@
 class #Array{
 	int[] @a;
 	int @low;
-	int @high;
+        int @high;
 }
 
 class #Arrarysort extends #Array{

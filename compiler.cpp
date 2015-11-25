@@ -22,6 +22,7 @@ namespace OAparser{
 	void getTree(const FunctionCallbackInfo<Value>& args){
 		Isolate* isolate = args.GetIsolate();
 		std::string _result;
+		result = "";
 		Local<Function> cb = Local<Function>::Cast(args[1]);
 		const unsigned argc = 2;
 		if(args.Length() < 1){

@@ -8,22 +8,36 @@
 	var treeId = "id_treeGraph";
 	var containerId = "id_treeContain";
 	var tokenAreaId = "id_tokenStream";
+	var depth = 0;
+	var treeSpace = 500;
+	var treeWidth = 1600;
+	var treeHeight = 1600;
 	function showToken(tokenStream){
 		document.getElementById(tokenAreaId).innerHTML = tokenStream;
 	}
+	
+	function depthOfJson(tmpDepth,json){
+		if(tmpDepth > depth)
+			depth = tmpDepth;
+		if(json.children!=null){
+			var childlist= json.children;
+			for(i=0;i<childlist.length;i++){
+				depthOfJson(tmpDepth +1,childlist[i]);
+			}
+		}
+	}
+	
 	/*
 	draw a parser tree in container
 	*/
 	function drawTree(rawText) {
+		depth = 0;
 		if (tree != null) {
 			var treeGraph = document.getElementById(treeId);
 			if(treeGraph!=null){
 				treeGraph.parentNode.removeChild(treeGraph);
 			}
 		}
-		var margin = { top: 20, right: 120, bottom: 20, left: 120 },
-			width = 960 - margin.right - margin.left,
-			height = 800 - margin.top - margin.bottom;
 
 		try{
 			alert(rawText);
@@ -32,6 +46,12 @@
 			alert('json parse:'+err);
 			return;
 		}
+		depthOfJson(0,jsonobj);
+		treeWidth = treeSpace*depth;
+		treeHeight= treeWidth;
+		var margin = { top: 20, right: 120, bottom: 20, left: 120 },
+			width = treeWidth - margin.right - margin.left,
+			height = treeHeight - margin.top - margin.bottom;
 		//alert(rawText);
 		//alert(JSON.stringify(jsonobj));
 		tree = d3.layout.tree()
@@ -52,7 +72,7 @@
 		root.y0 = 0;
 
 		//root.children.forEach(collapse);
-		//update(root);
+		update(root);
 
 		function collapse(d) {
 			if (d.children) {
