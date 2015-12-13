@@ -54,6 +54,7 @@ extern "C" {
 #include <stdlib.h>
 #include <string.h>
 
+//------------------word and syntax part------------------
 //---------------------parameter part---------------------
 struct FormParam{
 	char *type;
@@ -66,7 +67,7 @@ struct FactParam{
 };
 struct FormParam *createFormParam(char *type, char *name);
 struct FactParam *createFactParam(struct Expression *exp);
-
+//-------------------end parameter part--------------------
 
 //---------------------expression part---------------------
 struct LeftValue{
@@ -105,10 +106,9 @@ struct Expression *createExpressionLeftValueLeaf(struct LeftValue *name);
 struct Expression *createExpressionArrayValue(struct LeftValue *name, struct Expression *index);
 struct Expression *createExpressionFunctionValue(struct LeftValue *name, struct FactParam *factParam);
 
-//---------------------type part---------------------
-char *createArrayType(char *type);
+//-----------------end expression part-----------------
 
-//---------------------tree node part---------------------
+//------------------ statement part---------------------
 struct VarDeclareNode{
 	char *type;
 	char *name;
@@ -214,7 +214,7 @@ struct ParseTree{
 	struct TreeNode *root;
 };
 
-//---------------------statement part---------------------
+char *createArrayType(char *type);
 struct TreeNode *createVarDeclare(char *type, char *name);
 struct TreeNode *createVarDefine(char *type, char *name, struct Expression *exp);
 struct TreeNode *createVarAssign(struct LeftValue *name, struct Expression *exp, struct Expression *expOfVar);
@@ -233,14 +233,50 @@ struct TreeNode *createClassMethodDefine(char *type, char *name, struct FormPara
 struct TreeNode *createBreak();
 struct TreeNode *createContinue();
 struct TreeNode *createReturn(struct Expression *exp);
+//-------------------end statement part-------------------
+//----------------end word and syntax part----------------
 
 
-//-----------------token stream and AST part-----------------
+//--------------------parase tree part--------------------
+//---------------------tree node part---------------------
+void parseNodeList(std::string &result, struct TreeNode* seg, std::string name);
+void parseTreeNode(std::string &result, struct TreeNode *seg);
+void parseVarDeclareNode(std::string &result, struct VarDeclareNode *seg);
+void parseVarDefineNode(std::string &result, struct VarDefineNode *seg);
+void parseVarAssignNode(std::string &result, struct VarAssignNode *seg);
+void parseArrayDeclareNode(std::string &result, struct ArrayDeclareNode *seg);
+void parseArrayDefineNode(std::string &result, struct ArrayDefineNode *seg);
+void parseArrayAssignNode(std::string &result, struct ArrayAssignNode *seg);
+void parseIfNode(std::string &result, struct IfNode *seg);
+void parseElifNode(std::string &result, struct ElifNode *seg);
+void parseElseNode(std::string &result, struct ElseNode *seg);
+void parseWhileNode(std::string &result, struct WhileNode *seg);
+void parseForeachNode(std::string &result, struct ForeachNode *seg);
+void parseClassDefineNode(std::string &result, struct ClassDefineNode *seg);
+void parseFunctionDeclareNode(std::string &result, struct FunctionDeclareNode *seg);
+void parseFunctionDefineNode(std::string &result, struct FunctionDefineNode *seg);
+void parseClassMethodDefineNode(std::string &result, struct ClassMethodDefineNode *seg);
+void parseBreakNode(std::string &result);
+void parseContinueNode(std::string &result);
+void parseReturnNode(std::string &result, struct ReturnNode *seg);
+//--------------------end tree node part------------------
+//---------------------expression part--------------------
+void parseExpression(std::string& result, struct Expression* seg);
+void parseLeftValue(std::string&result, struct LeftValue* seg);
+void parseArrayValue(std::string&result, struct ArrayValue* seg);
+void parseFunctionValue(std::string&result, struct FunctionValue* seg);
+//-------------------end expression part------------------
+//---------------------parameter part---------------------
+void parseFormParam(std::string&result,FormParam*seg);
+void parseFactParam(std::string&result, struct FactParam* seg);
+//-------------------end parameter part-------------------
+//------------------end parase tree part------------------
+
+//-------------helper variables and functions-------------
 extern struct ParseTree *parseTree;
-int executeParser(const char *filename);
-//for testing
 void printJason(struct TreeNode *node);
 void printExpression(struct Expression *exp);
+int executeParser(const char *filename);
 
 #ifdef __cplusplus
 }
