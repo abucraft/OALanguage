@@ -4,6 +4,7 @@
 #include <sstream>
 #include <vector>
 #include <stdlib.h>
+#include <map>
 #define N_INT_CHAR 11
 
 std::string result;
@@ -36,6 +37,30 @@ struct OaVar* getVar(std::string varName);
 struct OaArray* getArray(std::string arrayName);
 void addVar(struct OaVar* oaVar);
 void addArray(struct OaArray* oaArray);
+struct OaFunction {
+	std::string name;
+	std::string type;
+	std::string className;
+	FormParam *params;
+};
+
+struct OaClassMember {
+	std::string name;
+	int isFunc;
+	std::string type;
+	FormParam *params;
+};
+
+struct OaClass {
+	std::string name;
+	std::string parent;
+	std::map<std::string, OaClassMember> members;
+};
+
+std::map<std::string, OaFunction> oaFunctions;
+std::map<std::string, OaClass> oaClasses;
+
+std::string classNow = "";
 //--------------------------------------
 //---------------------tree node part---------------------
 void parseNodeList(std::string &result, struct TreeNode* seg, std::string name);
@@ -77,17 +102,17 @@ void parseFactParam(std::string&result, struct FactParam* seg);
 
 //---------------------tree node part---------------------
 void parseNodeList(std::string& result, TreeNode* seg, std::string name) {
-	result += "{\"name\":\"";
-	result += name;
-	result += "\",\"children\":[\n";
+	//result += "{\"name\":\"";
+	//result += name;
+	//result += "\",\"children\":[\n";
 	while (seg != NULL) {
 		parseTreeNode(result, seg);
 		if (seg->next != NULL) {
-			result += ",\n";
+			//result += ",\n";
 		}
 		seg = seg->next;
 	}
-	result += "]}";
+	//result += "]}";
 }
 
 void parseTreeNode(std::string& result, TreeNode* seg) {
@@ -183,7 +208,7 @@ void parseVarDeclareNode(std::string& result, struct VarDeclareNode* seg) {
 		temVar->align = 8;
 	}
 	addVar(temVar);
-	result += "%" + temVar->name + " ";
+	result += temVar->name + " ";
 	result += "= " + std::string("alloca " + temVar->type + ", ");
 	result += std::string("align ") + myItoa(temVar->align) + endLine;
 	//----------------------------------------------------------
@@ -468,23 +493,27 @@ void parseForeachNode(std::string &result, ForeachNode *seg) {
 	result += "]}";
 }
 
+//[TODO] variable declare in class
 void parseClassDefineNode(std::string&result, struct ClassDefineNode *seg) {
 	if (seg == NULL) {
 		return;
 	}
-	char numStr[N_INT_CHAR];
-	sprintf(numStr, "%d", ++lineno);
-
-	result += "{\"name\":\"" + std::string(numStr) + ": class define\",\"children\":[";
-	result += "{\"name\":\"" + std::string(seg->type) + "\"}";
+	classNow = seg->type;
+	OaClass oaclass;
+	oaclass.name = classNow;
 	if (seg->typeParent) {
-		result += ",{\"name\":\"parent: " + std::string(seg->typeParent) + "\"}";
+		oaclass.parent = std::string(seg->typeParent);
 	}
-	if (seg->stmts) {
-		result += ",";
-		parseNodeList(result, seg->stmts, "stmts");
+	else {
+		oaclass.parent = "";
 	}
-	result += "]}";
+	result += "%class." + oaclass.name + " = type { ";
+	//parseNodeList(result, seg->stmts, "stmts");
+	result += "}\n";
+
+
+	oaClasses.insert(std::pair<std::string, OaClass>(oaclass.name, oaclass));
+	classNow = "";
 }
 
 void parseFunctionDeclareNode(std::string&result, FunctionDeclareNode*seg) {
@@ -508,22 +537,30 @@ void parseFunctionDeclareNode(std::string&result, FunctionDeclareNode*seg) {
 	result += "]}";
 }
 
+
+
 void parseFunctionDefineNode(std::string&result, FunctionDefineNode*seg) {
 	if (seg == NULL) {
 		return;
 	}
+	OaFunction oafunc;
+	oafunc.className = classNow;
 	//define
 	result += "define ";
 	//return type
 	if (seg->type) {
-		result += std::string(seg->type);
+		oafunc.type = std::string(seg->type);
 	}
 	else {
-		result += "void";
+		oafunc.type = "void";
 	}
+	result += oafunc.type;
+
 	//function name
-	result += " @";
-	result += std::string(seg->name);
+	result += " ";
+	oafunc.name = std::string(seg->name);
+	result += oafunc.name;
+
 	//parameters
 	result += '(';
 	parseFormParam(result, seg->formParams);
@@ -534,6 +571,8 @@ void parseFunctionDefineNode(std::string&result, FunctionDefineNode*seg) {
 		parseNodeList(result, seg->stmts, "stmts");
 	}
 	result += '}';
+	oafunc.params = seg->formParams;
+	oaFunctions.insert(std::pair<std::string, OaFunction>(oafunc.className + oafunc.name, oafunc));
 }
 
 void parseClassMethodDefineNode(std::string&result, ClassMethodDefineNode*seg) {
@@ -829,7 +868,7 @@ void parseFormParam(std::string&result, FormParam*seg) {
 	while (seg != NULL) {
 		result += std::string(seg->type);
 		result += " %";
-		result += std::string(seg->name);
+		result += std::string(seg->name).substr(1);
 		if (seg->next != NULL) {
 			result += ", ";
 		}
