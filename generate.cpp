@@ -10,6 +10,8 @@
 std::string result;
 struct ParseTree *parseTree;
 static int lineno;
+static bool compilePass = true;
+static std::string compileLog = "";
 
 //Added by @Xie LW----------------------
 static int temVarNo;
@@ -187,8 +189,9 @@ void parseVarDeclareNode(std::string& result, struct VarDeclareNode* seg) {
 	if (seg == NULL) {
 		return;
 	}
-	char numStr[N_INT_CHAR];
-	sprintf(numStr, "%d", ++lineno);
+	lineno++;
+	/*char numStr[N_INT_CHAR];
+	sprintf(numStr, "%d", ++lineno);*/
 
 	/*result += "{\"name\":\"" + std::string(numStr) + ": var declare\",\"children\":[";
 	result += "{\"name\":\"" + std::string(seg->type) + "\"},";
@@ -197,6 +200,12 @@ void parseVarDeclareNode(std::string& result, struct VarDeclareNode* seg) {
 
 	//Modified by @Xie LW--------------------------------------
 	struct OaVar *temVar = new struct OaVar;
+	if (getVar("%" + reduceAt(std::string(seg->name))) != NULL) {
+		compilePass = false;
+		compileLog += "Error[Line " + myItoa(lineno) + "]: ";
+		compileLog += "Already Declared Identifier" + endLine;
+		return;
+	}
 	temVar->name = "%"+reduceAt(std::string(seg->name));
 	if (seg->type == std::string("int")) {
 		temVar->type = "i32";
@@ -230,8 +239,14 @@ void parseVarDefineNode(std::string& result, VarDefineNode* seg) {
 	parseExpression(result, seg->exp);
 	result += "\"}]}";
 	result += "]}";*/
-
+	lineno++;
 	//Modified by @Xie LW
+	if (getVar("%" + reduceAt(std::string(seg->name))) != NULL) {
+		compilePass = false;
+		compileLog += "Error[Line " + myItoa(lineno) + "]: ";
+		compileLog += "Already Declared Identifier" + endLine;
+		return;
+	}
 	struct OaVar *temVar = new struct OaVar;
 	temVar->name = "%" + reduceAt(std::string(seg->name));
 	if (seg->type == std::string("int")) {
@@ -280,9 +295,24 @@ void parseVarAssignNode(std::string& result, VarAssignNode* seg) {
 	parseExpression(result, seg->exp);
 	result += "\"}]}";
 	result += "]}";*/
+	std::string temName;
+	LeftValue* temLv = seg->name;
+	while (temLv != NULL) {
+		temName += reduceAt(temLv->name);
+		if (temLv->next != NULL) {
+			temName += '.';
+		}
+		temLv = temLv->next;
+	}
+	if (getVar("%" + temName) == NULL) {
+		compilePass = false;
+		compileLog += "Error[Line " + myItoa(lineno) + "]: ";
+		compileLog += "Undeclared Identifier" + endLine;
+		return;
+	}
 	struct OaVar *temVar = new struct OaVar;
 	if (seg->expOfVar != NULL) {
-		struct OaArray* temArray = getArray("%" + reduceAt(seg->name->name));
+		struct OaArray* temArray = getArray("%" + temName);
 		if (temArray != NULL) {
 			struct OaVar* idxVar = parseExpression(result, seg->expOfVar);
 			result += "%" + myItoa(temVarNo++) + " = ";
@@ -296,7 +326,7 @@ void parseVarAssignNode(std::string& result, VarAssignNode* seg) {
 		}
 	}
 	else
-		temVar = getVar("%" + reduceAt(seg->name->name));
+		temVar = getVar("%" + temName);
 	if (temVar != NULL) {
 		struct OaVar* refVar = parseExpression(result, seg->exp);
 		result += "store " + temVar->type + " ";
@@ -357,7 +387,6 @@ void parseArrayDefineNode(std::string&result, ArrayDefineNode*seg) {
 	result += "]}";*/
 	struct OaArray *temArray = new struct OaArray;
 	temArray->name = "%" + reduceAt(std::string(seg->name));
-	//std::cout << "Debug: " << seg->type << std::endl;
 	if (seg->type == std::string("int[]")) {
 		temArray->type = "i32*";
 		temArray->align = 4;
@@ -586,6 +615,7 @@ void parseFunctionDefineNode(std::string&result, FunctionDefineNode*seg) {
 	if (seg == NULL) {
 		return;
 	}
+	lineno++;
 	OaFunction oafunc;
 	oafunc.className = classNow;
 	//define
@@ -950,6 +980,8 @@ std::string myDtoa(std::string num_s) {
 	return myDtoa(num);
 }
 struct OaVar* getVar(std::string varName) {
+	if (allVars.size() == 0)
+		return NULL;
 	for (int i = 0; i < allVars.size(); i++) {
 		if (allVars[i]->name == varName)
 			return allVars[i];
@@ -957,10 +989,13 @@ struct OaVar* getVar(std::string varName) {
 	return NULL;
 }
 struct OaArray* getArray(std::string arrayName) {
+	if (allArrays.size() == 0)
+		return NULL;
 	for (int i = 0; i < allArrays.size(); i++) {
 		if (allArrays[i]->name == arrayName)
 			return allArrays[i];
 	}
+	return NULL;
 }
 std::string reduceAt(std::string varName) {
 	if (varName[0] == '@')
@@ -1006,6 +1041,9 @@ int getTreeRaw(const char* filename) {
 
 int main() {
 	getTreeRaw("hello.oa");
-	std::cout << result << std::endl;
+	if (compilePass)
+		std::cout << result << std::endl;
+	else
+		std::cout << compileLog << std::endl;
 	std::cin.get();
 }
