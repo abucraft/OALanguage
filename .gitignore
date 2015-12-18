@@ -2,4 +2,5 @@ build
 vs
 node_modules
 .vscode
+$.o
 debug*

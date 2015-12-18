@@ -57,6 +57,9 @@ struct OaClass {
 	std::map<std::string, OaClassMember> members;
 };
 
+int OaIfIdx = 0;
+int OaCmpIdx = 0;
+
 std::map<std::string, OaFunction> oaFunctions;
 std::map<std::string, OaClass> oaClasses;
 
@@ -409,7 +412,34 @@ void parseIfNode(std::string&result, IfNode*seg) {
 	if (seg == NULL) {
 		return;
 	}
-	char numStr[N_INT_CHAR];
+	char ifIdx[25];
+	char cmpIdx[25];
+	itoa(OaIfIdx,ifIdx,10);
+	itoa(OaCmpIdx,cmpIdx,10);
+	std::string cmpLabel = std::string("%cmp")+cmpIdx;
+	std::string ifLabel= std::string("if.then.")+ifIdx;
+	std::string nextLabel;
+	if(seg->elseStmts!=NULL||seg->elifStmts!=NULL){
+		nextLabel = std::string("if.else.")+ifIdx;
+	}else{
+		nextLabel = std::string("if.end.")+ifIdx;
+	}
+	parseExpression(result, seg->exp);
+	OaCmpIdx++;
+	OaIfIdx++;
+	result+=std::string("  br i1 ")+cmpLabel+','+" label %"+ifLabel+','+" label %"+nextLabel+'\n';
+	result+=ifLabel+":\n";
+	parseNodeList(result,seg->stmts,ifLabel);
+	result+=nextLabel+":\n";
+	struct TreeNode *tmp= seg->elifStmts;
+	while(tmp!=NULL){
+		parseTreeNode(result,seg->elifStmts);
+		tmp = tmp->next;
+	}
+	if(seg->elseStmts){
+		parseTreeNode(result,seg->elseStmts);
+	}
+	/*char numStr[N_INT_CHAR];
 	sprintf(numStr, "%d", ++lineno);
 	result += "{\"name\":\"" + std::string(numStr) + ": if node\",\"children\":[";
 	result += "{\"name\":\"condition\",\"children\":[{\"name\":\"";
@@ -433,29 +463,42 @@ void parseIfNode(std::string&result, IfNode*seg) {
 		parseTreeNode(result, seg->elseStmts);
 		result += "]}";
 	}
-	result += "]}";
+	result += "]}";*/
 }
 
 void parseElifNode(std::string&result, ElifNode*seg) {
 	if (seg == NULL) {
 		return;
 	}
-
-	result += "{\"name\":\"condition\",\"children\":[{\"name\":\"";
+	char ifIdx[25];
+	char cmpIdx[25];
+	itoa(OaIfIdx,ifIdx,10);
+	itoa(OaCmpIdx,cmpIdx,10);
+	std::string cmpLabel = std::string("%cmp")+cmpIdx;
+	std::string ifLabel= std::string("if.then.")+ifIdx;
+	std::string nextLabel = std::string("if.else.")+ifIdx;
+	parseExpression(result, seg->exp);
+	OaCmpIdx++;
+	OaIfIdx++;
+	result+=std::string("  br i1 ")+cmpLabel+','+" label %"+ifLabel+','+" label %"+nextLabel+'\n';
+	result+=ifLabel+":\n";
+	parseNodeList(result,seg->stmts,ifLabel);
+	result+=nextLabel+":\n";
+	/*result += "{\"name\":\"condition\",\"children\":[{\"name\":\"";
 	parseExpression(result, seg->exp);
 	result += "\"}]}";
 	if (seg->stmts) {
 		result += ",";
 		parseNodeList(result, seg->stmts, "elif_stmts");
-	}
+	}*/
 }
 
 void parseElseNode(std::string&result, ElseNode*seg) {
 	if (seg == NULL) {
 		return;
 	}
-
-	parseNodeList(result, seg->stmts, "else_stmts");
+	parseTreeNode(result, seg->stmts);
+	//parseNodeList(result, seg->stmts, "else_stmts");
 }
 
 void parseWhileNode(std::string&result, WhileNode*seg) {
@@ -825,7 +868,7 @@ struct OaVar* parseLeftValue(std::string&result, LeftValue* seg) {
 	struct OaVar* refVar = getVar("%"+reduceAt(temName));
 	if (refVar != NULL) {
 		struct OaVar* temVar = new struct OaVar;
-		temVar->name = "%" + myItoa(temVarNo++); 
+		temVar->name = "%" + myItoa(temVarNo++);
 		temVar->align = refVar->align;
 		temVar->type = refVar->type;
 		result += temVar->name + " = ";
@@ -920,7 +963,7 @@ struct OaArray* getArray(std::string arrayName) {
 	}
 }
 std::string reduceAt(std::string varName) {
-	if (varName[0] == '@') 
+	if (varName[0] == '@')
 		varName.erase(varName.begin());
 	return varName;
 }
