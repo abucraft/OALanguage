@@ -187,8 +187,9 @@ void parseVarDeclareNode(std::string& result, struct VarDeclareNode* seg) {
 	if (seg == NULL) {
 		return;
 	}
-	char numStr[N_INT_CHAR];
-	sprintf(numStr, "%d", ++lineno);
+	lineno++;
+	/*char numStr[N_INT_CHAR];
+	sprintf(numStr, "%d", ++lineno);*/
 
 	/*result += "{\"name\":\"" + std::string(numStr) + ": var declare\",\"children\":[";
 	result += "{\"name\":\"" + std::string(seg->type) + "\"},";
@@ -197,6 +198,12 @@ void parseVarDeclareNode(std::string& result, struct VarDeclareNode* seg) {
 
 	//Modified by @Xie LW--------------------------------------
 	struct OaVar *temVar = new struct OaVar;
+	if (getVar("%" + reduceAt(std::string(seg->name))) != NULL) {
+		compilePass = false;
+		compileLog += "Error[Line " + myItoa(lineno) + "]: ";
+		compileLog += "Already Declared Identifier" + endLine;
+		return;
+	}
 	temVar->name = "%"+reduceAt(std::string(seg->name));
 	if (seg->type == std::string("int")) {
 		temVar->type = "i32";
@@ -230,8 +237,14 @@ void parseVarDefineNode(std::string& result, VarDefineNode* seg) {
 	parseExpression(result, seg->exp);
 	result += "\"}]}";
 	result += "]}";*/
-
+	lineno++;
 	//Modified by @Xie LW
+	if (getVar("%" + reduceAt(std::string(seg->name))) != NULL) {
+		compilePass = false;
+		compileLog += "Error[Line " + myItoa(lineno) + "]: ";
+		compileLog += "Already Declared Identifier" + endLine;
+		return;
+	}
 	struct OaVar *temVar = new struct OaVar;
 	temVar->name = "%" + reduceAt(std::string(seg->name));
 	if (seg->type == std::string("int")) {
@@ -280,9 +293,30 @@ void parseVarAssignNode(std::string& result, VarAssignNode* seg) {
 	parseExpression(result, seg->exp);
 	result += "\"}]}";
 	result += "]}";*/
+	std::string temName;
+	LeftValue* temLv = seg->name;
+	while (temLv != NULL) {
+		temName += reduceAt(temLv->name);
+		if (temLv->next != NULL) {
+			temName += '.';
+		}
+		temLv = temLv->next;
+	}
+	if (temName == "") {
+		compilePass = false;
+		compileLog += "Error[Line " + myItoa(lineno) + "]: ";
+		compileLog += "Lack of LeftValue" + endLine;
+		return;
+	}
+	if (getVar("%" + temName) == NULL) {
+		compilePass = false;
+		compileLog += "Error[Line " + myItoa(lineno) + "]: ";
+		compileLog += "Undeclared Identifier" + endLine;
+		return;
+	}
 	struct OaVar *temVar = new struct OaVar;
 	if (seg->expOfVar != NULL) {
-		struct OaArray* temArray = getArray("%" + reduceAt(seg->name->name));
+		struct OaArray* temArray = getArray("%" + temName);
 		if (temArray != NULL) {
 			struct OaVar* idxVar = parseExpression(result, seg->expOfVar);
 			result += "%" + myItoa(temVarNo++) + " = ";
@@ -296,7 +330,7 @@ void parseVarAssignNode(std::string& result, VarAssignNode* seg) {
 		}
 	}
 	else
-		temVar = getVar("%" + reduceAt(seg->name->name));
+		temVar = getVar("%" + temName);
 	if (temVar != NULL) {
 		struct OaVar* refVar = parseExpression(result, seg->exp);
 		result += "store " + temVar->type + " ";
@@ -755,11 +789,27 @@ struct OaVar* parseExpression(std::string &result, Expression* seg) {
 		return temVar;
 		break;
 	}
-	case OA_EXP_DIVIDE:
-		parseExpression(result, seg->left);
+	case OA_EXP_DIVIDE: {
+		/*parseExpression(result, seg->left);
 		result += " / ";
-		parseExpression(result, seg->right);
+		parseExpression(result, seg->right);*/
+		//Added by @Xie LW
+		struct OaVar*  leftVar = parseExpression(result, seg->left);
+		struct OaVar* rightVar = parseExpression(result, seg->right);
+		struct OaVar*   temVar = new struct OaVar;
+		temVar->name = "%" + myItoa(temVarNo++);
+		result += temVar->name + " = ";
+		if (leftVar->type == "double")
+			result += "fdiv ";
+		if (leftVar->type == "i32" || leftVar->type == "i8")
+			result += "sdiv ";
+		result += leftVar->type + " ";
+		result += leftVar->name + ", " + rightVar->name + endLine;
+		temVar->type = leftVar->type;
+		temVar->align = leftVar->align;
+		return temVar;
 		break;
+	}
 	case OA_EXP_PLUS: {
 		/*parseExpression(result, seg->left);
 		result += " + ";
