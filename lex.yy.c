@@ -1092,7 +1092,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 61:
 YY_RULE_SETUP
-#line 132 "oa.l"
+#line 130 "oa.l"
 ECHO;
 	YY_BREAK
 #line 1099 "lex.yy.c"
@@ -1981,17 +1981,4 @@ int main()
 	return 0;
 	}
 #endif
-#line 132 "oa.l"
-
-
-
-
-
-
-
-
-
-
-
-
-
+#line 130 "oa.l"

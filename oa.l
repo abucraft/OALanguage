@@ -127,18 +127,4 @@ int yywrap(void){
 	extern FILE *tokenStream; fprintf(tokenStream, "%s ", yytext); 
     return CLASS_IDENTIFIER;
 }
-
-
 %%
-
-
-
-
-
-
-
-
-
-
-
-
