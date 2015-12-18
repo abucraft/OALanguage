@@ -107,6 +107,8 @@ struct TreeNode *createVarDefine(char *type, char *name, struct Expression *exp)
 	varNode->exp = exp;
 
 	struct TreeNode *node = (struct TreeNode*)malloc(sizeof(struct TreeNode));
+	extern int yylineno;
+	node->lineno = yylineno;
 	node->type = VAR_DEFINE_NODE;
 	node->next = NULL;
 	node->varDefineNode = varNode;
@@ -123,6 +125,8 @@ struct TreeNode *createVarAssign(struct LeftValue *name, struct Expression *exp,
 	varNode->expOfVar = expOfVar;
 
 	struct TreeNode *node = (struct TreeNode*)malloc(sizeof(struct TreeNode));
+	extern int yylineno;
+	node->lineno = yylineno;
 	node->type = VAR_ASSIGN_NODE;
 	node->next = NULL;
 	node->varAssignNode = varNode;
@@ -136,6 +140,8 @@ struct TreeNode *createArrayDeclare(char *type, char *name) {
 	varNode->name = name;
 
 	struct TreeNode *node = (struct TreeNode*)malloc(sizeof(struct TreeNode));
+	extern int yylineno;
+	node->lineno = yylineno;
 	node->type = ARRAY_DECLARE_NODE;
 	node->next = NULL;
 	node->arrayDeclareNode = varNode;
@@ -154,6 +160,8 @@ struct TreeNode *createArrayDefine(char *type, char *name, char *type2, struct E
 	varNode->exp = exp;
 
 	struct TreeNode *node = (struct TreeNode*)malloc(sizeof(struct TreeNode));
+	extern int yylineno;
+	node->lineno = yylineno;
 	node->type = ARRAY_DEFINE_NODE;
 	node->next = NULL;
 	node->arrayDefineNode = varNode;
@@ -168,6 +176,8 @@ struct TreeNode *createArrayAssign(struct LeftValue *name, char *type, struct Ex
 	varNode->exp = exp;
 
 	struct TreeNode *node = (struct TreeNode*)malloc(sizeof(struct TreeNode));
+	extern int yylineno;
+	node->lineno = yylineno;
 	node->type = ARRAY_ASSIGN_NODE;
 	node->next = NULL;
 	node->arrayAssignNode = varNode;
@@ -183,6 +193,8 @@ struct TreeNode *createIf(struct Expression *exp, struct TreeNode *stmts, struct
 	ifNode->elseStmts = elseStmts;
 
 	struct TreeNode *node = (struct TreeNode*)malloc(sizeof(struct TreeNode));
+	extern int yylineno;
+	node->lineno = yylineno;
 	node->type = IF_NODE;
 	node->next = NULL;
 	node->ifNode = ifNode;
@@ -195,6 +207,8 @@ struct TreeNode *createElifPart(struct Expression *exp, struct TreeNode *stmts) 
 	elifNode->stmts = stmts;
 
 	struct TreeNode *node = (struct TreeNode*)malloc(sizeof(struct TreeNode));
+	extern int yylineno;
+	node->lineno = yylineno;
 	node->type = ELIF_NODE;
 	node->next = NULL;
 	node->elifNode = elifNode;
@@ -206,12 +220,13 @@ struct TreeNode *createElsePart(struct TreeNode *stmts) {
 	elseNode->stmts = stmts;
 
 	struct TreeNode *node = (struct TreeNode*)malloc(sizeof(struct TreeNode));
+	extern int yylineno;
+	node->lineno = yylineno;
 	node->type = ELSE_NODE;
 	node->next = NULL;
 	node->elseNode = elseNode;
 	return node;
 }
-
 struct TreeNode *createWhile(struct Expression *exp, struct TreeNode *stmts) {
 	//while(exp)
 	struct WhileNode *whileNode = (struct WhileNode*)malloc(sizeof(struct WhileNode));
@@ -219,12 +234,13 @@ struct TreeNode *createWhile(struct Expression *exp, struct TreeNode *stmts) {
 	whileNode->stmts = stmts;
 
 	struct TreeNode *node = (struct TreeNode*)malloc(sizeof(struct TreeNode));
+	extern int yylineno;
+	node->lineno = yylineno;
 	node->type = WHILE_NODE;
 	node->next = NULL;
 	node->whileNode = whileNode;
 	return node;
 }
-
 struct TreeNode *createForeach(char *nameIn, char*nameOut, struct TreeNode *stmts) {
 	//foreach(@a in @aa){stmts}
 	struct ForeachNode *foreachNode = (struct ForeachNode*)malloc(sizeof(struct ForeachNode));
@@ -233,12 +249,13 @@ struct TreeNode *createForeach(char *nameIn, char*nameOut, struct TreeNode *stmt
 	foreachNode->stmts = stmts;
 
 	struct TreeNode *node = (struct TreeNode*)malloc(sizeof(struct TreeNode));
+	extern int yylineno;
+	node->lineno = yylineno;
 	node->type = FOREACH_NODE;
 	node->next = NULL;
 	node->foreachNode = foreachNode;
 	return node;
 }
-
 struct TreeNode *createClassDefine(char *type, char *typeParent, struct TreeNode *stmts) {
 	//class A {stmts}
 	//class A extends AA{stmts}
@@ -248,12 +265,13 @@ struct TreeNode *createClassDefine(char *type, char *typeParent, struct TreeNode
 	classDefineNode->stmts = stmts;
 
 	struct TreeNode *node = (struct TreeNode*)malloc(sizeof(struct TreeNode));
+	extern int yylineno;
+	node->lineno = yylineno;
 	node->type = CLASS_DEFINE_NODE;
 	node->next = NULL;
 	node->classDefineNode = classDefineNode;
 	return node;
 }
-
 struct TreeNode *createFunctionDeclare(char *type, char *name, struct FormParam *formParams) {
 	//void @func(int @a, int @b)
 	struct FunctionDeclareNode *functionDeclareNode = (struct FunctionDeclareNode*)malloc(sizeof(struct FunctionDeclareNode));
@@ -270,12 +288,13 @@ struct TreeNode *createFunctionDeclare(char *type, char *name, struct FormParam 
 	functionDeclareNode->formParams = formParams;
 
 	struct TreeNode *node = (struct TreeNode*)malloc(sizeof(struct TreeNode));
+	extern int yylineno;
+	node->lineno = yylineno;
 	node->type = FUNCTION_DECLARE_NODE;
 	node->next = NULL;
 	node->functionDeclareNode = functionDeclareNode;
 	return node;
 }
-
 struct TreeNode *createFunctionDefine(char *type, char *name, struct FormParam *formParams, struct TreeNode *stmts) {
 	//int @func(int @a, int @b)
 	struct FunctionDefineNode *functionDefineNode = (struct FunctionDefineNode*)malloc(sizeof(struct FunctionDefineNode));
@@ -293,12 +312,13 @@ struct TreeNode *createFunctionDefine(char *type, char *name, struct FormParam *
 	functionDefineNode->stmts = stmts;
 
 	struct TreeNode *node = (struct TreeNode*)malloc(sizeof(struct TreeNode));
+	extern int yylineno;
+	node->lineno = yylineno;
 	node->type = FUNCTION_DEFINE_NODE;
 	node->next = NULL;
 	node->functionDefineNode = functionDefineNode;
 	return node;
 }
-
 struct TreeNode *createClassMethodDefine(char *type, char *name, struct FormParam *formParams, struct TreeNode *stmts, char *classType) {
 	//int #A::@func(int @a, int @b)
 	struct ClassMethodDefineNode *classMethodDefineNode = (struct ClassMethodDefineNode*)malloc(sizeof(struct ClassMethodDefineNode));
@@ -318,15 +338,18 @@ struct TreeNode *createClassMethodDefine(char *type, char *name, struct FormPara
 	classMethodDefineNode->classType = classType;
 
 	struct TreeNode *node = (struct TreeNode*)malloc(sizeof(struct TreeNode));
+	extern int yylineno;
+	node->lineno = yylineno;
 	node->type = CLASS_METHOD_DEFINE_NODE;
 	node->next = NULL;
 	node->classMethodDefineNode = classMethodDefineNode;
 	return node;
 }
-
 struct TreeNode *createBreak() {
 	//break
 	struct TreeNode *node = (struct TreeNode*)malloc(sizeof(struct TreeNode));
+	extern int yylineno;
+	node->lineno = yylineno;
 	node->type = BREAK_NODE;
 	node->next = NULL;
 	return node;
@@ -334,6 +357,8 @@ struct TreeNode *createBreak() {
 struct TreeNode *createContinue() {
 	//continue
 	struct TreeNode *node = (struct TreeNode*)malloc(sizeof(struct TreeNode));
+	extern int yylineno;
+	node->lineno = yylineno;
 	node->type = CONTINUE_NODE;
 	node->next = NULL;
 	return node;
@@ -345,6 +370,8 @@ struct TreeNode *createReturn(struct Expression *exp) {
 	returnNode->exp = exp;
 
 	struct TreeNode *node = (struct TreeNode*)malloc(sizeof(struct TreeNode));
+	extern int yylineno;
+	node->lineno = yylineno;
 	node->type = RETURN_NODE;
 	node->next = NULL;
 	node->returnNode = returnNode;

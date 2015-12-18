@@ -42,6 +42,7 @@ struct OaFunction {
 	std::string name;
 	std::string type;
 	std::string className;
+	bool isDefined;
 	FormParam *params;
 };
 
@@ -78,12 +79,12 @@ void parseArrayAssignNode(std::string &result, struct ArrayAssignNode *seg);
 void parseIfNode(std::string &result, struct IfNode *seg);
 void parseElifNode(std::string &result, struct ElifNode *seg);
 void parseElseNode(std::string &result, struct ElseNode *seg);
-void parseWhileNode(std::string &result, struct WhileNode *seg);//----A
-void parseForeachNode(std::string &result, struct ForeachNode *seg);//----A
-void parseClassDefineNode(std::string &result, struct ClassDefineNode *seg);//----A
+void parseWhileNode(std::string &result, struct WhileNode *seg);
+void parseForeachNode(std::string &result, struct ForeachNode *seg);
+void parseClassDefineNode(std::string &result, struct ClassDefineNode *seg);
 void parseFunctionDeclareNode(std::string &result, struct FunctionDeclareNode *seg);
-void parseFunctionDefineNode(std::string &result, struct FunctionDefineNode *seg);//----A
-void parseClassMethodDefineNode(std::string &result, struct ClassMethodDefineNode *seg);//----A
+void parseFunctionDefineNode(std::string &result, struct FunctionDefineNode *seg);
+void parseClassMethodDefineNode(std::string &result, struct ClassMethodDefineNode *seg);
 void parseBreakNode(std::string &result);
 void parseContinueNode(std::string &result);
 void parseReturnNode(std::string &result, struct ReturnNode *seg);
@@ -218,6 +219,13 @@ void parseVarDeclareNode(std::string& result, struct VarDeclareNode* seg) {
 		temVar->type = "double";
 		temVar->align = 8;
 	}
+
+	if (classNow != "") {
+		result += temVar->type;
+		result += ", ";
+		return;
+	}
+
 	addVar(temVar);
 	result += temVar->name + " ";
 	result += "= " + std::string("alloca " + temVar->type + ", ");
@@ -370,6 +378,13 @@ void parseArrayDeclareNode(std::string&result, ArrayDeclareNode* seg) {
 		temArray->type = "double";
 		temArray->align = 8;
 	}
+
+	if (classNow != "") {
+		result += temArray->type;
+		result += "*, ";
+		return;
+	}
+
 	addArray(temArray);
 	result += temArray->name + " ";
 	result += "= " + std::string("alloca " + temArray->type + "*, ");
@@ -572,24 +587,27 @@ void parseForeachNode(std::string &result, ForeachNode *seg) {
 	result += "]}";
 }
 
-//[TODO] variable declare in class
 void parseClassDefineNode(std::string&result, struct ClassDefineNode *seg) {
 	if (seg == NULL) {
 		return;
 	}
-	classNow = seg->type;
+	classNow = std::string(seg->type).substr(1);
 	OaClass oaclass;
 	oaclass.name = classNow;
 	if (seg->typeParent) {
-		oaclass.parent = std::string(seg->typeParent);
+		oaclass.parent = std::string(seg->typeParent).substr(1);
 	}
 	else {
 		oaclass.parent = "";
 	}
 	result += "%class." + oaclass.name + " = type { ";
-	//parseNodeList(result, seg->stmts, "stmts");
-	result += "}\n";
-
+	if (seg->typeParent) {
+		result += "%class." + oaclass.parent + ", ";
+	}
+	parseNodeList(result, seg->stmts, "stmts");
+	result.pop_back();
+	result.pop_back();
+	result += " }\n\n";
 
 	oaClasses.insert(std::pair<std::string, OaClass>(oaclass.name, oaclass));
 	classNow = "";
@@ -599,33 +617,57 @@ void parseFunctionDeclareNode(std::string&result, FunctionDeclareNode*seg) {
 	if (seg == NULL) {
 		return;
 	}
-	char numStr[N_INT_CHAR];
-	sprintf(numStr, "%d", ++lineno);
+	OaFunction oafunc;
+	//className and name
+	oafunc.className = classNow;
+	oafunc.name = std::string(seg->name);
 
-	result += "{\"name\":\"" + std::string(numStr) + ": function dec\",\"children\":[";
+	//check for redeclare
+	if (oaFunctions.find(oafunc.className + oafunc.name) != oaFunctions.end()) {
+		compileLog = "wrong in declare node, function " + oafunc.name + "has been declared!\n";
+		compilePass = false;
+		return;
+	}
+
+	oafunc.isDefined = false;
 	if (seg->type) {
-		result += "{\"ret type\":\"" + std::string(seg->type) + "\"},";
+		oafunc.type = std::string(seg->type);
 	}
 	else {
-		result += "{\"ret type\":\"void\"},";
+		oafunc.type = "void";
 	}
-	result += "{\"name\":\"" + std::string(seg->name) + "\"},";
-	result += "{\"name\":\"args\",\"children\":[{\"name\":\"";
-	parseFormParam(result, seg->formParams);
-	result += "\"}]}";
-	result += "]}";
+	
+	//parameters
+	oafunc.params = seg->formParams;
+	oaFunctions.insert(std::pair<std::string, OaFunction>(oafunc.className + oafunc.name, oafunc));
 }
-
-
 
 void parseFunctionDefineNode(std::string&result, FunctionDefineNode*seg) {
 	if (seg == NULL) {
 		return;
 	}
 	OaFunction oafunc;
+	//className and name
 	oafunc.className = classNow;
+	oafunc.name = std::string(seg->name);
+
+	//check for redefine
+	std::map<std::string, OaFunction>::iterator iter = oaFunctions.find(oafunc.className + oafunc.name);
+	if (iter != oaFunctions.end()) {
+		if (iter->second.isDefined == true) {
+			compileLog = "wrong in defined node, function " + oafunc.name + "has been defined!\n";
+			compilePass = false;
+			return;
+		}
+		else {
+			//[TODO] check params and return type
+			oaFunctions.erase(iter);
+			oafunc.isDefined = true;
+		}
+	}
 	//define
 	result += "define ";
+
 	//return type
 	if (seg->type) {
 		oafunc.type = std::string(seg->type);
@@ -637,20 +679,19 @@ void parseFunctionDefineNode(std::string&result, FunctionDefineNode*seg) {
 
 	//function name
 	result += " ";
-	oafunc.name = std::string(seg->name);
 	result += oafunc.name;
 
 	//parameters
 	result += '(';
 	parseFormParam(result, seg->formParams);
 	result += ')';
+	oafunc.params = seg->formParams;
 	//statements
 	result += "{\nentry:\n";
 	if (seg->stmts) {
 		parseNodeList(result, seg->stmts, "stmts");
 	}
-	result += '}';
-	oafunc.params = seg->formParams;
+	result += "}\n\n";
 	oaFunctions.insert(std::pair<std::string, OaFunction>(oafunc.className + oafunc.name, oafunc));
 }
 
@@ -658,28 +699,55 @@ void parseClassMethodDefineNode(std::string&result, ClassMethodDefineNode*seg) {
 	if (seg == NULL) {
 		return;
 	}
-	char numStr[N_INT_CHAR];
-	sprintf(numStr, "%d", ++lineno);
+	OaFunction oafunc;
+	//name
+	oafunc.className = std::string(seg->classType).substr(1);
+	oafunc.name = std::string(seg->name);
 
-	result += "{\"name\":\"" + std::string(numStr) + ": class method def\",\"children\":[";
+	//check if the class has this function
+	std::map<std::string, OaFunction>::iterator iter = oaFunctions.find(oafunc.className + oafunc.name);
+	if (iter != oaFunctions.end()) {
+		if (iter->second.isDefined == true) {
+			compileLog = "wrong in defined node, function " + oafunc.name + "has been defined!\n";
+			compilePass = false;
+			return;
+		}
+		else {
+			//[TODO] check params and return type
+			oaFunctions.erase(iter);
+			oafunc.isDefined = true;
+		}
+	}
+	//define
+	result += "define ";
+
+	//return type
 	if (seg->type) {
-		result += "{\"ret type\":\"" + std::string(seg->type) + "\"}";
+		oafunc.type = std::string(seg->type);
 	}
 	else {
-		result += "{\"ret type\":\"void\"}";
+		oafunc.type = "void";
 	}
-	result += ",{\"name\":\"class " + std::string(seg->classType) + "\"}";
-	result += ",{\"name\":\"" + std::string(seg->name) + "\"}";
-	if (seg->formParams) {
-		result += ",{\"name\":\"args\",\"children\":[{\"name\":\"";
-		parseFormParam(result, seg->formParams);
-		result += "\"}]}";
-	}
+	result += oafunc.type;
+
+	//function name
+	result += " ";
+	result += oafunc.className +oafunc.name;
+
+
+
+	//parameters
+	result += '(';
+	parseFormParam(result, seg->formParams);
+	result += ')';
+	oafunc.params = seg->formParams;
+	//statements
+	result += "{\nentry:\n";
 	if (seg->stmts) {
-		result += ",";
 		parseNodeList(result, seg->stmts, "stmts");
 	}
-	result += "]}";
+	result += "}\n\n";
+	oaFunctions.insert(std::pair<std::string, OaFunction>(oafunc.className + oafunc.name, oafunc));
 }
 
 void parseBreakNode(std::string &result) {
