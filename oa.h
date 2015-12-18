@@ -9,9 +9,10 @@ extern "C" {
 #define OA_INT				0
 #define OA_DOUBLE			1
 #define OA_CHAR				2
-#define OA_LEFT_VALUE		3
-#define OA_ARRAY_VALUE		4
-#define OA_FUNCTION_VALUE	5
+#define OA_STRING			3
+#define OA_LEFT_VALUE		4
+#define OA_ARRAY_VALUE		5
+#define OA_FUNCTION_VALUE	6
 
 //parse tree node type
 #define VAR_DECLARE_NODE			0
@@ -92,6 +93,7 @@ struct Expression{
 		int number_int;
 		double number_double;
 		char type_char;
+		char *type_string;
 		struct LeftValue *name;
 		struct ArrayValue *arrayValue;
 		struct FunctionValue * functionValue;
@@ -102,6 +104,7 @@ struct Expression *createExpression(struct Expression *left, struct Expression *
 struct Expression *createExpressionIntLeaf(int value);
 struct Expression *createExpressionDoubleLeaf(double value);
 struct Expression *createExpressionCharLeaf(char value);
+struct Expression *createExpressionStringLeaf(char *value);
 struct Expression *createExpressionLeftValueLeaf(struct LeftValue *name);
 struct Expression *createExpressionArrayValue(struct LeftValue *name, struct Expression *index);
 struct Expression *createExpressionFunctionValue(struct LeftValue *name, struct FactParam *factParam);
@@ -245,6 +248,7 @@ extern struct ParseTree *parseTree;
 void printJason(struct TreeNode *node);
 void printExpression(struct Expression *exp);
 int executeParser(const char *filename);
+void parsePrintFunction(struct FactParam *params);
 
 #ifdef __cplusplus
 }

@@ -28,7 +28,7 @@ int yywrap(void){
 <INITIAL>"break"		{ extern FILE *tokenStream; fprintf(tokenStream, "break "); return BREAK;}
 <INITIAL>"char"			{
 	extern FILE *tokenStream; fprintf(tokenStream, "char ");
-	yylval.name = (char*)malloc(strlen(yytext) + 1);
+	yylval.type = (char*)malloc(strlen(yytext) + 1);
     sscanf(yytext, "%s", yylval.type);
     return CHAR;
 }
@@ -36,7 +36,7 @@ int yywrap(void){
 <INITIAL>"continue"		{ extern FILE *tokenStream; fprintf(tokenStream, "continue "); return CONTINUE;}
 <INITIAL>"double"	{
 	extern FILE *tokenStream; fprintf(tokenStream, "double "); 
-    yylval.name = (char*)malloc(strlen(yytext) + 1);
+    yylval.type = (char*)malloc(strlen(yytext) + 1);
     sscanf(yytext, "%s", yylval.type);
     return DOUBLE;
 }
@@ -51,7 +51,7 @@ int yywrap(void){
 <INITIAL>"in"		{ extern FILE *tokenStream; fprintf(tokenStream, "in "); return IN; }
 <INITIAL>"int"		{
 	extern FILE *tokenStream; fprintf(tokenStream, "int "); 
-    yylval.name = (char*)malloc(strlen(yytext) + 1);
+    yylval.type = (char*)malloc(strlen(yytext) + 1);
     sscanf(yytext, "%s", yylval.type);
     return INT;
 }
@@ -76,12 +76,19 @@ int yywrap(void){
 	extern FILE *tokenStream; fprintf(tokenStream, "%lf ", temp); 
 	return DECIMAL_FLOATING_POINT_LITERAL;
 }
-<INITIAL>"'"([0-9]|[a-z]|[A-Z])"'" {
+<INITIAL>"'"([0-9]|[a-z]|[A-Z]|"\\"|"!"|" ")"'" {
 	char temp[4];
     sscanf(yytext, "%s", temp);
 	yylval.type_char = temp[1];
 	extern FILE *tokenStream; fprintf(tokenStream, "%s ", temp); 
     return CHAR_LITERAL;
+}
+
+<INITIAL>"\""([0-9]|[a-z]|[A-Z]|"\\"|"!"|" ")+"\"" {
+	yylval.type_string = (char*)malloc(strlen(yytext) + 1);
+    strcpy(yylval.type_string, yytext);
+	extern FILE *tokenStream; fprintf(tokenStream, "%s ", yylval.type_string); 
+    return STRING_LITERAL;
 }
 
 <INITIAL>"("		{ extern FILE *tokenStream; fprintf(tokenStream, "( "); return LPAREN; }
@@ -115,14 +122,14 @@ int yywrap(void){
 <INITIAL>"%"		{ extern FILE *tokenStream; fprintf(tokenStream, "% "); return REM; }
 <INITIAL>"::"		{ extern FILE *tokenStream; fprintf(tokenStream, ":: "); return NAME_SPACE; }
 
-<INITIAL>"@"([0-9]|[a-z]|[A-Z]|"_")+	{
+<INITIAL>"@"([a-z]|[A-Z]|"_")([0-9]|[a-z]|[A-Z]|"_")*	{
     yylval.name = (char*)malloc(strlen(yytext) + 1);
     sscanf(yytext, "%s", yylval.name);
 	extern FILE *tokenStream; fprintf(tokenStream, "%s ", yytext); 
     return IDENTIFIER;
 }
-<INITIAL>"#"([0-9]|[a-z]|[A-Z]|"_")+	{
-    yylval.name = (char*)malloc(strlen(yytext) + 1);
+<INITIAL>"#"([0-9]|[a-z]|[A-Z]|"_")([0-9]|[a-z]|[A-Z]|"_")*	{
+    yylval.type = (char*)malloc(strlen(yytext) + 1);
     sscanf(yytext, "%s", yylval.type);
 	extern FILE *tokenStream; fprintf(tokenStream, "%s ", yytext); 
     return CLASS_IDENTIFIER;

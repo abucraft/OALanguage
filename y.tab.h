@@ -2,6 +2,7 @@ typedef union {
 	int				number_int;
 	double			number_double;
 	char			type_char;
+	char			*type_string;
 	char			*type;
 	char			*name;
 	struct TreeNode	*node;
@@ -67,8 +68,9 @@ typedef union {
 #define	REM	311
 #define	NAME_SPACE	312
 #define	CLASS_IDENTIFIER	313
-#define	IDENTIFIER	314
-#define	CHAR_LITERAL	315
+#define	STRING_LITERAL	314
+#define	IDENTIFIER	315
+#define	CHAR_LITERAL	316
 
 
 extern YYSTYPE yylval;

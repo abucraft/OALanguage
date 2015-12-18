@@ -5,6 +5,8 @@
 #include <vector>
 #include <stdlib.h>
 #include <map>
+#include <fstream>
+
 #define N_INT_CHAR 11
 
 std::string result;
@@ -66,6 +68,9 @@ std::map<std::string, OaFunction> oaFunctions;
 std::map<std::string, OaClass> oaClasses;
 
 std::string classNow = "";
+bool hasPrint = false;
+int printStringIndex = 0;
+std::vector<std::string> printStrings;
 //--------------------------------------
 //---------------------tree node part---------------------
 void parseNodeList(std::string &result, struct TreeNode* seg, std::string name);
@@ -302,6 +307,16 @@ void parseVarAssignNode(std::string& result, VarAssignNode* seg) {
 	parseExpression(result, seg->exp);
 	result += "\"}]}";
 	result += "]}";*/
+
+	if (seg->expOfVar == NULL && seg->name == NULL) {
+		//[TODOD] onlydeal print function call
+		if (seg->exp->op == OA_EXP_NONE && seg->exp->leafType == OA_FUNCTION_VALUE) {
+			if (std::string(seg->exp->functionValue->name->name) == "@print" && seg->exp->functionValue->name->next == NULL) {
+				parsePrintFunction(seg->exp->functionValue->factParam);
+			}
+		}
+	}
+
 	std::string temName;
 	LeftValue* temLv = seg->name;
 	while (temLv != NULL) {
@@ -670,7 +685,15 @@ void parseFunctionDefineNode(std::string&result, FunctionDefineNode*seg) {
 
 	//return type
 	if (seg->type) {
-		oafunc.type = std::string(seg->type);
+		if (strcmp(seg->type, "int") == 0) {
+			oafunc.type = "i32";
+		}
+		else if (strcmp(seg->type, "char") == 0) {
+			oafunc.type = "i8";
+		}
+		else if (strcmp(seg->type, "double") == 0) {
+			oafunc.type = "double";
+		}
 	}
 	else {
 		oafunc.type = "void";
@@ -723,7 +746,15 @@ void parseClassMethodDefineNode(std::string&result, ClassMethodDefineNode*seg) {
 
 	//return type
 	if (seg->type) {
-		oafunc.type = std::string(seg->type);
+		if (strcmp(seg->type, "int") == 0) {
+			oafunc.type = "i32";
+		}
+		else if (strcmp(seg->type, "char") == 0) {
+			oafunc.type = "i8";
+		}
+		else if (strcmp(seg->type, "double") == 0) {
+			oafunc.type = "double";
+		}
 	}
 	else {
 		oafunc.type = "void";
@@ -733,8 +764,6 @@ void parseClassMethodDefineNode(std::string&result, ClassMethodDefineNode*seg) {
 	//function name
 	result += " ";
 	result += oafunc.className +oafunc.name;
-
-
 
 	//parameters
 	result += '(';
@@ -765,17 +794,9 @@ void parseContinueNode(std::string &result) {
 }
 
 void parseReturnNode(std::string &result, struct ReturnNode *seg) {
-	char numStr[N_INT_CHAR];
-	sprintf(numStr, "%d", ++lineno);
-
-	result += "{\"name\":\"" + std::string(numStr) + ": return\"";
-
-	if (seg->exp) {
-		result += ", \"children\":[{\"name\":\"";
-		parseExpression(result, seg->exp);
-		result += "\"}]";
-	}
-	result += '}';
+	OaVar *retVal = new struct OaVar;
+	retVal = parseExpression(result, seg->exp);
+	result += "ret " + retVal->type + ' ' + retVal->name + '\n';
 }
 //--------------------end tree node part-------------------
 
@@ -822,6 +843,12 @@ struct OaVar* parseExpression(std::string &result, Expression* seg) {
 			temVar->name = myItoa((int)seg->type_char);
 			return temVar;
 			break;
+		}
+		case OA_STRING: {
+			struct OaVar* temVar = new struct OaVar;
+			temVar->type = "string";
+			temVar->align = 1;
+			temVar->name = std::string(seg->type_string);
 		}
 		case OA_LEFT_VALUE:
 			return parseLeftValue(result, seg->name);
@@ -1124,8 +1151,67 @@ int getTreeRaw(const char* filename) {
 	return rtcode;
 }
 
+void parsePrintFunction(struct FactParam *params) {
+	//[TODO] literals of char and string in oa.l
+	//[TODO] check parameters
+	//[TODO] % param
+	//[TODO] meaning-change for \n \t etc.
+	hasPrint = true;
+	std::string tmpstr = std::string(params->exp->type_string).substr(1);
+	std::string str = "";
+	int size = tmpstr.size();
+	for (int i = 0; i < size; ++i) {
+		if (tmpstr[i] == '\\') {
+			if (i == size - 1) {
+				compileLog = "wrong print string";
+				compilePass = false;
+				return;
+			}
+			i++;
+			if (tmpstr[i] == '\\') {
+				str += '\\';
+			}
+			else if(tmpstr[i] == 'n') {
+				str += "\\0A";
+			}
+		}
+		else {
+			str += tmpstr[i];
+		}
+	}
+
+	//update result
+	size = str.size();
+	for (int i = 0; i < size; ++i) {
+		if (str[i] == '\\') size -= 2;
+	}
+	result += "call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([" + myItoa(size) + " x i8], [" + myItoa(size) + " x i8]* @.str." + myItoa(printStringIndex) + ", i32 0, i32 0))\n";
+
+	//update printStrings vector
+	str.pop_back();
+	printStrings.push_back(str);
+	printStringIndex++;
+}
+
 int main() {
 	getTreeRaw("hello.oa");
 	std::cout << result << std::endl;
+	//generate code to file
+	std::ofstream ost("hello.ll");
+	ost << "target triple = \"i686-pc-windows-gnu\"\n\n";
+	for (int i = 0; i < printStringIndex; ++i) {
+		int size = printStrings[i].size() + 1;
+		int tmpsize = printStrings[i].size();
+		for (int j = 0; j < tmpsize; ++j) {
+			if (printStrings[i][j] == '\\') size -= 2;
+		}
+		ost << "@.str." + myItoa(i) + " = constant [" + myItoa(size) + " x i8] c\"" + printStrings[i] + "\\00\", align 1\n";
+	}
+	ost << "\n";
+	ost << result << std::endl;
+	if (hasPrint) {
+		ost << "declare i32 @printf(i8*, ...)";
+	}
+	std::cout << "code generate successfully!\n";
 	std::cin.get();
 }

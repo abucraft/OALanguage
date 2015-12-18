@@ -44,6 +44,15 @@ struct Expression *createExpressionCharLeaf(char value) {
 	exp->type_char = value;
 	return exp;
 }
+struct Expression *createExpressionStringLeaf(char *value) {
+	struct Expression *exp = (struct Expression*)malloc(sizeof(struct Expression));
+	exp->left = NULL;
+	exp->right = NULL;
+	exp->op = OA_EXP_NONE;
+	exp->leafType = OA_STRING;
+	exp->type_string = value;
+	return exp;
+}
 struct Expression *createExpressionLeftValueLeaf(struct LeftValue *name) {
 	struct Expression *exp = (struct Expression*)malloc(sizeof(struct Expression));
 	exp->left = NULL;
