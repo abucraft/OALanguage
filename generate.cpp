@@ -100,7 +100,7 @@ void parseReturnNode(std::string &result, struct ReturnNode *seg);
 struct OaVar* parseExpression(std::string& result, struct Expression* seg);
 struct OaVar* parseLeftValue(std::string&result, struct LeftValue* seg);
 struct OaVar* parseArrayValue(std::string&result, struct ArrayValue* seg);
-void parseFunctionValue(std::string&result, struct FunctionValue* seg);
+struct OaVar* parseFunctionValue(std::string&result, struct FunctionValue* seg);
 //-------------------end expression part-------------------
 //---------------------parameter part---------------------
 void parseFormParam(std::string&result, FormParam*seg);
@@ -1152,14 +1152,38 @@ struct OaVar* parseArrayValue(std::string&result, ArrayValue* seg) {
 	}
 }
 
-void parseFunctionValue(std::string&result, FunctionValue* seg) {
+struct OaVar* parseFunctionValue(std::string&result, FunctionValue* seg) {
 	if (seg == NULL) {
-		return;
+		return NULL;
 	}
-	parseLeftValue(result, seg->name);
-	result += '(';
-	parseFactParam(result, seg->factParam);
-	result += ')';
+
+	//[TODO] no left value case
+	std::map<std::string, OaFunction>::iterator iter = oaFunctions.find(seg->name->name);
+	if (iter == oaFunctions.end()) {
+		//no this function
+		compilePass = false;
+		compileLog = "in parseFunctionValue: no function named" + std::string(seg->name->name) + "\n";
+		return NULL;
+	}
+
+	std::string retType = iter->second.type;
+	std::string name = iter->second.name;
+	std::string className = iter->second.className;
+	struct FormParam *formParams = iter->second.params;
+	
+	struct FactParam *factParams = seg->factParam;
+	//[TODO] check params, return type etc.
+	
+	//[TODO] align
+	struct OaVar *oaVar = new OaVar;
+	oaVar->name = myItoa(temVarNo++);
+	oaVar->type = retType;
+	oaVar->align = 4;
+
+	result += "%" + oaVar->name + " = call " + retType + ' ' + name + '(';
+	parseFactParam(result, factParams);
+	result += ")\n";
+	return oaVar;
 }
 //------------------end expression part-------------------
 
@@ -1183,8 +1207,10 @@ void parseFactParam(std::string&result, FactParam* seg) {
 	if (seg == NULL) {
 		return;
 	}
+	OaVar *tmpVar = NULL;
 	while (seg != NULL) {
-		parseExpression(result, seg->exp);
+		tmpVar = parseExpression(result, seg->exp);
+		result += tmpVar->type + ' ' + tmpVar->name;
 		if (seg->next != NULL) {
 			result += ',';
 		}
@@ -1307,11 +1333,11 @@ void parsePrintFunction(struct FactParam *params) {
 }
 
 int main() {
-	getTreeRaw("hello.oa");
+	getTreeRaw("qsort.oa");
 	if (compilePass) {
 		std::cout << result << std::endl;
 		//generate code to file
-		std::ofstream ost("hello.ll");
+		/*std::ofstream ost("hello.ll");
 		ost << "target triple = \"i686-pc-windows-gnu\"\n\n";
 		for (int i = 0; i < printStringIndex; ++i) {
 			int size = printStrings[i].size() + 1;
@@ -1325,7 +1351,7 @@ int main() {
 		ost << result << std::endl;
 		if (hasPrint) {
 			ost << "declare i32 @printf(i8*, ...)";
-		}
+		}*/
 		std::cout << "code generate successfully!\n";
 	}
 	else
