@@ -291,23 +291,6 @@ void parseVarAssignNode(std::string& result, VarAssignNode* seg) {
 	if (seg == NULL) {
 		return;
 	}
-	/*char numStr[N_INT_CHAR];
-	sprintf(numStr, "%d", ++lineno);
-
-	result += "{\"name\":\"" + std::string(numStr) + ": var assign\",\"children\":[";
-	result += "{\"name\":\"";
-	parseLeftValue(result, seg->name);
-	result += "\"},";
-	if (seg->expOfVar) {
-	result += "{\"name\":\"expOfVar\",\"children\":[{\"name\":\"";
-	parseExpression(result, seg->expOfVar);
-	result += "\"}]},";
-	}
-	result += "{\"name\":\"expValue\",\"children\":[{\"name\":\"";
-	parseExpression(result, seg->exp);
-	result += "\"}]}";
-	result += "]}";*/
-
 	if (seg->expOfVar == NULL && seg->name == NULL) {
 		//[TODOD] onlydeal print function call
 		if (seg->exp->op == OA_EXP_NONE && seg->exp->leafType == OA_FUNCTION_VALUE) {
@@ -944,36 +927,127 @@ struct OaVar* parseExpression(std::string &result, Expression* seg) {
 		return temVar;
 		break;
 	}
-	case OA_EXP_EQ:
-		parseExpression(result, seg->left);
+	case OA_EXP_EQ: {
+		/*parseExpression(result, seg->left);
 		result += " == ";
-		parseExpression(result, seg->right);
+		parseExpression(result, seg->right);*/
+		struct OaVar*  leftVar = parseExpression(result, seg->left);
+		struct OaVar* rightVar = parseExpression(result, seg->right);
+		struct OaVar*   temVar = new struct OaVar;
+		result += "%" + myItoa(temVarNo++) + " = ";
+		result += "icmp eq ";
+		result += leftVar->type + " ";
+		result += leftVar->name + ", " + rightVar->name + endLine;
+		temVar->name = "%" + myItoa(temVarNo++);
+		result += temVar->name + " = ";
+		result += "zext i1 %" + myItoa(temVarNo - 2);
+		result += " to " + leftVar->type + endLine;
+		temVar->type = leftVar->type;
+		temVar->align = leftVar->align;
+		return temVar;
 		break;
-	case OA_EXP_NE:
-		parseExpression(result, seg->left);
+	}
+	case OA_EXP_NE: {
+		/*parseExpression(result, seg->left);
 		result += " != ";
-		parseExpression(result, seg->right);
+		parseExpression(result, seg->right);*/
+		struct OaVar*  leftVar = parseExpression(result, seg->left);
+		struct OaVar* rightVar = parseExpression(result, seg->right);
+		struct OaVar*   temVar = new struct OaVar;
+		result += "%" + myItoa(temVarNo++) + " = ";
+		result += "icmp ne ";
+		result += leftVar->type + " ";
+		result += leftVar->name + ", " + rightVar->name + endLine;
+		temVar->name = "%" + myItoa(temVarNo++);
+		result += temVar->name + " = ";
+		result += "zext i1 %" + myItoa(temVarNo - 2);
+		result += " to " + leftVar->type + endLine;
+		temVar->type = leftVar->type;
+		temVar->align = leftVar->align;
+		return temVar;
 		break;
-	case OA_EXP_GT:
-		parseExpression(result, seg->left);
+	}
+	case OA_EXP_GT: {
+		/*parseExpression(result, seg->left);
 		result += " > ";
-		parseExpression(result, seg->right);
+		parseExpression(result, seg->right);*/
+		struct OaVar*  leftVar = parseExpression(result, seg->left);
+		struct OaVar* rightVar = parseExpression(result, seg->right);
+		struct OaVar*   temVar = new struct OaVar;
+		result += "%" + myItoa(temVarNo++) + " = ";
+		result += "icmp sgt ";
+		result += leftVar->type + " ";
+		result += leftVar->name + ", " + rightVar->name + endLine;
+		temVar->name = "%" + myItoa(temVarNo++);
+		result += temVar->name + " = ";
+		result += "zext i1 %" + myItoa(temVarNo - 2);
+		result += " to " + leftVar->type + endLine;
+		temVar->type = leftVar->type;
+		temVar->align = leftVar->align;
+		return temVar;
 		break;
-	case OA_EXP_GE:
-		parseExpression(result, seg->left);
+	}
+	case OA_EXP_GE: {
+		/*parseExpression(result, seg->left);
 		result += " >= ";
-		parseExpression(result, seg->right);
+		parseExpression(result, seg->right);*/
+		//Added by @Xie LW
+		struct OaVar*  leftVar = parseExpression(result, seg->left);
+		struct OaVar* rightVar = parseExpression(result, seg->right);
+		struct OaVar*   temVar = new struct OaVar;
+		result += "%" + myItoa(temVarNo++) + " = ";
+		result += "icmp sge ";
+		result += leftVar->type + " ";
+		result += leftVar->name + ", " + rightVar->name + endLine;
+		temVar->name = "%" + myItoa(temVarNo++);
+		result += temVar->name + " = ";
+		result += "zext i1 %" + myItoa(temVarNo - 2);
+		result += " to " + leftVar->type + endLine;
+		temVar->type = leftVar->type;
+		temVar->align = leftVar->align;
+		return temVar;
 		break;
-	case OA_EXP_LT:
-		parseExpression(result, seg->left);
+	}
+	case OA_EXP_LT: {
+		/*parseExpression(result, seg->left);
 		result += " < ";
-		parseExpression(result, seg->right);
+		parseExpression(result, seg->right);*/
+		struct OaVar*  leftVar = parseExpression(result, seg->left);
+		struct OaVar* rightVar = parseExpression(result, seg->right);
+		struct OaVar*   temVar = new struct OaVar;
+		result += "%" + myItoa(temVarNo++) + " = ";
+		result += "icmp sle ";
+		result += leftVar->type + " ";
+		result += leftVar->name + ", " + rightVar->name + endLine;
+		temVar->name = "%" + myItoa(temVarNo++);
+		result += temVar->name + " = ";
+		result += "zext i1 %" + myItoa(temVarNo - 2);
+		result += " to " + leftVar->type + endLine;
+		temVar->type = leftVar->type;
+		temVar->align = leftVar->align;
+		return temVar;
 		break;
-	case OA_EXP_LE:
-		parseExpression(result, seg->left);
+	}
+	case OA_EXP_LE: {
+		/*parseExpression(result, seg->left);
 		result += " <= ";
-		parseExpression(result, seg->right);
+		parseExpression(result, seg->right);*/
+		struct OaVar*  leftVar = parseExpression(result, seg->left);
+		struct OaVar* rightVar = parseExpression(result, seg->right);
+		struct OaVar*   temVar = new struct OaVar;
+		result += "%" + myItoa(temVarNo++) + " = ";
+		result += "icmp sle ";
+		result += leftVar->type + " ";
+		result += leftVar->name + ", " + rightVar->name + endLine;
+		temVar->name = "%" + myItoa(temVarNo++);
+		result += temVar->name + " = ";
+		result += "zext i1 %" + myItoa(temVarNo - 2);
+		result += " to " + leftVar->type + endLine;
+		temVar->type = leftVar->type;
+		temVar->align = leftVar->align;
+		return temVar;
 		break;
+	}
 	case OA_EXP_AND:
 		parseExpression(result, seg->left);
 		result += " && ";
