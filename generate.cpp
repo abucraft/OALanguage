@@ -63,6 +63,7 @@ struct OaClass {
 
 int OaIfIdx = 0;
 int OaCmpIdx = 0;
+int OaWhileIdx = 0;
 
 std::map<std::string, OaFunction> oaFunctions;
 std::map<std::string, OaClass> oaClasses;
@@ -464,7 +465,7 @@ void parseIfNode(std::string&result, IfNode*seg) {
 	char cmpIdx[25];
 	_itoa(OaIfIdx, ifIdx, 10);
 	_itoa(OaCmpIdx, cmpIdx, 10);
-	std::string cmpLabel = std::string("%cmp") + cmpIdx;
+	//std::string cmpLabel = std::string("%cmp") + cmpIdx;
 	std::string ifLabel = std::string("if.then.") + ifIdx;
 	std::string nextLabel;
 	if (seg->elseStmts != NULL || seg->elifStmts != NULL) {
@@ -473,12 +474,14 @@ void parseIfNode(std::string&result, IfNode*seg) {
 	else {
 		nextLabel = std::string("if.end.") + ifIdx;
 	}
-	parseExpression(result, seg->exp);
+	OaVar *p_midVar = parseExpression(result, seg->exp);
 	OaCmpIdx++;
 	OaIfIdx++;
-	result += std::string("  br i1 ") + cmpLabel + ',' + " label %" + ifLabel + ',' + " label %" + nextLabel + '\n';
+	result += std::string("  br i1 %") + p_midVar->name + ',' + " label %" + ifLabel + ',' + " label %" + nextLabel + '\n';
+	result += "\n";
 	result += ifLabel + ":\n";
 	parseNodeList(result, seg->stmts, ifLabel);
+	result += "\n";
 	result += nextLabel + ":\n";
 	struct TreeNode *tmp = seg->elifStmts;
 	while (tmp != NULL) {
@@ -523,15 +526,17 @@ void parseElifNode(std::string&result, ElifNode*seg) {
 	char cmpIdx[25];
 	_itoa(OaIfIdx, ifIdx, 10);
 	_itoa(OaCmpIdx, cmpIdx, 10);
-	std::string cmpLabel = std::string("%cmp") + cmpIdx;
+	//std::string cmpLabel = std::string("%cmp") + cmpIdx;
 	std::string ifLabel = std::string("if.then.") + ifIdx;
 	std::string nextLabel = std::string("if.else.") + ifIdx;
-	parseExpression(result, seg->exp);
+	OaVar *p_midVar = parseExpression(result, seg->exp);
 	OaCmpIdx++;
 	OaIfIdx++;
-	result += std::string("  br i1 ") + cmpLabel + ',' + " label %" + ifLabel + ',' + " label %" + nextLabel + '\n';
+	result += std::string("  br i1 %") + p_midVar->name + ',' + " label %" + ifLabel + ',' + " label %" + nextLabel + '\n';
+	result += "\n";
 	result += ifLabel + ":\n";
 	parseNodeList(result, seg->stmts, ifLabel);
+	result += "\n";
 	result += nextLabel + ":\n";
 	/*result += "{\"name\":\"condition\",\"children\":[{\"name\":\"";
 	parseExpression(result, seg->exp);
@@ -554,7 +559,25 @@ void parseWhileNode(std::string&result, WhileNode*seg) {
 	if (seg == NULL) {
 		return;
 	}
-	char numStr[N_INT_CHAR];
+	char wIdx[25];
+	_itoa(OaWhileIdx, wIdx, 10);
+	std::string wCondLabel = std::string("while.cond.") + wIdx;
+	std::string wBodyLabel = std::string("while.body.") + wIdx;
+	std::string wEndLabel = std::string("while.end.") + wIdx;
+	OaWhileIdx++;
+	result += std::string("  br label %") + wCondLabel + '\n';
+	result += "\n";
+	result += wCondLabel + ":\n";
+	OaVar *p_midVar = parseExpression(result, seg->exp);
+	result += std::string("  br i1 %") + p_midVar->name + ',' + " label %" + wBodyLabel + ',' + " label %" + wEndLabel + '\n';
+	result += "\n";
+	result += wBodyLabel + ":\n";
+	parseNodeList(result, seg->stmts, wBodyLabel);
+	result += std::string("  br label %") + wCondLabel + '\n';
+	result += "\n";
+	result += wEndLabel + ":\n";
+
+	/*char numStr[N_INT_CHAR];
 	sprintf(numStr, "%d", ++lineno);
 
 	result += "{\"name\":\"" + std::string(numStr) + ": while node\",\"children\":[";
@@ -565,13 +588,14 @@ void parseWhileNode(std::string&result, WhileNode*seg) {
 		result += ",";
 		parseNodeList(result, seg->stmts, "stmts");
 	}
-	result += "]}";
+	result += "]}";*/
 }
 
 void parseForeachNode(std::string &result, ForeachNode *seg) {
 	if (seg == NULL) {
 		return;
 	}
+	/*
 	char numStr[N_INT_CHAR];
 	sprintf(numStr, "%d", ++lineno);
 
@@ -583,6 +607,7 @@ void parseForeachNode(std::string &result, ForeachNode *seg) {
 		parseNodeList(result, seg->stmts, "stmts");
 	}
 	result += "]}";
+	*/
 }
 
 void parseClassDefineNode(std::string&result, struct ClassDefineNode *seg) {
