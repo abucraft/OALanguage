@@ -98,7 +98,7 @@ void parseReturnNode(std::string &result, struct ReturnNode *seg);
 
 struct OaVar* parseExpression(std::string& result, struct Expression* seg);
 struct OaVar* parseLeftValue(std::string&result, struct LeftValue* seg);
-void parseArrayValue(std::string&result, struct ArrayValue* seg);
+struct OaVar* parseArrayValue(std::string&result, struct ArrayValue* seg);
 void parseFunctionValue(std::string&result, struct FunctionValue* seg);
 //-------------------end expression part-------------------
 //---------------------parameter part---------------------
@@ -299,7 +299,6 @@ void parseVarAssignNode(std::string& result, VarAssignNode* seg) {
 			}
 		}
 	}
-
 	std::string temName;
 	LeftValue* temLv = seg->name;
 	while (temLv != NULL) {
@@ -315,7 +314,7 @@ void parseVarAssignNode(std::string& result, VarAssignNode* seg) {
 		compileLog += "Lack of LeftValue" + endLine;
 		return;
 	}
-	if (getVar("%" + temName) == NULL) {
+	if (getVar("%" + temName) == NULL&&getArray("%"+temName)==NULL) {
 		compilePass = false;
 		compileLog += "Error[Line " + myItoa(lineno) + "]: ";
 		compileLog += "Undeclared Identifier" + endLine;
@@ -331,9 +330,11 @@ void parseVarAssignNode(std::string& result, VarAssignNode* seg) {
 			result += "align 8" + endLine;
 			temVar->name = "%" + myItoa(temVarNo - 1);
 			result += "%" + myItoa(temVarNo++) + " = ";
-			result += "getelementptr inbounds " + temArray->type + " " + temVar->name + ", ";
+			result += "getelementptr inbounds " + temArray->type + "* " + temVar->name + ", ";
 			result += "i64 " + idxVar->name + endLine;
 			temVar->name = "%" + myItoa(temVarNo - 1);
+			temVar->type = temArray->type;
+			temVar->align = temArray->align;
 		}
 	}
 	else
@@ -407,22 +408,21 @@ void parseArrayDefineNode(std::string&result, ArrayDefineNode*seg) {
 	temArray->name = "%" + reduceAt(std::string(seg->name));
 	//std::cout << "Debug: " << seg->type << std::endl;
 	if (seg->type == std::string("int[]")) {
-		temArray->type = "i32*";
+		temArray->type = "i32";
 		temArray->align = 4;
 	}
 	if (seg->type == std::string("char[]")) {
-		temArray->type = "i8*";
+		temArray->type = "i8";
 		temArray->align = 1;
 	}
 	if (seg->type == std::string("double[]")) {
-		temArray->type = "double*";
+		temArray->type = "double";
 		temArray->align = 8;
 	}
 	struct OaVar* szeVar = parseExpression(result, seg->exp);
 	if (szeVar != NULL) {
 		std::stringstream oss(szeVar->name);
 		oss >> temArray->size;
-		std::cout << temArray->size << std::endl;
 		addArray(temArray);
 		result += temArray->name + " ";
 		result += "= " + std::string("alloca " + temArray->type + "*, ");
@@ -432,8 +432,8 @@ void parseArrayDefineNode(std::string&result, ArrayDefineNode*seg) {
 		result += "(i64 " + myItoa(temArray->size*temArray->align) + ")" + endLine;
 		result += "%" + myItoa(temVarNo++) + " = ";
 		result += "bitcast i8* %" + myItoa(temVarNo - 2) + " to " + temArray->type + endLine;
-		result += "store " + temArray->type + " %" + myItoa(temVarNo - 1) + ", ";
-		result += temArray->type + "* " + temArray->name + ", ";
+		result += "store " + temArray->type + "* %" + myItoa(temVarNo - 1) + ", ";
+		result += temArray->type + "** " + temArray->name + ", ";
 		result += "align 8" + endLine;
 	}
 }
@@ -837,7 +837,7 @@ struct OaVar* parseExpression(std::string &result, Expression* seg) {
 			return parseLeftValue(result, seg->name);
 			break;
 		case OA_ARRAY_VALUE:
-			parseArrayValue(result, seg->arrayValue);
+			return parseArrayValue(result, seg->arrayValue);
 			break;
 		case OA_FUNCTION_VALUE:
 			parseFunctionValue(result, seg->functionValue);
@@ -1069,13 +1069,6 @@ struct OaVar* parseLeftValue(std::string&result, LeftValue* seg) {
 	if (seg == NULL) {
 		return NULL;
 	}
-	/*while (seg != NULL) {
-	result += seg->name;
-	if (seg->next != NULL) {
-	result += '.';
-	}
-	seg = seg->next;
-	}*/
 	//Modified by @Xie LW
 	std::string temName;
 	while (seg != NULL) {
@@ -1085,8 +1078,8 @@ struct OaVar* parseLeftValue(std::string&result, LeftValue* seg) {
 		}
 		seg = seg->next;
 	}
-	//std::cout << "Debug: " << temName << std::endl;
 	struct OaVar* refVar = getVar("%" + reduceAt(temName));
+	struct OaArray* refArray = getArray("%" + reduceAt(temName));
 	if (refVar != NULL) {
 		struct OaVar* temVar = new struct OaVar;
 		temVar->name = "%" + myItoa(temVarNo++);
@@ -1097,20 +1090,41 @@ struct OaVar* parseLeftValue(std::string&result, LeftValue* seg) {
 		result += "align " + myItoa(refVar->align) + endLine;
 		return temVar;
 	}
+	else if(refArray!=NULL){
+		struct OaVar* temVar = new struct OaVar;
+		temVar->name = "%" + myItoa(temVarNo++);
+		temVar->align = refArray->align;
+		temVar->type = refArray->type;
+		result += temVar->name + " = ";
+		result += "load " + refArray->type + "** " + refArray->name + ", ";
+		result += "align " + myItoa(refArray->align) + endLine;
+		return temVar;
+	}
 	else {
-		std::cout << "Debug: null" << std::endl;
-		return NULL;
+		compilePass = false;
+		compileLog += "Error[" + myItoa(lineno) + "]: ";
+		compileLog += "Unideclared identifier." + endLine;
 	}
 }
 
-void parseArrayValue(std::string&result, ArrayValue* seg) {
+struct OaVar* parseArrayValue(std::string&result, ArrayValue* seg) {
 	if (seg == NULL) {
-		return;
+		return NULL;
 	}
-	parseLeftValue(result, seg->name);
+	/*parseLeftValue(result, seg->name);
 	result += '[';
 	parseExpression(result, seg->index);
-	result += ']';
+	result += ']';*/
+	struct OaVar* refVar = parseLeftValue(result, seg->name);
+	struct OaVar* idxVar = parseExpression(result, seg->index);
+	struct OaVar* temVar = new struct OaVar;
+	if (refVar != NULL&&idxVar != NULL) {
+		temVar->name = "%" + myItoa(temVarNo++);
+		result += temVar->name + " = ";
+		result += "getelementptr inbounds " + refVar->type + "* ";
+		result += refVar->name + ", ";
+		result += "i64 " + idxVar->name + endLine;
+	}
 }
 
 void parseFunctionValue(std::string&result, FunctionValue* seg) {
@@ -1269,23 +1283,27 @@ void parsePrintFunction(struct FactParam *params) {
 
 int main() {
 	getTreeRaw("hello.oa");
-	std::cout << result << std::endl;
-	//generate code to file
-	std::ofstream ost("hello.ll");
-	ost << "target triple = \"i686-pc-windows-gnu\"\n\n";
-	for (int i = 0; i < printStringIndex; ++i) {
-		int size = printStrings[i].size() + 1;
-		int tmpsize = printStrings[i].size();
-		for (int j = 0; j < tmpsize; ++j) {
-			if (printStrings[i][j] == '\\') size -= 2;
+	if (compilePass) {
+		std::cout << result << std::endl;
+		//generate code to file
+		std::ofstream ost("hello.ll");
+		ost << "target triple = \"i686-pc-windows-gnu\"\n\n";
+		for (int i = 0; i < printStringIndex; ++i) {
+			int size = printStrings[i].size() + 1;
+			int tmpsize = printStrings[i].size();
+			for (int j = 0; j < tmpsize; ++j) {
+				if (printStrings[i][j] == '\\') size -= 2;
+			}
+			ost << "@.str." + myItoa(i) + " = constant [" + myItoa(size) + " x i8] c\"" + printStrings[i] + "\\00\", align 1\n";
 		}
-		ost << "@.str." + myItoa(i) + " = constant [" + myItoa(size) + " x i8] c\"" + printStrings[i] + "\\00\", align 1\n";
+		ost << "\n";
+		ost << result << std::endl;
+		if (hasPrint) {
+			ost << "declare i32 @printf(i8*, ...)";
+		}
+		std::cout << "code generate successfully!\n";
 	}
-	ost << "\n";
-	ost << result << std::endl;
-	if (hasPrint) {
-		ost << "declare i32 @printf(i8*, ...)";
-	}
-	std::cout << "code generate successfully!\n";
+	else
+		std::cout << compileLog << std::endl;
 	std::cin.get();
 }
