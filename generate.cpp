@@ -865,7 +865,7 @@ struct OaVar* parseExpression(std::string &result, Expression* seg) {
 			return parseArrayValue(result, seg->arrayValue);
 			break;
 		case OA_FUNCTION_VALUE:
-			parseFunctionValue(result, seg->functionValue);
+			return parseFunctionValue(result, seg->functionValue);
 			break;
 		default:
 			std::cout << "Wrong with expression, leafType\n";
