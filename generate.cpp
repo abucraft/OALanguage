@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <map>
 #include <fstream>
+#include<stack>
 
 #define N_INT_CHAR 11
 
@@ -64,6 +65,8 @@ struct OaClass {
 int OaIfIdx = 0;
 int OaCmpIdx = 0;
 int OaWhileIdx = 0;
+//×÷ÓÃÓòµÄÕ»
+std::stack<std::string> oaPathStk;
 
 std::map<std::string, OaFunction> oaFunctions;
 std::map<std::string, OaClass> oaClasses;
@@ -72,6 +75,9 @@ std::string classNow = "";
 bool hasPrint = false;
 int printStringIndex = 0;
 std::vector<std::string> printStrings;
+
+void replaceUtilForeach(struct TreeNode* seg, char* namein, char* nameout, std::string idx);
+void replaceUtilForeachEXP(struct Expression* seg, char* namein, char* nameout, std::string idx);
 //--------------------------------------
 //---------------------tree node part---------------------
 void parseNodeList(std::string &result, struct TreeNode* seg, std::string name);
@@ -480,16 +486,22 @@ void parseIfNode(std::string&result, IfNode*seg) {
 	result += std::string("  br i1 %") + p_midVar->name + ',' + " label %" + ifLabel + ',' + " label %" + nextLabel + '\n';
 	result += "\n";
 	result += ifLabel + ":\n";
+	oaPathStk.push(ifLabel);
 	parseNodeList(result, seg->stmts, ifLabel);
+	oaPathStk.pop();
 	result += "\n";
 	result += nextLabel + ":\n";
 	struct TreeNode *tmp = seg->elifStmts;
 	while (tmp != NULL) {
 		parseTreeNode(result, seg->elifStmts);
+		nextLabel = oaPathStk.top();
+		oaPathStk.pop();
 		tmp = tmp->next;
 	}
 	if (seg->elseStmts) {
+		oaPathStk.push(nextLabel);
 		parseTreeNode(result, seg->elseStmts);
+		oaPathStk.pop();
 	}
 	/*char numStr[N_INT_CHAR];
 	sprintf(numStr, "%d", ++lineno);
@@ -535,9 +547,12 @@ void parseElifNode(std::string&result, ElifNode*seg) {
 	result += std::string("  br i1 %") + p_midVar->name + ',' + " label %" + ifLabel + ',' + " label %" + nextLabel + '\n';
 	result += "\n";
 	result += ifLabel + ":\n";
+	oaPathStk.push(ifLabel);
 	parseNodeList(result, seg->stmts, ifLabel);
+	oaPathStk.pop();
 	result += "\n";
 	result += nextLabel + ":\n";
+	oaPathStk.push(nextLabel);
 	/*result += "{\"name\":\"condition\",\"children\":[{\"name\":\"";
 	parseExpression(result, seg->exp);
 	result += "\"}]}";
@@ -572,7 +587,9 @@ void parseWhileNode(std::string&result, WhileNode*seg) {
 	result += std::string("  br i1 %") + p_midVar->name + ',' + " label %" + wBodyLabel + ',' + " label %" + wEndLabel + '\n';
 	result += "\n";
 	result += wBodyLabel + ":\n";
+	oaPathStk.push(wBodyLabel);
 	parseNodeList(result, seg->stmts, wBodyLabel);
+	oaPathStk.pop();
 	result += std::string("  br label %") + wCondLabel + '\n';
 	result += "\n";
 	result += wEndLabel + ":\n";
@@ -589,6 +606,138 @@ void parseWhileNode(std::string&result, WhileNode*seg) {
 		parseNodeList(result, seg->stmts, "stmts");
 	}
 	result += "]}";*/
+}
+
+void replaceUtilForeachVDF(struct VarDefineNode *seg, char* namein, char* nameout, std::string idx) {
+	if (seg == NULL) {
+		return;
+	}
+	replaceUtilForeachEXP(seg->exp, namein, nameout, idx);
+}
+
+void replaceUtilForeachVA(struct VarAssignNode* seg, char* namein, char* nameout, std::string idx) {
+	if (seg == NULL) {
+		return;
+	}
+	if (strcmp(seg->name->name,namein)==0) {
+		char* nameidx = new char[idx.size()+1];
+		strcpy(nameidx, idx.c_str());
+		struct LeftValue *newlft = createLeftValue(nameidx);
+		struct Expression *newexp = createExpressionLeftValueLeaf(newlft);
+		seg->expOfVar = newexp;
+	}
+}
+
+void replaceUtilForeachADF(struct ArrayDefineNode* seg, char* namein, char* nameout, std::string idx) {
+
+}
+
+void replaceUtilForeachAA(struct ArrayAssignNode* seg, char* namein, char* nameout, std::string idx) {
+
+}
+
+void replaceUtilForeachIF(struct IfNode* seg, char* namein, char* nameout, std::string idx) {
+	if (seg == NULL) {
+		return;
+	}
+	replaceUtilForeachEXP(seg->exp, namein, nameout, idx);
+	replaceUtilForeach(seg->elifStmts, namein, nameout, idx);
+	replaceUtilForeach(seg->elseStmts, namein, nameout, idx);
+	replaceUtilForeach(seg->stmts, namein, nameout, idx);
+}
+
+void replaceUtilForeachELIF(struct ElifNode* seg, char* namein, char* nameout, std::string idx) {
+	if (seg == NULL) {
+		return;
+	}
+	replaceUtilForeachEXP(seg->exp, namein, nameout, idx);
+	replaceUtilForeach(seg->stmts, namein, nameout, idx);
+}
+
+void replaceUtilForeachELSE(struct ElseNode* seg, char* namein, char* nameout, std::string idx) {
+	if (seg == NULL) {
+		return;
+	}
+	replaceUtilForeach(seg->stmts, namein, nameout, idx);
+}
+
+void replaceUtilForeachWHILE(struct WhileNode* seg, char* namein, char* nameout, std::string idx) {
+	if (seg == NULL) {
+		return;
+	}
+	replaceUtilForeachEXP(seg->exp, namein, nameout, idx);
+	replaceUtilForeach(seg->stmts, namein, nameout, idx);
+}
+
+void replaceUtilForeachRT(struct ReturnNode* seg, char* namein, char* nameout, std::string idx) {
+	if (seg == NULL) {
+		return;
+	}
+	replaceUtilForeachEXP(seg->exp, namein, nameout, idx);
+}
+
+
+void replaceUtilForeachEXP(struct Expression* seg, char* namein, char* nameout, std::string idx) {
+	if (seg == NULL) {
+		return;
+	}
+	if (seg->left == NULL&&seg->right == NULL) {
+		switch (seg->leafType)
+		{
+		case OA_LEFT_VALUE:
+		case OA_ARRAY_VALUE:
+		case OA_FUNCTION_VALUE:
+			break;
+		default:
+			break;
+		}
+	}
+	else {
+		replaceUtilForeachEXP(seg->left, namein, nameout, idx);
+		replaceUtilForeachEXP(seg->right, namein, nameout, idx);
+	}
+}
+
+void replaceUtilForeach(struct TreeNode* seg, char* namein, char* nameout, std::string idx) {
+	if (seg == NULL) {
+		return;
+	}
+	struct TreeNode* next = seg->next;
+	while (next != NULL) {
+		replaceUtilForeach(next, namein, nameout, idx);
+		next = next->next;
+	}
+	switch (seg->type) {
+	case VAR_DEFINE_NODE:
+		replaceUtilForeachVDF(seg->varDefineNode,namein,nameout,idx);
+		break;
+	case VAR_ASSIGN_NODE:
+		replaceUtilForeachVDF(seg->varDefineNode, namein, nameout, idx);
+		break;
+	case ARRAY_DEFINE_NODE:
+		replaceUtilForeachADF(seg->arrayDefineNode, namein, nameout, idx);
+		break;
+	case ARRAY_ASSIGN_NODE:
+		replaceUtilForeachAA(seg->arrayAssignNode, namein, nameout, idx);
+		break;
+	case IF_NODE:
+		replaceUtilForeachIF(seg->ifNode, namein, nameout, idx);
+		break;
+	case ELIF_NODE:
+		replaceUtilForeachELIF(seg->elifNode, namein, nameout, idx);
+		break;
+	case ELSE_NODE:
+		replaceUtilForeachELSE(seg->elseNode, namein, nameout, idx);
+		break;
+	case WHILE_NODE:
+		replaceUtilForeachWHILE(seg->whileNode, namein, nameout, idx);
+		break;
+	case RETURN_NODE:
+		replaceUtilForeachRT(seg->returnNode, namein, nameout, idx);
+		break;
+	default:
+		break;
+	}
 }
 
 void parseForeachNode(std::string &result, ForeachNode *seg) {
@@ -788,17 +937,31 @@ void parseClassMethodDefineNode(std::string&result, ClassMethodDefineNode*seg) {
 }
 
 void parseBreakNode(std::string &result) {
+	std::string curScop = oaPathStk.top();
+	char num = curScop[curScop.size() - 1];
+	std::size_t first = curScop.find('.');
+	std::string loopType = curScop.substr(0, first);
+	std::string jmpLabel = loopType + ".end." + num;
+	result += "  br label %" + jmpLabel;
+	/*
 	char numStr[N_INT_CHAR];
 	sprintf(numStr, "%d", ++lineno);
 
 	result += "{\"name\":\"" + std::string(numStr) + ": break\"}";
+	*/
 }
 
 void parseContinueNode(std::string &result) {
-	char numStr[N_INT_CHAR];
+	std::string curScop = oaPathStk.top();
+	char num = curScop[curScop.size() - 1];
+	std::size_t first = curScop.find('.');
+	std::string loopType = curScop.substr(0, first);
+	std::string jmpLabel = loopType + ".cond." + num;
+	result += "  br label %" + jmpLabel;
+	/*char numStr[N_INT_CHAR];
 	sprintf(numStr, "%d", ++lineno);
 
-	result += "{\"name\":\"" + std::string(numStr) + ": continue\"}";
+	result += "{\"name\":\"" + std::string(numStr) + ": continue\"}";*/
 }
 
 void parseReturnNode(std::string &result, struct ReturnNode *seg) {
