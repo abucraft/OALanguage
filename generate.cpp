@@ -269,13 +269,14 @@ void parseVarDeclareNode(std::string& result, struct VarDeclareNode* seg) {
 		tmpMember.params = NULL;
 		tmpMember.type = temVar->type;
 		tmpMember.align = temVar->align;
-		classNow.align = (classNow.align > temVar->align) ? classNow.align : temVar->align;
+		classNow.align = (classNow.align > tmpMember.align) ? classNow.align : tmpMember.align;
 		tmpMember.pos = classMemberIndex++;
 		classNow.members.insert(std::pair<std::string, OaClassMember>(temVar->name, tmpMember));
 	}
 	else {
 		addVar(temVar);
 		if (temVar->type[0] == '#') {
+			//[TODO] let initial array length be zero
 			result += temVar->name + " ";
 			result += "= " + std::string("alloca %class." + temVar->type.substr(1) + ", ");
 			result += std::string("align ") + myItoa(temVar->align) + endLine;
@@ -343,7 +344,7 @@ void parseVarAssignNode(std::string& result, VarAssignNode* seg) {
 		return;
 	}
 	if (seg->expOfVar == NULL && seg->name == NULL) {
-		//[TODOD] onlydeal print function call
+		//[TODO] only deal @print function call
 		if (seg->exp->op == OA_EXP_NONE && seg->exp->leafType == OA_FUNCTION_VALUE) {
 			if (std::string(seg->exp->functionValue->name->name) == "@print" && seg->exp->functionValue->name->next == NULL) {
 				parsePrintFunction(seg->exp->functionValue->factParam);
@@ -351,33 +352,39 @@ void parseVarAssignNode(std::string& result, VarAssignNode* seg) {
 			}
 		}
 	}
-	std::string temName;
-	LeftValue* temLv = seg->name;
-	if(temLv != NULL) {
+	
+	LeftValue *lv = seg->name;
+	OaClassMember *member = NULL;
+	if (lv->next != NULL) {
 		//class
-		while (temLv != NULL) {
-			struct OaVar* var = NULL;
-			var = getVar('%' + std::string(temLv->name).substr(1));
-			if (var == NULL) {
-				compilePass = false;
-				compileLog = "wrong in varAssignNode, variable" + std::string(temLv->name) + " not found\n";
-				return;
+		std::string classType = getVar('%' + std::string(lv->name).substr(1))->type.substr(1);
+		while (lv->next != NULL) {
+			OaClass *oaClass = &(oaClasses.find(classType)->second);
+			member = findMemberInClass('%' + std::string(lv->next->name).substr(1), oaClass);
+			while (member == NULL && oaClass->parent != "") {
+				result += '%' + myItoa(temVarNo++) + " = getelementptr inbounds %class." + oaClass->name + ", %class." + oaClass->name + "* %" + std::string(lv->name).substr(1) + ", i32 0, i32 0\n";
+				classType = oaClass->parent;
+				oaClass = &(oaClasses.find(oaClass->parent)->second);
+				member = findMemberInClass('%' + std::string(lv->next->name).substr(1), oaClass);
 			}
-			else {
-				temLv = temLv->next;
-				if (temLv->next != NULL) {
-					//[TODO] class object member in class
-					compilePass = false;
-					compileLog = "wrong in varAssignNode, class object member in calss is not support now\n";
-					return;
-				}
-				//temLv->name
-			}
+			if (member == NULL) { compilePass = false; compileLog = "in parseVarAssign: no member in class\n"; return; }
+			result += '%' + myItoa(temVarNo++) + " = getelementptr inbounds %class." + oaClass->name + ", %class." + oaClass->name + "* %" + myItoa(temVarNo - 2) + ", i32 0, i32 " + myItoa(member->pos) + "\n";
+			classType = std::string(member->type).substr(1);
+			lv = lv->next;
 		}
+		int index = temVarNo - 1;
+		OaVar *var = parseExpression(result, seg->exp);
+		if (member->type != var->type +'*') { compilePass = false; compileLog = "in parseVarAssign: type error\n"; return; }
+		OaVar *arrayIndex = parseExpression(result, seg->expOfVar);
+		if(arrayIndex->type != "i32") { compilePass = false; compileLog = "in parseVarAssign: index should be int\n"; return; }
+		result += '%' + myItoa(temVarNo++) + " = load " + var->type + "*, " + var->type + "** %" + myItoa(index) + ", align " + myItoa(var->align) + '\n';
+		result += '%' + myItoa(temVarNo++) + " = getelememtptr inbounds " + var->type + ", " + var->type + "* %" + myItoa(temVarNo-2) + ", i32 " + arrayIndex->name + '\n';
+		result += "store " + var->type + ' ' + var->name + ", " + var->type + "* %" + myItoa(temVarNo - 1) + ", align " + myItoa(var->align) + '\n';
 		return;
 	}
 
-	 //not class
+	//not class
+	std::string temName;
 	if (temName == "") {
 		compilePass = false;
 		compileLog += "Error[Line " + myItoa(lineno) + "]: ";
@@ -468,8 +475,17 @@ void parseArrayDeclareNode(std::string&result, ArrayDeclareNode* seg) {
 		tmpMember.type = temArray->type + '*';
 		tmpMember.align = temArray->align;
 		tmpMember.pos = classMemberIndex++;
-		classNow.align = (classNow.align > temArray->align) ? classNow.align : temArray->align;
+		classNow.align = (classNow.align > tmpMember.align) ? classNow.align : tmpMember.align;
 		classNow.members.insert(std::pair<std::string, OaClassMember>(temArray->name, tmpMember));
+		
+		//variable: length of array
+		tmpMember.name = tmpMember.name + "_length";
+		tmpMember.align = 4;
+		tmpMember.pos = classMemberIndex++;
+		tmpMember.type = "i32";
+		classNow.align = (classNow.align > tmpMember.align) ? classNow.align : tmpMember.align;
+		classNow.members.insert(std::pair<std::string, OaClassMember>(temArray->name, tmpMember));
+
 	}
 	else {
 		temArray->size = 0;
@@ -481,7 +497,7 @@ void parseArrayDeclareNode(std::string&result, ArrayDeclareNode* seg) {
 		OaVar *tmpVar = new OaVar;
 		tmpVar->align = 4;
 		tmpVar->type = "i32";
-		tmpVar->name = temArray->name + ".length";
+		tmpVar->name = temArray->name + "_length";
 		addVar(tmpVar);
 		result += tmpVar->name + " ";
 		result += "= " + std::string("alloca " + tmpVar->type + ", ");
@@ -566,9 +582,12 @@ void parseArrayAssignNode(std::string&result, ArrayAssignNode*seg) {
 			lv = lv->next;
 		}
 		int index = temVarNo - 1;
+		//[TODO] do not free if _length is zero
 		freeArray(index, member->type, member->align);
 		OaVar *var = parseExpression(result, seg->exp);
+		if(member->type != var->type + '*') { compilePass = false; compileLog = "in parseArrayAssign: type error\n"; return; }
 		if(var->type != "i32") { compilePass = false; compileLog = "in parseArrayAssign: array size should be int\n"; return; }
+		//[TODO] upadte _length variable
 		mallocArray(index, member->type, member->align, var->name);
 	}
 	else {
