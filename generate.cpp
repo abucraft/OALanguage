@@ -100,7 +100,7 @@ void parseReturnNode(std::string &result, struct ReturnNode *seg);
 struct OaVar* parseExpression(std::string& result, struct Expression* seg);
 struct OaVar* parseLeftValue(std::string&result, struct LeftValue* seg);
 struct OaVar* parseArrayValue(std::string&result, struct ArrayValue* seg);
-struct OaVar* parseFunctionValue(std::string&result, struct FunctionValue* seg);
+void parseFunctionValue(std::string&result, struct FunctionValue* seg);
 //-------------------end expression part-------------------
 //---------------------parameter part---------------------
 void parseFormParam(std::string&result, FormParam*seg);
@@ -315,7 +315,7 @@ void parseVarAssignNode(std::string& result, VarAssignNode* seg) {
 		compileLog += "Lack of LeftValue" + endLine;
 		return;
 	}
-	if (getVar("%" + temName) == NULL&&getArray("%"+temName)==NULL) {
+	if (getVar("%" + temName) == NULL&&getArray("%" + temName) == NULL) {
 		compilePass = false;
 		compileLog += "Error[Line " + myItoa(lineno) + "]: ";
 		compileLog += "Undeclared Identifier" + endLine;
@@ -585,8 +585,8 @@ void parseWhileNode(std::string&result, WhileNode*seg) {
 	parseExpression(result, seg->exp);
 	result += "\"}]}";
 	if (seg->stmts) {
-		result += ",";
-		parseNodeList(result, seg->stmts, "stmts");
+	result += ",";
+	parseNodeList(result, seg->stmts, "stmts");
 	}
 	result += "]}";*/
 }
@@ -603,8 +603,8 @@ void parseForeachNode(std::string &result, ForeachNode *seg) {
 	result += "{\"name\":\"" + std::string(seg->nameIn) + "\"},";
 	result += "{\"name\":\"in " + std::string(seg->nameOut) + "\"}";
 	if (seg->stmts) {
-		result += ",";
-		parseNodeList(result, seg->stmts, "stmts");
+	result += ",";
+	parseNodeList(result, seg->stmts, "stmts");
 	}
 	result += "]}";
 	*/
@@ -659,7 +659,7 @@ void parseFunctionDeclareNode(std::string&result, FunctionDeclareNode*seg) {
 	else {
 		oafunc.type = "void";
 	}
-	
+
 	//parameters
 	oafunc.params = seg->formParams;
 	oaFunctions.insert(std::pair<std::string, OaFunction>(oafunc.className + oafunc.name, oafunc));
@@ -771,7 +771,7 @@ void parseClassMethodDefineNode(std::string&result, ClassMethodDefineNode*seg) {
 
 	//function name
 	result += " ";
-	result += oafunc.className +oafunc.name;
+	result += oafunc.className + oafunc.name;
 
 	//parameters
 	result += '(';
@@ -865,7 +865,7 @@ struct OaVar* parseExpression(std::string &result, Expression* seg) {
 			return parseArrayValue(result, seg->arrayValue);
 			break;
 		case OA_FUNCTION_VALUE:
-			return parseFunctionValue(result, seg->functionValue);
+			parseFunctionValue(result, seg->functionValue);
 			break;
 		default:
 			std::cout << "Wrong with expression, leafType\n";
@@ -1073,16 +1073,82 @@ struct OaVar* parseExpression(std::string &result, Expression* seg) {
 		return temVar;
 		break;
 	}
-	case OA_EXP_AND:
-		parseExpression(result, seg->left);
+	case OA_EXP_AND: {
+		/*parseExpression(result, seg->left);
 		result += " && ";
-		parseExpression(result, seg->right);
+		parseExpression(result, seg->right);*/
+		struct OaVar* temVar = new struct OaVar;
+		struct OaVar* leftVar = parseExpression(result, seg->left);
+		result += "%" + myItoa(temVarNo++) + " = ";
+		result += "icmp ne " + leftVar->type + " " + leftVar->name;
+		result += ", 0" + endLine;
+
+		result += "br i1 %" + myItoa(temVarNo - 1) + ", ";
+		result += "label %" + myItoa(temVarNo++) + ", ";
+		result += "label %" + myItoa(temVarNo++) + endLine;
+		int temLabel = temVarNo - 1;
+		result += myItoa(temVarNo - 2)+endLine;
+
+		struct OaVar* rightVar = parseExpression(result, seg->right);
+		result += "%" + myItoa(temVarNo++) + " = ";
+		result += "icmp ne " + rightVar->type + " " + rightVar->name;
+		result += ", 0" + endLine;
+
+		result += "br label %" + myItoa(temLabel) + endLine;
+
+		result += myItoa(temLabel) + endLine;
+
+		result += "%" + myItoa(temVarNo++) + " = ";
+		result += "phi i1 [ false, %0 ], [ %" + myItoa(temVarNo - 2) + ", ";
+		result += "%" + myItoa(temLabel - 1) + " ]" + endLine;;
+
+		result += "%" + myItoa(temVarNo++) + " = ";
+		result += "zext i1 %" + myItoa(temVarNo - 2) + " to i32"+endLine;
+
+		temVar->name = "%" + myItoa(temVarNo - 1);
+		temVar->type = "i32";
+		temVar->align = 4;
+		return temVar;
 		break;
-	case OA_EXP_OR:
-		parseExpression(result, seg->left);
+	}
+	case OA_EXP_OR: {
+		/*parseExpression(result, seg->left);
 		result += " || ";
-		parseExpression(result, seg->right);
+		parseExpression(result, seg->right);*/
+		struct OaVar* temVar = new struct OaVar;
+		struct OaVar* leftVar = parseExpression(result, seg->left);
+		result += "%" + myItoa(temVarNo++) + " = ";
+		result += "icmp ne " + leftVar->type + " " + leftVar->name;
+		result += ", 0" + endLine;
+
+		result += "br i1 %" + myItoa(temVarNo - 1) + ", ";
+		result += "label %" + myItoa(temVarNo++) + ", ";
+		result += "label %" + myItoa(temVarNo++) + endLine;
+		int temLabel = temVarNo-2;
+		result += myItoa(temVarNo - 1) + endLine;
+
+		struct OaVar* rightVar = parseExpression(result, seg->right);
+		result += "%" + myItoa(temVarNo++) + " = ";
+		result += "icmp ne " + rightVar->type + " " + rightVar->name;
+		result += ", 0" + endLine;
+
+		result += "br label %" + myItoa(temLabel) + endLine;
+
+		result += myItoa(temLabel) + endLine;
+
+		result += "%" + myItoa(temVarNo++) + " = ";
+		result += "phi i1 [ true, %0 ], [ %" + myItoa(temVarNo - 2) + ", ";
+		result += "%" + myItoa(temLabel+1) + " ]" + endLine;;
+
+		result += "%" + myItoa(temVarNo++) + " = ";
+		result += "zext i1 %" + myItoa(temVarNo - 2) + " to i32" + endLine;
+
+		temVar->name = "%" + myItoa(temVarNo - 1);
+		temVar->type = "i32";
+		temVar->align = 4;
+		return temVar;
 		break;
+	}
 	default:
 		std::cout << "Wrong with expression, operator\n";
 		break;
@@ -1115,7 +1181,7 @@ struct OaVar* parseLeftValue(std::string&result, LeftValue* seg) {
 		result += "align " + myItoa(refVar->align) + endLine;
 		return temVar;
 	}
-	else if(refArray!=NULL){
+	else if (refArray != NULL) {
 		struct OaVar* temVar = new struct OaVar;
 		temVar->name = "%" + myItoa(temVarNo++);
 		temVar->align = refArray->align;
@@ -1152,38 +1218,14 @@ struct OaVar* parseArrayValue(std::string&result, ArrayValue* seg) {
 	}
 }
 
-struct OaVar* parseFunctionValue(std::string&result, FunctionValue* seg) {
+void parseFunctionValue(std::string&result, FunctionValue* seg) {
 	if (seg == NULL) {
-		return NULL;
+		return;
 	}
-
-	//[TODO] no left value case
-	std::map<std::string, OaFunction>::iterator iter = oaFunctions.find(seg->name->name);
-	if (iter == oaFunctions.end()) {
-		//no this function
-		compilePass = false;
-		compileLog = "in parseFunctionValue: no function named" + std::string(seg->name->name) + "\n";
-		return NULL;
-	}
-
-	std::string retType = iter->second.type;
-	std::string name = iter->second.name;
-	std::string className = iter->second.className;
-	struct FormParam *formParams = iter->second.params;
-	
-	struct FactParam *factParams = seg->factParam;
-	//[TODO] check params, return type etc.
-	
-	//[TODO] align
-	struct OaVar *oaVar = new OaVar;
-	oaVar->name = myItoa(temVarNo++);
-	oaVar->type = retType;
-	oaVar->align = 4;
-
-	result += "%" + oaVar->name + " = call " + retType + ' ' + name + '(';
-	parseFactParam(result, factParams);
-	result += ")\n";
-	return oaVar;
+	parseLeftValue(result, seg->name);
+	result += '(';
+	parseFactParam(result, seg->factParam);
+	result += ')';
 }
 //------------------end expression part-------------------
 
@@ -1207,10 +1249,8 @@ void parseFactParam(std::string&result, FactParam* seg) {
 	if (seg == NULL) {
 		return;
 	}
-	OaVar *tmpVar = NULL;
 	while (seg != NULL) {
-		tmpVar = parseExpression(result, seg->exp);
-		result += tmpVar->type + ' ' + tmpVar->name;
+		parseExpression(result, seg->exp);
 		if (seg->next != NULL) {
 			result += ',';
 		}
@@ -1310,7 +1350,7 @@ void parsePrintFunction(struct FactParam *params) {
 			if (tmpstr[i] == '\\') {
 				str += '\\';
 			}
-			else if(tmpstr[i] == 'n') {
+			else if (tmpstr[i] == 'n') {
 				str += "\\0A";
 			}
 		}
@@ -1333,11 +1373,11 @@ void parsePrintFunction(struct FactParam *params) {
 }
 
 int main() {
-	getTreeRaw("qsort.oa");
+	getTreeRaw("hello.oa");
 	if (compilePass) {
 		std::cout << result << std::endl;
 		//generate code to file
-		/*std::ofstream ost("hello.ll");
+		std::ofstream ost("hello.ll");
 		ost << "target triple = \"i686-pc-windows-gnu\"\n\n";
 		for (int i = 0; i < printStringIndex; ++i) {
 			int size = printStrings[i].size() + 1;
@@ -1351,7 +1391,7 @@ int main() {
 		ost << result << std::endl;
 		if (hasPrint) {
 			ost << "declare i32 @printf(i8*, ...)";
-		}*/
+		}
 		std::cout << "code generate successfully!\n";
 	}
 	else
