@@ -65,7 +65,7 @@ struct OaClass {
 int OaIfIdx = 0;
 int OaCmpIdx = 0;
 int OaWhileIdx = 0;
-//×÷ÓÃÓòµÄÕ»
+//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Õ»
 std::stack<std::string> oaPathStk;
 
 std::map<std::string, OaFunction> oaFunctions;
@@ -1236,16 +1236,82 @@ struct OaVar* parseExpression(std::string &result, Expression* seg) {
 		return temVar;
 		break;
 	}
-	case OA_EXP_AND:
-		parseExpression(result, seg->left);
+	case OA_EXP_AND: {
+		/*parseExpression(result, seg->left);
 		result += " && ";
-		parseExpression(result, seg->right);
+		parseExpression(result, seg->right);*/
+		struct OaVar* temVar = new struct OaVar;
+		struct OaVar* leftVar = parseExpression(result, seg->left);
+		result += "%" + myItoa(temVarNo++) + " = ";
+		result += "icmp ne " + leftVar->type + " " + leftVar->name;
+		result += ", 0" + endLine;
+
+		result += "br i1 %" + myItoa(temVarNo - 1) + ", ";
+		result += "label %" + myItoa(temVarNo++) + ", ";
+		result += "label %" + myItoa(temVarNo++) + endLine;
+		int temLabel = temVarNo - 1;
+		result += myItoa(temVarNo - 2)+endLine;
+
+		struct OaVar* rightVar = parseExpression(result, seg->right);
+		result += "%" + myItoa(temVarNo++) + " = ";
+		result += "icmp ne " + rightVar->type + " " + rightVar->name;
+		result += ", 0" + endLine;
+
+		result += "br label %" + myItoa(temLabel) + endLine;
+
+		result += myItoa(temLabel) + endLine;
+
+		result += "%" + myItoa(temVarNo++) + " = ";
+		result += "phi i1 [ false, %0 ], [ %" + myItoa(temVarNo - 2) + ", ";
+		result += "%" + myItoa(temLabel - 1) + " ]" + endLine;;
+
+		result += "%" + myItoa(temVarNo++) + " = ";
+		result += "zext i1 %" + myItoa(temVarNo - 2) + " to i32"+endLine;
+
+		temVar->name = "%" + myItoa(temVarNo - 1);
+		temVar->type = "i32";
+		temVar->align = 4;
+		return temVar;
 		break;
-	case OA_EXP_OR:
-		parseExpression(result, seg->left);
+	}
+	case OA_EXP_OR: {
+		/*parseExpression(result, seg->left);
 		result += " || ";
-		parseExpression(result, seg->right);
+		parseExpression(result, seg->right);*/
+		struct OaVar* temVar = new struct OaVar;
+		struct OaVar* leftVar = parseExpression(result, seg->left);
+		result += "%" + myItoa(temVarNo++) + " = ";
+		result += "icmp ne " + leftVar->type + " " + leftVar->name;
+		result += ", 0" + endLine;
+
+		result += "br i1 %" + myItoa(temVarNo - 1) + ", ";
+		result += "label %" + myItoa(temVarNo++) + ", ";
+		result += "label %" + myItoa(temVarNo++) + endLine;
+		int temLabel = temVarNo-2;
+		result += myItoa(temVarNo - 1) + endLine;
+
+		struct OaVar* rightVar = parseExpression(result, seg->right);
+		result += "%" + myItoa(temVarNo++) + " = ";
+		result += "icmp ne " + rightVar->type + " " + rightVar->name;
+		result += ", 0" + endLine;
+
+		result += "br label %" + myItoa(temLabel) + endLine;
+
+		result += myItoa(temLabel) + endLine;
+
+		result += "%" + myItoa(temVarNo++) + " = ";
+		result += "phi i1 [ true, %0 ], [ %" + myItoa(temVarNo - 2) + ", ";
+		result += "%" + myItoa(temLabel+1) + " ]" + endLine;;
+
+		result += "%" + myItoa(temVarNo++) + " = ";
+		result += "zext i1 %" + myItoa(temVarNo - 2) + " to i32" + endLine;
+
+		temVar->name = "%" + myItoa(temVarNo - 1);
+		temVar->type = "i32";
+		temVar->align = 4;
+		return temVar;
 		break;
+	}
 	default:
 		std::cout << "Wrong with expression, operator\n";
 		break;
