@@ -82,15 +82,12 @@ bool hasPrint = false;
 int printStringIndex = 0;
 std::vector<std::string> printStrings;
 
-<<<<<<< HEAD
 void freeArray(OaArray *oaArray);
 void mallocArray(OaArray *oaArray, OaVar *size);
 
-=======
 void replaceUtilForeach(struct TreeNode* seg, char* namein, char* nameout, std::string idx);
 void replaceUtilForeachEXP(struct Expression* seg, char* namein, char* nameout, std::string idx);
->>>>>>> c172eff0f0c68f8cf16677302baf90dc159511f9
-//--------------------------------------
+
 //---------------------tree node part---------------------
 void parseNodeList(std::string &result, struct TreeNode* seg, std::string name);
 void parseTreeNode(std::string &result, struct TreeNode *seg);
