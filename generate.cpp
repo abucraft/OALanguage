@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <map>
 #include <fstream>
-#include<stack>
+#include<list>
 
 #define N_INT_CHAR 11
 
@@ -66,7 +66,7 @@ int OaIfIdx = 0;
 int OaCmpIdx = 0;
 int OaWhileIdx = 0;
 //×÷ÓÃÓòµÄÕ»
-std::stack<std::string> oaPathStk;
+std::list<std::string> oaPathStk;
 
 std::map<std::string, OaFunction> oaFunctions;
 std::map<std::string, OaClass> oaClasses;
@@ -483,25 +483,25 @@ void parseIfNode(std::string&result, IfNode*seg) {
 	OaVar *p_midVar = parseExpression(result, seg->exp);
 	OaCmpIdx++;
 	OaIfIdx++;
-	result += std::string("  br i1 %") + p_midVar->name + ',' + " label %" + ifLabel + ',' + " label %" + nextLabel + '\n';
+	result += std::string("  br i1 ") + p_midVar->name + ',' + " label %" + ifLabel + ',' + " label %" + nextLabel + '\n';
 	result += "\n";
 	result += ifLabel + ":\n";
-	oaPathStk.push(ifLabel);
+	oaPathStk.push_back(ifLabel);
 	parseNodeList(result, seg->stmts, ifLabel);
-	oaPathStk.pop();
+	oaPathStk.pop_back();
 	result += "\n";
 	result += nextLabel + ":\n";
 	struct TreeNode *tmp = seg->elifStmts;
 	while (tmp != NULL) {
 		parseTreeNode(result, seg->elifStmts);
-		nextLabel = oaPathStk.top();
-		oaPathStk.pop();
+		nextLabel = oaPathStk.back();
+		oaPathStk.pop_back();
 		tmp = tmp->next;
 	}
 	if (seg->elseStmts) {
-		oaPathStk.push(nextLabel);
+		oaPathStk.push_back(nextLabel);
 		parseTreeNode(result, seg->elseStmts);
-		oaPathStk.pop();
+		oaPathStk.pop_back();
 	}
 	/*char numStr[N_INT_CHAR];
 	sprintf(numStr, "%d", ++lineno);
@@ -544,15 +544,15 @@ void parseElifNode(std::string&result, ElifNode*seg) {
 	OaVar *p_midVar = parseExpression(result, seg->exp);
 	OaCmpIdx++;
 	OaIfIdx++;
-	result += std::string("  br i1 %") + p_midVar->name + ',' + " label %" + ifLabel + ',' + " label %" + nextLabel + '\n';
+	result += std::string("  br i1 ") + p_midVar->name + ',' + " label %" + ifLabel + ',' + " label %" + nextLabel + '\n';
 	result += "\n";
 	result += ifLabel + ":\n";
-	oaPathStk.push(ifLabel);
+	oaPathStk.push_back(ifLabel);
 	parseNodeList(result, seg->stmts, ifLabel);
-	oaPathStk.pop();
+	oaPathStk.pop_back();
 	result += "\n";
 	result += nextLabel + ":\n";
-	oaPathStk.push(nextLabel);
+	oaPathStk.push_back(nextLabel);
 	/*result += "{\"name\":\"condition\",\"children\":[{\"name\":\"";
 	parseExpression(result, seg->exp);
 	result += "\"}]}";
@@ -584,12 +584,12 @@ void parseWhileNode(std::string&result, WhileNode*seg) {
 	result += "\n";
 	result += wCondLabel + ":\n";
 	OaVar *p_midVar = parseExpression(result, seg->exp);
-	result += std::string("  br i1 %") + p_midVar->name + ',' + " label %" + wBodyLabel + ',' + " label %" + wEndLabel + '\n';
+	result += std::string("  br i1 ") + p_midVar->name + ',' + " label %" + wBodyLabel + ',' + " label %" + wEndLabel + '\n';
 	result += "\n";
 	result += wBodyLabel + ":\n";
-	oaPathStk.push(wBodyLabel);
+	oaPathStk.push_back(wBodyLabel);
 	parseNodeList(result, seg->stmts, wBodyLabel);
-	oaPathStk.pop();
+	oaPathStk.pop_back();
 	result += std::string("  br label %") + wCondLabel + '\n';
 	result += "\n";
 	result += wEndLabel + ":\n";
@@ -937,12 +937,12 @@ void parseClassMethodDefineNode(std::string&result, ClassMethodDefineNode*seg) {
 }
 
 void parseBreakNode(std::string &result) {
-	std::string curScop = oaPathStk.top();
+	std::string curScop = oaPathStk.back();
 	char num = curScop[curScop.size() - 1];
 	std::size_t first = curScop.find('.');
 	std::string loopType = curScop.substr(0, first);
 	std::string jmpLabel = loopType + ".end." + num;
-	result += "  br label %" + jmpLabel;
+	result += "  br label %" + jmpLabel +'\n';
 	/*
 	char numStr[N_INT_CHAR];
 	sprintf(numStr, "%d", ++lineno);
@@ -952,12 +952,12 @@ void parseBreakNode(std::string &result) {
 }
 
 void parseContinueNode(std::string &result) {
-	std::string curScop = oaPathStk.top();
+	std::string curScop = oaPathStk.back();
 	char num = curScop[curScop.size() - 1];
 	std::size_t first = curScop.find('.');
 	std::string loopType = curScop.substr(0, first);
 	std::string jmpLabel = loopType + ".cond." + num;
-	result += "  br label %" + jmpLabel;
+	result += "  br label %" + jmpLabel +'\n';
 	/*char numStr[N_INT_CHAR];
 	sprintf(numStr, "%d", ++lineno);
 
@@ -1496,7 +1496,7 @@ void parsePrintFunction(struct FactParam *params) {
 }
 
 int main() {
-	getTreeRaw("qsort.oa");
+	getTreeRaw("helloworld.oa");
 	if (compilePass) {
 		std::cout << result << std::endl;
 		//generate code to file
