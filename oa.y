@@ -126,11 +126,8 @@ classStatements
 	
 classStatement
 	:varDeclareStatement		SEMICOLON
-	|varDefineStatement			SEMICOLON
 	|arrayDeclareStatement		SEMICOLON
-	|arrayDefineStatement		SEMICOLON
 	|functionDeclareStatement	SEMICOLON
-	|functionDefineStatement
 	|SEMICOLON{
 		$$ = NULL;
 	}
