@@ -84,6 +84,8 @@ OaClass classNow;
 std::string classNameNow = "";
 int classMemberIndex;
 bool hasPrint = false;
+bool hasMalloc = false;
+bool hasFree = false;
 int printStringIndex = 0;
 std::vector<std::string> printStrings;
 
@@ -1702,7 +1704,12 @@ void parseFormParam(std::string&result, FormParam*seg) {
 		return;
 	}
 	while (seg != NULL) {
-		result += std::string(seg->type);
+		if (seg->type[0] == '#') {
+			result += "%class." + std::string(seg->type).substr(1) + '*';
+		}
+		else {
+			result += std::string(seg->type);
+		}
 		result += " %";
 		result += std::string(seg->name).substr(1);
 		if (seg->next != NULL) {
@@ -1842,11 +1849,13 @@ void parsePrintFunction(struct FactParam *params) {
 }
 
 void freeArray(int index, std::string type, int align){
+	hasFree = true;
 	result += '%' + myItoa(temVarNo++) + " = load " + type + ", " + type + "* %" + myItoa(index) + " align " + myItoa(align) + '\n';
 	if (type != "i8*")  result += '%' + myItoa(temVarNo++) + " = bitcast " + type + "* %" + myItoa(temVarNo-2) + " to i8*\n";
 	result += "call void @free(i8* %" + myItoa(temVarNo-1) + ")\n";
 }
 std::string mallocArray(int index, std::string type, int align, std::string size) {
+	hasMalloc = true;
 	if (size[0] != '%') {
 		int newSize = atoi(size.c_str());
 		newSize *= align;
@@ -1913,7 +1922,7 @@ void zeroClassArrayLength(const std::string &name, const std::string &classType)
 }
 
 int main() {
-	getTreeRaw("qsort.oa");
+	getTreeRaw("test.oa");
 	if (compilePass) {
 		std::cout << result << std::endl;
 		//generate code to file
@@ -1930,8 +1939,15 @@ int main() {
 		ost << "\n";
 		ost << result << std::endl;
 		if (hasPrint) {
-			ost << "declare i32 @printf(i8*, ...)";
-		}*/
+			ost << "declare i32 @printf(i8*, ...)\n";
+		}
+		if(hasMalloc){
+			ost << "declare noalias i8* @malloc(i32)\n";
+		}
+		if(hasFree){
+			ost << "declare void @free(i8*)\n";
+		}
+		*/
 		std::cout << "code generate successfully!\n";
 	}
 	else {
