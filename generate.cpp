@@ -1103,12 +1103,17 @@ void parseClassMethodDefineNode(std::string&result, ClassMethodDefineNode*seg) {
 }
 
 void parseBreakNode(std::string &result) {
-	std::string curScop = oaPathStk.back();
-	char num = curScop[curScop.size() - 1];
-	std::size_t first = curScop.find('.');
-	std::string loopType = curScop.substr(0, first);
-	std::string jmpLabel = loopType + ".end." + num;
-	result += "  br label %" + jmpLabel +'\n';
+	std::string num;
+	for (std::list<std::string>::reverse_iterator i = oaPathStk.rbegin();i != oaPathStk.rend();i++) {
+		std::size_t first = (*i).find('.');
+		std::string loopType = (*i).substr(0, first);
+		if (loopType == "while") {
+			std::size_t rfirst = (*i).rfind('.');
+			num = (*i).substr(rfirst + 1);
+			break;
+		}
+	}
+	result += "  br label %while.end." + num;
 	/*
 	char numStr[N_INT_CHAR];
 	sprintf(numStr, "%d", ++lineno);
@@ -1118,12 +1123,17 @@ void parseBreakNode(std::string &result) {
 }
 
 void parseContinueNode(std::string &result) {
-	std::string curScop = oaPathStk.back();
-	char num = curScop[curScop.size() - 1];
-	std::size_t first = curScop.find('.');
-	std::string loopType = curScop.substr(0, first);
-	std::string jmpLabel = loopType + ".cond." + num;
-	result += "  br label %" + jmpLabel +'\n';
+	std::string num;
+	for (std::list<std::string>::reverse_iterator i = oaPathStk.rbegin();i != oaPathStk.rend();i++) {
+		std::size_t first = (*i).find('.');
+		std::string loopType = (*i).substr(0, first);
+		if (loopType == "while") {
+			std::size_t rfirst = (*i).rfind('.');
+			num = (*i).substr(rfirst + 1);
+			break;
+		}
+	}
+	result += "  br label %while.cond." + num;
 	/*char numStr[N_INT_CHAR];
 	sprintf(numStr, "%d", ++lineno);
 
