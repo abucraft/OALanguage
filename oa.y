@@ -220,7 +220,7 @@ whileStatement
 	;
 	
 foreachStatement
-	:FOREACH LPAREN IDENTIFIER IN IDENTIFIER RPAREN LBRACE functionStatements RBRACE{
+	:FOREACH LPAREN IDENTIFIER IN leftValue RPAREN LBRACE functionStatements RBRACE{
 		$$ = createForeach($3, $5, $8);
 	}
 	;

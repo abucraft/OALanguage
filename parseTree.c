@@ -250,8 +250,8 @@ struct TreeNode *createWhile(struct Expression *exp, struct TreeNode *stmts) {
 	node->whileNode = whileNode;
 	return node;
 }
-struct TreeNode *createForeach(char *nameIn, char*nameOut, struct TreeNode *stmts) {
-	//foreach(@a in @aa){stmts}
+struct TreeNode *createForeach(char *nameIn, struct LeftValue *nameOut, struct TreeNode *stmts) {
+	//foreach(@a in @aa.@b){stmts}
 	struct ForeachNode *foreachNode = (struct ForeachNode*)malloc(sizeof(struct ForeachNode));
 	foreachNode->nameIn = nameIn;
 	foreachNode->nameOut = nameOut;

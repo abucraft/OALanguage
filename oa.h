@@ -159,7 +159,7 @@ struct WhileNode{
 };
 struct ForeachNode{
 	char *nameIn;
-	char *nameOut;
+	struct LeftValue *nameOut;
 	struct TreeNode *stmts;
 };
 struct ClassDefineNode{
@@ -229,7 +229,7 @@ struct TreeNode *createIf(struct Expression *exp, struct TreeNode *stmts, struct
 struct TreeNode *createElifPart(struct Expression *exp, struct TreeNode *stmts);
 struct TreeNode *createElsePart(struct TreeNode *stmts);
 struct TreeNode *createWhile(struct Expression *exp, struct TreeNode *stmts);
-struct TreeNode *createForeach(char *nameIn, char*nameOut, struct TreeNode *stmts);
+struct TreeNode *createForeach(char *nameIn, struct LeftValue *nameOut, struct TreeNode *stmts);
 struct TreeNode *createClassDefine(char *type, char *typeParent, struct TreeNode *stmts);
 struct TreeNode *createFunctionDeclare(char *type, char *name, struct FormParam *formParams);
 struct TreeNode *createFunctionDefine(char *type, char *name, struct FormParam *formParams, struct TreeNode *stmts);

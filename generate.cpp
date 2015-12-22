@@ -85,8 +85,9 @@ bool hasPrint = false;
 int printStringIndex = 0;
 std::vector<std::string> printStrings;
 
+void zeroClassArrayLength(const std::string &name, const std::string &classType);
 void freeArray(int index, std::string type, int align);
-void mallocArray(int index, std::string type, int align, std::string size);
+std::string mallocArray(int index, std::string type, int align, std::string size);
 
 void replaceUtilForeach(struct TreeNode* seg, char* namein, char* nameout, std::string idx);
 void replaceUtilForeachEXP(struct Expression* seg, char* namein, char* nameout, std::string idx);
@@ -271,15 +272,19 @@ void parseVarDeclareNode(std::string& result, struct VarDeclareNode* seg) {
 		tmpMember.align = temVar->align;
 		classNow.align = (classNow.align > tmpMember.align) ? classNow.align : tmpMember.align;
 		tmpMember.pos = classMemberIndex++;
-		classNow.members.insert(std::pair<std::string, OaClassMember>(temVar->name, tmpMember));
+		classNow.members.insert(std::pair<std::string, OaClassMember>(tmpMember.name, tmpMember));
 	}
 	else {
 		addVar(temVar);
 		if (temVar->type[0] == '#') {
-			//[TODO] let initial array length be zero
 			result += temVar->name + " ";
 			result += "= " + std::string("alloca %class." + temVar->type.substr(1) + ", ");
 			result += std::string("align ") + myItoa(temVar->align) + endLine;
+			
+			//let initial array length be zero
+			std::string classType = std::string(temVar->type).substr(1);
+			std::string className = std::string(temVar->name);
+			zeroClassArrayLength(className, classType);
 		}
 		else {
 			result += temVar->name + " ";
@@ -287,7 +292,6 @@ void parseVarDeclareNode(std::string& result, struct VarDeclareNode* seg) {
 			result += std::string("align ") + myItoa(temVar->align) + endLine;
 		}
 	}
-	//----------------------------------------------------------
 }
 
 void parseVarDefineNode(std::string& result, VarDefineNode* seg) {
@@ -476,16 +480,7 @@ void parseArrayDeclareNode(std::string&result, ArrayDeclareNode* seg) {
 		tmpMember.align = temArray->align;
 		tmpMember.pos = classMemberIndex++;
 		classNow.align = (classNow.align > tmpMember.align) ? classNow.align : tmpMember.align;
-		classNow.members.insert(std::pair<std::string, OaClassMember>(temArray->name, tmpMember));
-		
-		//variable: length of array
-		tmpMember.name = tmpMember.name + "_length";
-		tmpMember.align = 4;
-		tmpMember.pos = classMemberIndex++;
-		tmpMember.type = "i32";
-		classNow.align = (classNow.align > tmpMember.align) ? classNow.align : tmpMember.align;
-		classNow.members.insert(std::pair<std::string, OaClassMember>(temArray->name, tmpMember));
-
+		classNow.members.insert(std::pair<std::string, OaClassMember>(tmpMember.name, tmpMember));
 	}
 	else {
 		temArray->size = 0;
@@ -497,7 +492,7 @@ void parseArrayDeclareNode(std::string&result, ArrayDeclareNode* seg) {
 		OaVar *tmpVar = new OaVar;
 		tmpVar->align = 4;
 		tmpVar->type = "i32";
-		tmpVar->name = temArray->name + "_length";
+		tmpVar->name = temArray->name + "%length";
 		addVar(tmpVar);
 		result += tmpVar->name + " ";
 		result += "= " + std::string("alloca " + tmpVar->type + ", ");
@@ -564,11 +559,12 @@ void parseArrayAssignNode(std::string&result, ArrayAssignNode*seg) {
 
 	LeftValue *lv = seg->name;
 	OaClassMember *member = NULL;
+	OaClass *oaClass = NULL;
 	if (lv->next != NULL) {
 		//class
 		std::string classType = getVar('%' + std::string(lv->name).substr(1))->type.substr(1);
 		while (lv->next != NULL) {
-			OaClass *oaClass = &(oaClasses.find(classType)->second);
+			oaClass = &(oaClasses.find(classType)->second);
 			member = findMemberInClass('%' + std::string(lv->next->name).substr(1), oaClass);
 			while (member == NULL && oaClass->parent != "") {
 				result += '%' + myItoa(temVarNo++) + " = getelementptr inbounds %class." + oaClass->name + ", %class." + oaClass->name + "* %" + std::string(lv->name).substr(1) + ", i32 0, i32 0\n";
@@ -582,13 +578,31 @@ void parseArrayAssignNode(std::string&result, ArrayAssignNode*seg) {
 			lv = lv->next;
 		}
 		int index = temVarNo - 1;
-		//[TODO] do not free if _length is zero
-		freeArray(index, member->type, member->align);
+		//do not free if %length is zero
+		//[WARNING] let align = 1 and type = i8 to indicate the first time to malloc
+		lv = seg->name;
+		std::string tmpName = "";
+		while (lv != NULL) {
+			tmpName += '%' + std::string(lv->name).substr(1);
+			lv = lv->next;
+		}
+		tmpName += "%length";
+		OaVar *tmpVar = getVar(tmpName);
+		if(tmpVar == NULL){ compilePass = false; compileLog = "in parseArrayAssign: no such array in class\n"; return; }
+		if (tmpVar->align == 1) {
+			tmpVar->align = 4;
+			tmpVar->type = "i32";
+		}
+		else {
+			freeArray(index, member->type, member->align);
+		}
 		OaVar *var = parseExpression(result, seg->exp);
 		if(member->type != var->type + '*') { compilePass = false; compileLog = "in parseArrayAssign: type error\n"; return; }
 		if(var->type != "i32") { compilePass = false; compileLog = "in parseArrayAssign: array size should be int\n"; return; }
-		//[TODO] upadte _length variable
-		mallocArray(index, member->type, member->align, var->name);
+		//malloc
+		std::string size = mallocArray(index, member->type, member->align, var->name);
+		//upadte %length variable
+		result += "store i32 %" + var->name + ", i32* " + size + ", align 4\n";
 	}
 	else {
 		//[TODO] not in class
@@ -1716,7 +1730,7 @@ void freeArray(int index, std::string type, int align){
 	if (type != "i8*")  result += '%' + myItoa(temVarNo++) + " = bitcast " + type + "* %" + myItoa(temVarNo-2) + " to i8*\n";
 	result += "call void @free(i8* %" + myItoa(temVarNo-1) + ")\n";
 }
-void mallocArray(int index, std::string type, int align, std::string size) {
+std::string mallocArray(int index, std::string type, int align, std::string size) {
 	if (size[0] != '%') {
 		int newSize = atoi(size.c_str());
 		newSize *= align;
@@ -1730,12 +1744,56 @@ void mallocArray(int index, std::string type, int align, std::string size) {
 	result += '%' + myItoa(temVarNo++) + " = call noalias i8* @malloc (i32 " + size + ")\n";
 	result += '%' + myItoa(temVarNo++) + " = bitcast i8* %" + myItoa(temVarNo-2) + " to " + type + '\n';
 	result += "store " + type + " %" + myItoa(temVarNo - 1) + ", " + type + "* %" + myItoa(index) + ", align " + myItoa(align) + '\n';
+	return size;
 }
 
 OaClassMember *findMemberInClass(std::string member, OaClass *oaClass) {
 	std::map<std::string, OaClassMember>::iterator iter = oaClass->members.find(member);
 	if (iter == oaClass->members.end()) return NULL;
 	else return &(iter->second);
+}
+
+void zeroClassArrayLength(const std::string &name, const std::string &classType) {
+	std::map<std::string, OaClass>::iterator classIter = oaClasses.find(classType);
+	if (classIter == oaClasses.end()) { compilePass = false; compileLog = "error in zeroClassArrayLength: class" + classType + "not found"; return; }
+	std::map<std::string, OaClassMember>::iterator iter;
+	for (iter = classIter->second.members.begin(); iter != classIter->second.members.end(); ++iter) {
+		if (iter->second.type[0] == '#') {
+			std::string newName = name + iter->second.name;
+			zeroClassArrayLength(newName, std::string(iter->second.type).substr(1));
+		}
+		else {
+			//[WARNINIG] using parseVarDefineNode function
+			//llvm statememnts
+			std::string newName = name + iter->second.name + "%length";
+			int size = newName.size();
+			//exp
+			Expression exp;
+			exp.left = NULL;
+			exp.right = NULL;
+			exp.op = OA_EXP_NONE;
+			exp.leafType = OA_INT;
+			exp.number_int = 0;
+			//name
+			char *tmpCh = new char[size+1];
+			for (int i = 0; i < size; ++i) {
+				tmpCh[i] = newName[i];
+			}
+			tmpCh[0] = '@';
+			tmpCh[size] = '\0';
+			//node
+			VarDefineNode node;
+			node.exp = &exp;
+			node.name = tmpCh;
+			node.type = "char";
+			parseVarDefineNode(result, &node);
+			delete[] tmpCh;
+		}
+	}
+
+	if (classIter->second.parent != "") {
+		zeroClassArrayLength(name, classIter->second.parent);
+	}
 }
 
 int main() {

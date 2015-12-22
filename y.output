@@ -72,7 +72,7 @@ rule 48   elifPart -> ELIF LPAREN expression RPAREN LBRACE functionStatements RB
 rule 49   elsePart ->		/* empty */
 rule 50   elsePart -> ELSE LBRACE functionStatements RBRACE
 rule 51   whileStatement -> WHILE LPAREN expression RPAREN LBRACE functionStatements RBRACE
-rule 52   foreachStatement -> FOREACH LPAREN IDENTIFIER IN IDENTIFIER RPAREN LBRACE functionStatements RBRACE
+rule 52   foreachStatement -> FOREACH LPAREN IDENTIFIER IN leftValue RPAREN LBRACE functionStatements RBRACE
 rule 53   classDefineStatement -> CLASS CLASS_IDENTIFIER LBRACE classStatements RBRACE
 rule 54   classDefineStatement -> CLASS CLASS_IDENTIFIER EXTENDS CLASS_IDENTIFIER LBRACE classStatements RBRACE
 rule 55   functionDeclareStatement -> type IDENTIFIER LPAREN formParams RPAREN
@@ -271,7 +271,7 @@ term (94)
 factor (95)
     on left: 91 92 93 94 95 96 97 98, on right: 88 89 90
 leftValue (96)
-    on left: 99, on right: 39 40 44 95 96 97
+    on left: 99, on right: 39 40 44 52 95 96 97
 leftValueSet (97)
     on left: 100 101, on right: 99 101
 factParams (98)
@@ -2206,7 +2206,7 @@ state 158
 
 state 159
 
-    foreachStatement  ->  FOREACH . LPAREN IDENTIFIER IN IDENTIFIER RPAREN LBRACE functionStatements RBRACE   (rule 52)
+    foreachStatement  ->  FOREACH . LPAREN IDENTIFIER IN leftValue RPAREN LBRACE functionStatements RBRACE   (rule 52)
 
     LPAREN	shift, and go to state 188
 
@@ -2535,7 +2535,7 @@ state 187
 
 state 188
 
-    foreachStatement  ->  FOREACH LPAREN . IDENTIFIER IN IDENTIFIER RPAREN LBRACE functionStatements RBRACE   (rule 52)
+    foreachStatement  ->  FOREACH LPAREN . IDENTIFIER IN leftValue RPAREN LBRACE functionStatements RBRACE   (rule 52)
 
     IDENTIFIER	shift, and go to state 211
 
@@ -2868,7 +2868,7 @@ state 210
 
 state 211
 
-    foreachStatement  ->  FOREACH LPAREN IDENTIFIER . IN IDENTIFIER RPAREN LBRACE functionStatements RBRACE   (rule 52)
+    foreachStatement  ->  FOREACH LPAREN IDENTIFIER . IN leftValue RPAREN LBRACE functionStatements RBRACE   (rule 52)
 
     IN  	shift, and go to state 220
 
@@ -2941,9 +2941,11 @@ state 219
 
 state 220
 
-    foreachStatement  ->  FOREACH LPAREN IDENTIFIER IN . IDENTIFIER RPAREN LBRACE functionStatements RBRACE   (rule 52)
+    foreachStatement  ->  FOREACH LPAREN IDENTIFIER IN . leftValue RPAREN LBRACE functionStatements RBRACE   (rule 52)
 
-    IDENTIFIER	shift, and go to state 227
+    IDENTIFIER	shift, and go to state 27
+
+    leftValue	go to state 227
 
 
 
@@ -3013,7 +3015,7 @@ state 226
 
 state 227
 
-    foreachStatement  ->  FOREACH LPAREN IDENTIFIER IN IDENTIFIER . RPAREN LBRACE functionStatements RBRACE   (rule 52)
+    foreachStatement  ->  FOREACH LPAREN IDENTIFIER IN leftValue . RPAREN LBRACE functionStatements RBRACE   (rule 52)
 
     RPAREN	shift, and go to state 232
 
@@ -3150,7 +3152,7 @@ state 231
 
 state 232
 
-    foreachStatement  ->  FOREACH LPAREN IDENTIFIER IN IDENTIFIER RPAREN . LBRACE functionStatements RBRACE   (rule 52)
+    foreachStatement  ->  FOREACH LPAREN IDENTIFIER IN leftValue RPAREN . LBRACE functionStatements RBRACE   (rule 52)
 
     LBRACE	shift, and go to state 237
 
@@ -3190,7 +3192,7 @@ state 236
 
 state 237
 
-    foreachStatement  ->  FOREACH LPAREN IDENTIFIER IN IDENTIFIER RPAREN LBRACE . functionStatements RBRACE   (rule 52)
+    foreachStatement  ->  FOREACH LPAREN IDENTIFIER IN leftValue RPAREN LBRACE . functionStatements RBRACE   (rule 52)
 
     BREAK	shift, and go to state 157
     CHAR	shift, and go to state 1
@@ -3261,7 +3263,7 @@ state 239
 
 state 240
 
-    foreachStatement  ->  FOREACH LPAREN IDENTIFIER IN IDENTIFIER RPAREN LBRACE functionStatements . RBRACE   (rule 52)
+    foreachStatement  ->  FOREACH LPAREN IDENTIFIER IN leftValue RPAREN LBRACE functionStatements . RBRACE   (rule 52)
 
     RBRACE	shift, and go to state 244
 
@@ -3302,7 +3304,7 @@ state 243
 
 state 244
 
-    foreachStatement  ->  FOREACH LPAREN IDENTIFIER IN IDENTIFIER RPAREN LBRACE functionStatements RBRACE .   (rule 52)
+    foreachStatement  ->  FOREACH LPAREN IDENTIFIER IN leftValue RPAREN LBRACE functionStatements RBRACE .   (rule 52)
 
     $default	reduce using rule 52 (foreachStatement)
 
