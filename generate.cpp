@@ -317,7 +317,6 @@ void parseVarAssignNode(std::string& result, VarAssignNode* seg) {
 		return;
 	}
 	if (seg->expOfVar == NULL && seg->name == NULL) {
-		//[TODO] only deal @print function call
 		if (seg->exp->op == OA_EXP_NONE && seg->exp->leafType == OA_FUNCTION_VALUE) {
 			if (std::string(seg->exp->functionValue->name->name) == "@print" && seg->exp->functionValue->name->next == NULL) {
 				parsePrintFunction(seg->exp->functionValue->factParam);
@@ -1685,8 +1684,11 @@ struct OaVar* parseLeftValue(std::string&result, LeftValue* seg) {
 		if (tmpVar == NULL) {
 			return NULL;
 		}
+		int index = temVarNo - 1;
+		result += '%' + myItoa(temVarNo++) + " = load " + tmpVar->type + ", " + tmpVar->type + "* " + tmpVar->name + ", align " + myItoa(tmpVar->align) + '\n';
+
 		OaVar *retVar = new OaVar;
-		retVar->name = tmpVar->name;
+		retVar->name = '%' + myItoa(temVarNo - 1);
 		retVar->align = tmpVar->align;
 		retVar->type = tmpVar->type;
 		return retVar;
@@ -2012,10 +2014,8 @@ int getTreeRaw(const char* filename) {
 }
 
 void parsePrintFunction(struct FactParam *params) {
-	//[TODO] literals of char and string in oa.l
 	//[TODO] check parameters
 	//[TODO] % param
-	//[TODO] meaning-change for \n \t etc.
 	hasPrint = true;
 	std::string tmpstr = std::string(params->exp->type_string).substr(1);
 	std::string str = "";
@@ -2045,7 +2045,11 @@ void parsePrintFunction(struct FactParam *params) {
 	for (int i = 0; i < size; ++i) {
 		if (str[i] == '\\') size -= 2;
 	}
-	result += "call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([" + myItoa(size) + " x i8], [" + myItoa(size) + " x i8]* @.str." + myItoa(printStringIndex) + ", i32 0, i32 0))\n";
+	std::string paramStr = "";
+	if(params->next) paramStr = parseFactParam(result, params->next);
+	result += "call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([" + myItoa(size) + " x i8], [" + myItoa(size) + " x i8]* @.str." + myItoa(printStringIndex) + ", i32 0, i32 0)";
+	if (params->next) result += ", " + paramStr;
+	result += ")\n";
 
 	//update printStrings vector
 	str.pop_back();
@@ -2159,7 +2163,8 @@ int main() {
 		if(hasFree){
 			ost << "declare void @free(i8*)\n";
 		}
-		
+		ost.close();
+		system("clang hello.ll");
 		std::cout << "code generate successfully!\n";
 	}
 	else {
@@ -2167,6 +2172,5 @@ int main() {
 		std::cout << result << std::endl;
 		std::cout << compileLog << std::endl;
 	}
-
 	std::cin.get();
 }
