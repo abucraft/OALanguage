@@ -925,19 +925,32 @@ void parseForeachNode(std::string &result, ForeachNode *seg) {
 	LeftValue *idxleft = createLeftValue(idxname);
 	TreeNode *assign_node = createVarDefine("int",idxname, assign_zero);
 
-	//创建一个比较index是否超过数组长度的语句
+	
+
+	//创建一个比较index是否超过数组长度的语句,深拷贝leftvalue
 	LeftValue *final_left = array_name;
+	LeftValue *new_left = new LeftValue;
+	LeftValue *new_final = new_left;
+	char *tmp = new char[sizeof(final_left->name)];
+	strcpy(tmp, final_left->name);
+	new_final->name = tmp;
 	while (final_left->next != NULL) {
+		new_final->next = new LeftValue;
+		char *tmp = new char[sizeof(final_left->next->name)];
+		strcpy(tmp, final_left->next->name);
+		new_final->next->name = tmp;
 		final_left = final_left->next;
+		new_final = new_final->next;
 	}
 	std::string tmp_str = std::string(final_left->name) + array_length;
 	char *tmp_name = new char[tmp_str.size() + 1];
 	strcpy(tmp_name, tmp_str.c_str());
-	char *mid_name = final_left->name;
-	final_left->name = tmp_name;
-	free(mid_name);
+	char *mid_name = new_final->name;
+	new_final->name = tmp_name;
+	new_final->next = NULL;
+	delete[] mid_name;
 	Expression *cmp_left = createExpressionLeftValueLeaf(idxleft);
-	Expression *cmp_right = createExpressionLeftValueLeaf(array_name);
+	Expression *cmp_right = createExpressionLeftValueLeaf(new_final);
 	Expression *is_less = createExpression(cmp_left, cmp_right, OA_EXP_LT);
 	
 	//创建一个递增index的语句
@@ -963,8 +976,11 @@ void parseForeachNode(std::string &result, ForeachNode *seg) {
 	result += std::string("  br i1 ") + p_midVar->name + ',' + " label %" + wBodyLabel + ',' + " label %" + wEndLabel + '\n';
 	result += "\n";
 	result += wBodyLabel + ":\n";
-	//对body部分进行替换
+
+	//把seg->nameOut换回来
 	replaceUtilForeach(seg->stmts, seg->nameIn, seg->nameOut, idx);
+
+	//对body部分进行替换
 	oaPathStk.push_back(wBodyLabel);
 	parseNodeList(result, seg->stmts, wBodyLabel);
 	oaPathStk.pop_back();
