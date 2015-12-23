@@ -73,7 +73,7 @@ int OaWhileIdx = 0;
 std::list<std::string> oaPathStk;
 
 //内建数组的length
-const char array_length[] = "%length";
+const char array_length[] = ".length";
 
 std::map<std::string, OaFunction> oaFunctions;
 std::map<std::string, OaClass> oaClasses;
@@ -486,7 +486,7 @@ void parseArrayDeclareNode(std::string&result, ArrayDeclareNode* seg) {
 		OaVar *tmpVar = new OaVar;
 		tmpVar->align = 4;
 		tmpVar->type = "i32";
-		tmpVar->name = temArray->name + "%length";
+		tmpVar->name = temArray->name + ".length";
 		addVar(tmpVar);
 		result += tmpVar->name + " ";
 		result += "= " + std::string("alloca " + tmpVar->type + ", ");
@@ -549,7 +549,7 @@ void parseArrayAssignNode(std::string&result, ArrayAssignNode*seg) {
 			lv = lv->next;
 		}
 		int index = temVarNo - 1;
-		//do not free if %length is zero
+		//do not free if .length is zero
 		//[WARNING] let align = 1 and type = i8 to indicate the first time to malloc
 		lv = seg->name;
 		std::string tmpName = "";
@@ -557,7 +557,7 @@ void parseArrayAssignNode(std::string&result, ArrayAssignNode*seg) {
 			tmpName += '%' + std::string(lv->name).substr(1);
 			lv = lv->next;
 		}
-		tmpName += "%length";
+		tmpName += ".length";
 		OaVar *tmpVar = getVar(tmpName);
 		if(tmpVar == NULL){ compilePass = false; compileLog = "in parseArrayAssign: no such array in class\n"; return; }
 		if (tmpVar->align == 1) {
@@ -572,14 +572,14 @@ void parseArrayAssignNode(std::string&result, ArrayAssignNode*seg) {
 		if(var->type != "i32") { compilePass = false; compileLog = "in parseArrayAssign: array size should be int\n"; return; }
 		//malloc
 		std::string size = mallocArray(index, member->type, member->align, var->name);
-		//upadte %length variable
+		//upadte .length variable
 		result += "store i32 %" + var->name + ", i32* " + size + ", align 4\n";
 	}
 	else {
 		// not in class
 		//[WARNING] not checked
 		int index = temVarNo - 1;
-		//do not free if %length is zero
+		//do not free if .length is zero
 		//[WARNING] let align = 1 and type = i8 to indicate the first time to malloc
 		lv = seg->name;
 		std::string tmpName = "";
@@ -587,7 +587,7 @@ void parseArrayAssignNode(std::string&result, ArrayAssignNode*seg) {
 			tmpName += '%' + std::string(lv->name).substr(1);
 			lv = lv->next;
 		}
-		tmpName += "%length";
+		tmpName += ".length";
 		OaVar *tmpVar = getVar(tmpName);
 		if (tmpVar == NULL) { compilePass = false; compileLog = "in parseArrayAssign: no such array in class\n"; return; }
 		if (tmpVar->align == 1) {
@@ -602,7 +602,7 @@ void parseArrayAssignNode(std::string&result, ArrayAssignNode*seg) {
 		if (var->type != "i32") { compilePass = false; compileLog = "in parseArrayAssign: array size should be int\n"; return; }
 		//malloc
 		std::string size = mallocArray(index, member->type, member->align, var->name);
-		//upadte %length variable
+		//upadte .length variable
 		result += "store i32 %" + var->name + ", i32* " + size + ", align 4\n";
 	}
 }
@@ -925,32 +925,19 @@ void parseForeachNode(std::string &result, ForeachNode *seg) {
 	LeftValue *idxleft = createLeftValue(idxname);
 	TreeNode *assign_node = createVarDefine("int",idxname, assign_zero);
 
-	
-
-	//创建一个比较index是否超过数组长度的语句,深拷贝leftvalue
+	//创建一个比较index是否超过数组长度的语句
 	LeftValue *final_left = array_name;
-	LeftValue *new_left = new LeftValue;
-	LeftValue *new_final = new_left;
-	char *tmp = new char[sizeof(final_left->name)];
-	strcpy(tmp, final_left->name);
-	new_final->name = tmp;
 	while (final_left->next != NULL) {
-		new_final->next = new LeftValue;
-		char *tmp = new char[sizeof(final_left->next->name)];
-		strcpy(tmp, final_left->next->name);
-		new_final->next->name = tmp;
 		final_left = final_left->next;
-		new_final = new_final->next;
 	}
 	std::string tmp_str = std::string(final_left->name) + array_length;
 	char *tmp_name = new char[tmp_str.size() + 1];
 	strcpy(tmp_name, tmp_str.c_str());
-	char *mid_name = new_final->name;
-	new_final->name = tmp_name;
-	new_final->next = NULL;
-	delete[] mid_name;
+	char *mid_name = final_left->name;
+	final_left->name = tmp_name;
+	free(mid_name);
 	Expression *cmp_left = createExpressionLeftValueLeaf(idxleft);
-	Expression *cmp_right = createExpressionLeftValueLeaf(new_final);
+	Expression *cmp_right = createExpressionLeftValueLeaf(array_name);
 	Expression *is_less = createExpression(cmp_left, cmp_right, OA_EXP_LT);
 	
 	//创建一个递增index的语句
@@ -976,11 +963,8 @@ void parseForeachNode(std::string &result, ForeachNode *seg) {
 	result += std::string("  br i1 ") + p_midVar->name + ',' + " label %" + wBodyLabel + ',' + " label %" + wEndLabel + '\n';
 	result += "\n";
 	result += wBodyLabel + ":\n";
-
-	//把seg->nameOut换回来
-	replaceUtilForeach(seg->stmts, seg->nameIn, seg->nameOut, idx);
-
 	//对body部分进行替换
+	replaceUtilForeach(seg->stmts, seg->nameIn, seg->nameOut, idx);
 	oaPathStk.push_back(wBodyLabel);
 	parseNodeList(result, seg->stmts, wBodyLabel);
 	oaPathStk.pop_back();
@@ -1062,7 +1046,7 @@ void parseFunctionDeclareNode(std::string&result, FunctionDeclareNode*seg) {
 	oaFunctions.insert(std::pair<std::string, OaFunction>(oafunc.className + oafunc.name, oafunc));
 }
 
-void parseFunctionDefineNode(std::string&result, FunctionDefineNode*seg) {
+void parseFunctionDefineNode(std::string&result, FunctionDefineNode *seg) {
 	if (seg == NULL) {
 		return;
 	}
@@ -1104,10 +1088,14 @@ void parseFunctionDefineNode(std::string&result, FunctionDefineNode*seg) {
 		else if (strcmp(seg->type, "double") == 0) {
 			oafunc.type = "double";
 		}
+		else if(strcmp(seg->type, "void") == 0){
+			oafunc.type = "void";
+		}
+		else {
+			//class
+		}
 	}
-	else {
-		oafunc.type = "void";
-	}
+	
 	result += oafunc.type;
 
 	//function name
@@ -1123,6 +1111,10 @@ void parseFunctionDefineNode(std::string&result, FunctionDefineNode*seg) {
 	parseFormParam(result, seg->formParams);
 	result += ')';
 	oafunc.params = seg->formParams;
+
+	//add into function
+	//recursive case
+	oaFunctions.insert(std::pair<std::string, OaFunction>(oafunc.className + oafunc.name, oafunc));
 
 	//statements
 	result += "{\nentry:\n";
@@ -1142,9 +1134,6 @@ void parseFunctionDefineNode(std::string&result, FunctionDefineNode*seg) {
 		allArrays.pop_back();
 		sizeNewArray--;
 	}
-
-	//add into function
-	oaFunctions.insert(std::pair<std::string, OaFunction>(oafunc.className + oafunc.name, oafunc));
 }
 
 void parseClassMethodDefineNode(std::string&result, ClassMethodDefineNode*seg) {
@@ -1152,13 +1141,16 @@ void parseClassMethodDefineNode(std::string&result, ClassMethodDefineNode*seg) {
 		return;
 	}
 	OaFunction oafunc;
-	//name
+	//className and name
+	if (classNameNow != "") {
+		compileLog = "functionDefineNode error: cannot define function in class now";
+		compilePass = false;
+		return;
+	}
 	oafunc.className = std::string(seg->classType).substr(1);
 	oafunc.name = std::string(seg->name);
 
-	//[TODO]check if class has this function
-
-	//check if the class has this function
+	//check for redefine
 	std::map<std::string, OaFunction>::iterator iter = oaFunctions.find(oafunc.className + oafunc.name);
 	if (iter != oaFunctions.end()) {
 		if (iter->second.isDefined == true) {
@@ -1186,29 +1178,57 @@ void parseClassMethodDefineNode(std::string&result, ClassMethodDefineNode*seg) {
 		else if (strcmp(seg->type, "double") == 0) {
 			oafunc.type = "double";
 		}
+		else if (strcmp(seg->type, "void") == 0) {
+			oafunc.type = "void";
+		}
+		else {
+			//class
+		}
 	}
-	else {
-		oafunc.type = "void";
-	}
+
 	result += oafunc.type;
 
 	//function name
 	result += " ";
-	result += oafunc.className +oafunc.name;
+	result += oafunc.name;
+
+	//store allVars and allArrays(added in parseFormParam() function and used in parsers in function)
+	int sizeOldVar = allVars.size();
+	int sizeOldArray = allArrays.size();
 
 	//parameters
+	//add class to params
+	FormParam *newParams = new FormParam;
+	newParams->next = seg->formParams;
+	newParams->type = seg->classType;
+	newParams->name = ""
 	result += '(';
-	parseFormParam(result, seg->formParams);
+	parseFormParam(result, newParams);
 	result += ')';
-	oafunc.params = seg->formParams;
+	oafunc.params = newParams;
+
+	//add into function
+	//recursive case
+	oaFunctions.insert(std::pair<std::string, OaFunction>(oafunc.className + oafunc.name, oafunc));
+
 	//statements
 	result += "{\nentry:\n";
 	if (seg->stmts) {
 		parseNodeList(result, seg->stmts, "stmts");
 	}
 	result += "}\n\n";
-	oaFunctions.insert(std::pair<std::string, OaFunction>(oafunc.className + oafunc.name, oafunc));
 
+	//recover allVars (remain global variables)
+	int sizeNewVar = allVars.size();
+	int sizeNewArray = allArrays.size();
+	while (sizeNewVar != sizeOldVar) {
+		allVars.pop_back();
+		sizeNewVar--;
+	}
+	while (sizeNewArray != sizeOldArray) {
+		allArrays.pop_back();
+		sizeNewArray--;
+	}
 }
 
 void parseBreakNode(std::string &result) {
@@ -1250,6 +1270,12 @@ void parseContinueNode(std::string &result) {
 }
 
 void parseReturnNode(std::string &result, struct ReturnNode *seg) {
+	//[TODO] check type
+	if (seg == NULL) return;
+	if (seg->exp == NULL) {
+		result += "ret\n";
+		return;
+	}
 	OaVar *retVal = new struct OaVar;
 	retVal = parseExpression(result, seg->exp);
 	//[TODO] CHECK TYPE
@@ -1663,10 +1689,7 @@ struct OaVar* parseArrayValue(std::string&result, ArrayValue* seg) {
 	if (seg == NULL) {
 		return NULL;
 	}
-	/*parseLeftValue(result, seg->name);
-	result += '[';
-	parseExpression(result, seg->index);
-	result += ']';*/
+	//[WARNING] temVar should be freed by caller
 	struct OaVar* refVar = parseLeftValue(result, seg->name);
 	struct OaVar* idxVar = parseExpression(result, seg->index);
 	struct OaVar* temVar = new struct OaVar;
@@ -1676,6 +1699,10 @@ struct OaVar* parseArrayValue(std::string&result, ArrayValue* seg) {
 		result += "getelementptr inbounds " + refVar->type + "* ";
 		result += refVar->name + ", ";
 		result += "i64 " + idxVar->name + endLine;
+		temVar->type = refVar->type;
+		temVar->type.pop_back();
+		temVar->align = refVar->align;
+		return temVar;
 	}
 }
 
@@ -1684,8 +1711,16 @@ struct OaVar* parseFunctionValue(std::string&result, FunctionValue* seg) {
 		return NULL;
 	}
 
-	//[TODO] no left value case
-	std::map<std::string, OaFunction>::iterator iter = oaFunctions.find(seg->name->name);
+	std::string funcName = "";
+	if (seg->name->next != NULL) {
+		OaVar *tmpVar = getVar('%' + std::string(seg->name->name).substr(1));
+		if (tmpVar == NULL) { compilePass = false; compileLog = "Error in parseFunctionValue: class name not found\n"; return NULL; }
+		funcName = tmpVar->type.substr(1) + seg->name->next->name;
+	}
+	else {
+		funcName = seg->name->name;
+	}
+	std::map<std::string, OaFunction>::iterator iter = oaFunctions.find(funcName);
 	if (iter == oaFunctions.end()) {
 		//no this function
 		compilePass = false;
@@ -1762,7 +1797,7 @@ void parseFormParam(std::string&result, FormParam*seg) {
 			OaVar *tmpVar = new OaVar;
 			tmpVar->align = 1;
 			tmpVar->type = "i8";
-			tmpVar->name = paramArray->name + "%length";
+			tmpVar->name = paramArray->name + ".length";
 			addVar(tmpVar);
 
 		}
@@ -1778,7 +1813,7 @@ void parseFormParam(std::string&result, FormParam*seg) {
 			OaVar *tmpVar = new OaVar;
 			tmpVar->align = 1;
 			tmpVar->type = "i8";
-			tmpVar->name = paramArray->name + "%length";
+			tmpVar->name = paramArray->name + ".length";
 			addVar(tmpVar);
 
 		}
@@ -1794,7 +1829,7 @@ void parseFormParam(std::string&result, FormParam*seg) {
 			OaVar *tmpVar = new OaVar;
 			tmpVar->align = 1;
 			tmpVar->type = "i8";
-			tmpVar->name = paramArray->name + "%length";
+			tmpVar->name = paramArray->name + ".length";
 			addVar(tmpVar);
 		}
 		else if (seg->type[0] == '#') {
@@ -2000,7 +2035,7 @@ void zeroClassArrayLength(const std::string &name, const std::string &classType)
 		else {
 			//[WARNINIG] using parseVarDefineNode function
 			//llvm statememnts
-			std::string newName = name + iter->second.name + "%length";
+			std::string newName = name + iter->second.name + ".length";
 			int size = newName.size();
 			//exp
 			Expression exp;
@@ -2033,10 +2068,17 @@ void zeroClassArrayLength(const std::string &name, const std::string &classType)
 
 int main() {
 	getTreeRaw("test.oa");
+
+	//check function declared but not defined
+	std::map<std::string, OaFunction>::iterator iter;
+	for (iter = oaFunctions.begin(); iter != oaFunctions.end(); ++iter) {
+		if (iter->second.isDefined == false) { compilePass = false;  compileLog = "function" + iter->second.name + "declared but not defined\n"; }
+	}
+
 	if (compilePass) {
 		std::cout << result << std::endl;
 		//generate code to file
-		/*std::ofstream ost("hello.ll");
+		std::ofstream ost("hello.ll");
 		ost << "target triple = \"i686-pc-windows-gnu\"\n\n";
 		for (int i = 0; i < printStringIndex; ++i) {
 			int size = printStrings[i].size() + 1;
@@ -2057,7 +2099,7 @@ int main() {
 		if(hasFree){
 			ost << "declare void @free(i8*)\n";
 		}
-		*/
+		
 		std::cout << "code generate successfully!\n";
 	}
 	else {
