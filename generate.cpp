@@ -21,15 +21,10 @@ struct OaVar {
 	std::string name;
 	std::string type;
 	int align;
-};
-struct OaArray {
-	std::string name;
-	std::string type;
-	int align;
 	int size;
 };
+
 std::vector<struct OaVar*>allVars;
-std::vector<struct OaArray*>allArrays;
 const std::string endLine = "\n";
 std::string myItoa(int num);
 std::string myDtoa(double num);
@@ -38,9 +33,8 @@ std::string reduceAt(std::string varName);
 std::string getType(std::string varName);
 int getAlign(std::string varName);
 struct OaVar* getVar(std::string varName);
-struct OaArray* getArray(std::string arrayName);
 void addVar(struct OaVar* oaVar);
-void addArray(struct OaArray* oaArray);
+void addArray(struct OaVar* oaVar);
 struct OaFunction {
 	std::string name;
 	std::string type;
@@ -82,6 +76,8 @@ OaClassMember *findMemberInClass(std::string member, OaClass *oaClass);
 
 OaClass classNow;
 std::string classNameNow = "";
+bool inClassMethod = false;
+std::string methodClassNameNow = "";
 int classMemberIndex;
 bool hasPrint = false;
 bool hasMalloc = false;
@@ -389,41 +385,52 @@ void parseVarAssignNode(std::string& result, VarAssignNode* seg) {
 		compileLog += "Lack of LeftValue" + endLine;
 		return;
 	}
-	if (getVar("%" + temName) == NULL&&getArray("%"+temName)==NULL) {
-		compilePass = false;
-		compileLog += "Error[Line " + myItoa(lineno) + "]: ";
-		compileLog += "Undeclared Identifier" + endLine;
-		return;
-	}
-	struct OaVar *temVar = new struct OaVar;
-	if (seg->expOfVar != NULL) {
-		struct OaArray* temArray = getArray("%" + temName);
-		if (temArray != NULL) {
-			struct OaVar* idxVar = parseExpression(result, seg->expOfVar);
-			result += "%" + myItoa(temVarNo++) + " = ";
-			result += "load " + temArray->type + "** " + temArray->name + ", ";
-			result += "align 8" + endLine;
-			temVar->name = "%" + myItoa(temVarNo - 1);
-			result += "%" + myItoa(temVarNo++) + " = ";
-			result += "getelementptr inbounds " + temArray->type + "* " + temVar->name + ", ";
-			result += "i64 " + idxVar->name + endLine;
-			temVar->name = "%" + myItoa(temVarNo - 1);
-			temVar->type = temArray->type;
-			temVar->align = temArray->align;
+
+	struct OaVar *temVar = NULL;
+	temVar = getVar("%" + temName);
+	if (temVar == NULL && inClassMethod) {
+		LeftValue lv1;
+		LeftValue lv2;
+		lv1.name = "%.this";
+		lv1.next = &lv2;
+		temName = '%' + temName;
+		int tmpSize = temName.size();
+		char *tmpCh = new char[tmpSize + 1];
+		for (int i = 0; i < tmpSize; ++i) {
+			tmpCh[i] = temName[i];
+		}
+		tmpCh[tmpSize] = '\0';
+		lv2.name = tmpCh;
+		lv2.next = NULL;
+		temVar = parseLeftValue(result, &lv1);
+		delete[] tmpCh;
+		if(temVar == NULL){	
+			compilePass = false;
+			compileLog += "Error[Line " + myItoa(lineno) + "]: ";
+			compileLog += "Undeclared Identifier" + endLine;
+			return;
 		}
 	}
-	else
-		temVar = getVar("%" + temName);
-	if (temVar != NULL) {
-		struct OaVar* refVar = parseExpression(result, seg->exp);
-		result += "store " + temVar->type + " ";
-		if (temVar->type == "double"&&refVar->name[0] != '%')
-			result += myDtoa(refVar->name) + ", ";
-		else
-			result += refVar->name + ", ";
-		result += temVar->type + "* " + temVar->name + ", ";
-		result += "align " + myItoa(temVar->align) + endLine;
+	if (seg->expOfVar != NULL) {
+		struct OaVar* idxVar = parseExpression(result, seg->expOfVar);
+		result += "%" + myItoa(temVarNo++) + " = ";
+		result += "load " + temVar->type + "** " + temVar->name + ", ";
+		result += "align 8" + endLine;
+		temVar->name = "%" + myItoa(temVarNo - 1);
+		result += "%" + myItoa(temVarNo++) + " = ";
+		result += "getelementptr inbounds " + temVar->type + "* " + temVar->name + ", ";
+		result += "i64 " + idxVar->name + endLine;
+		temVar->name = "%" + myItoa(temVarNo - 1);
 	}
+
+	struct OaVar* refVar = parseExpression(result, seg->exp);
+	result += "store " + temVar->type + " ";
+	if (temVar->type == "double"&&refVar->name[0] != '%')
+		result += myDtoa(refVar->name) + ", ";
+	else
+		result += refVar->name + ", ";
+	result += temVar->type + "* " + temVar->name + ", ";
+	result += "align " + myItoa(temVar->align) + endLine;
 }
 
 void parseArrayDeclareNode(std::string&result, ArrayDeclareNode* seg) {
@@ -437,7 +444,7 @@ void parseArrayDeclareNode(std::string&result, ArrayDeclareNode* seg) {
 	result += "{\"name\":\"" + std::string(seg->type) + "\"},";
 	result += "{\"name\":\"" + std::string(seg->name) + "\"}";
 	result += "]}";*/
-	struct OaArray *temArray = new struct OaArray;
+	struct OaVar *temArray = new struct OaVar;
 	temArray->name = "%" + reduceAt(std::string(seg->name));
 	//std::cout << "Debug: " << seg->type << std::endl;
 	if (seg->type == std::string("int[]")) {
@@ -1053,7 +1060,7 @@ void parseFunctionDefineNode(std::string&result, FunctionDefineNode *seg) {
 	OaFunction oafunc;
 	//className and name
 	if (classNameNow != "") {
-		compileLog = "functionDefineNode error: cannot define function in class now";
+		compileLog = "functionDefineNode error: cannot define function in class";
 		compilePass = false;
 		return;
 	}
@@ -1104,7 +1111,6 @@ void parseFunctionDefineNode(std::string&result, FunctionDefineNode *seg) {
 
 	//store allVars and allArrays(added in parseFormParam() function and used in parsers in function)
 	int sizeOldVar = allVars.size();
-	int sizeOldArray = allArrays.size();
 
 	//parameters
 	result += '(';
@@ -1125,14 +1131,10 @@ void parseFunctionDefineNode(std::string&result, FunctionDefineNode *seg) {
 
 	//recover allVars (remain global variables)
 	int sizeNewVar = allVars.size();
-	int sizeNewArray = allArrays.size();
+
 	while (sizeNewVar != sizeOldVar) {
 		allVars.pop_back();
 		sizeNewVar--;
-	}
-	while (sizeNewArray != sizeOldArray) {
-		allArrays.pop_back();
-		sizeNewArray--;
 	}
 }
 
@@ -1143,12 +1145,14 @@ void parseClassMethodDefineNode(std::string&result, ClassMethodDefineNode*seg) {
 	OaFunction oafunc;
 	//className and name
 	if (classNameNow != "") {
-		compileLog = "functionDefineNode error: cannot define function in class now";
+		compileLog = "functionDefineNode error: cannot define class method in class";
 		compilePass = false;
 		return;
 	}
 	oafunc.className = std::string(seg->classType).substr(1);
 	oafunc.name = std::string(seg->name);
+	inClassMethod = true;
+	methodClassNameNow = oafunc.className;
 
 	//check for redefine
 	std::map<std::string, OaFunction>::iterator iter = oaFunctions.find(oafunc.className + oafunc.name);
@@ -1156,6 +1160,8 @@ void parseClassMethodDefineNode(std::string&result, ClassMethodDefineNode*seg) {
 		if (iter->second.isDefined == true) {
 			compileLog = "wrong in defined node, function " + oafunc.name + "has been defined!\n";
 			compilePass = false;
+			inClassMethod = false;
+			methodClassNameNow = "";
 			return;
 		}
 		else {
@@ -1194,19 +1200,18 @@ void parseClassMethodDefineNode(std::string&result, ClassMethodDefineNode*seg) {
 
 	//store allVars and allArrays(added in parseFormParam() function and used in parsers in function)
 	int sizeOldVar = allVars.size();
-	int sizeOldArray = allArrays.size();
 
 	//parameters
 	//add class to params
 	FormParam *newParams = new FormParam;
 	newParams->next = seg->formParams;
 	newParams->type = seg->classType;
-	newParams->name = ""
+	newParams->name = "%.this";
 	result += '(';
 	parseFormParam(result, newParams);
 	result += ')';
 	oafunc.params = newParams;
-
+	
 	//add into function
 	//recursive case
 	oaFunctions.insert(std::pair<std::string, OaFunction>(oafunc.className + oafunc.name, oafunc));
@@ -1220,15 +1225,13 @@ void parseClassMethodDefineNode(std::string&result, ClassMethodDefineNode*seg) {
 
 	//recover allVars (remain global variables)
 	int sizeNewVar = allVars.size();
-	int sizeNewArray = allArrays.size();
 	while (sizeNewVar != sizeOldVar) {
 		allVars.pop_back();
 		sizeNewVar--;
 	}
-	while (sizeNewArray != sizeOldArray) {
-		allArrays.pop_back();
-		sizeNewArray--;
-	}
+	
+	inClassMethod = false;
+	methodClassNameNow = "";
 }
 
 void parseBreakNode(std::string &result) {
@@ -1635,12 +1638,15 @@ struct OaVar* parseLeftValue(std::string&result, LeftValue* seg) {
 	if (seg == NULL) {
 		return NULL;
 	}
+	//just reuturn when identifier not found, left for caller to deal error
 	//[WARNING] retVar should be freed by caller
 	LeftValue *lv = seg;
 	OaClassMember *member = NULL;
 	if (lv->next != NULL) {
 		//class
-		std::string classType = getVar('%' + std::string(lv->name).substr(1))->type.substr(1);
+		OaVar *tmpVar = getVar('%' + std::string(lv->name).substr(1));
+		if (tmpVar == NULL) return NULL;
+		std::string classType = tmpVar->type.substr(1);
 		while (lv->next != NULL) {
 			OaClass *oaClass = &(oaClasses.find(classType)->second);
 			member = findMemberInClass('%' + std::string(lv->next->name).substr(1), oaClass);
@@ -1670,12 +1676,15 @@ struct OaVar* parseLeftValue(std::string&result, LeftValue* seg) {
 		retVar->name = '%' + myItoa(temVarNo - 1);
 		retVar->align = member->align;
 		retVar->type = member->type;
+		retVar->size = 0;
 		return retVar;
 	}
 	else {
 		//[WARNING] retVar should be freed by caller
 		OaVar *tmpVar = getVar('%' + std::string(seg->name).substr(1));
-		if (tmpVar == NULL) { compilePass = false; compileLog = "Error in parseLeftValue: no such variable\n"; return NULL; }
+		if (tmpVar == NULL) {
+			return NULL;
+		}
 		OaVar *retVar = new OaVar;
 		retVar->name = tmpVar->name;
 		retVar->align = tmpVar->align;
@@ -1691,7 +1700,26 @@ struct OaVar* parseArrayValue(std::string&result, ArrayValue* seg) {
 	}
 	//[WARNING] temVar should be freed by caller
 	struct OaVar* refVar = parseLeftValue(result, seg->name);
+	if (refVar == NULL && inClassMethod) {
+		//class method
+		LeftValue lv;
+		char tmpCh[7] = "%.this";
+		lv.name = tmpCh;
+		lv.next = seg->name;
+		refVar = parseLeftValue(result, &lv);
+		if (refVar == NULL) { compilePass = false; compileLog = "Error in parseArrayValue: no variable found\n"; return NULL; }
+	}
+	
 	struct OaVar* idxVar = parseExpression(result, seg->index);
+	if (idxVar == NULL && inClassMethod) {
+		//class method
+		LeftValue lv;
+		char tmpCh[7] = "%.this";
+		lv.name = tmpCh;
+		lv.next = seg->name;
+		idxVar = parseLeftValue(result, &lv);
+		if (idxVar == NULL) { compilePass = false; compileLog = "Error in parseArrayValue: no variable found\n"; return NULL; }
+	}
 	struct OaVar* temVar = new struct OaVar;
 	if (refVar != NULL&&idxVar != NULL) {
 		temVar->name = "%" + myItoa(temVarNo++);
@@ -1711,7 +1739,9 @@ struct OaVar* parseFunctionValue(std::string&result, FunctionValue* seg) {
 		return NULL;
 	}
 
+	//[TODO] for now, not consider function call in the class which in another class
 	std::string funcName = "";
+	std::string callerName = seg->name->name;
 	if (seg->name->next != NULL) {
 		OaVar *tmpVar = getVar('%' + std::string(seg->name->name).substr(1));
 		if (tmpVar == NULL) { compilePass = false; compileLog = "Error in parseFunctionValue: class name not found\n"; return NULL; }
@@ -1721,22 +1751,49 @@ struct OaVar* parseFunctionValue(std::string&result, FunctionValue* seg) {
 		funcName = seg->name->name;
 	}
 	std::map<std::string, OaFunction>::iterator iter = oaFunctions.find(funcName);
-	if (iter == oaFunctions.end()) {
-		//no this function
-		compilePass = false;
-		compileLog = "in parseFunctionValue: no function named" + std::string(seg->name->name) + "\n";
-		return NULL;
+	if (iter == oaFunctions.end() && inClassMethod) {
+		//call function in class method
+		iter = oaFunctions.find(methodClassNameNow + funcName);
+		callerName = "%.this";
+		if (iter == oaFunctions.end()) {
+			//no this function
+			compilePass = false;
+			compileLog = "in parseFunctionValue: no function named" + std::string(seg->name->name) + "\n";
+			return NULL;
+		}
 	}
 
 	std::string retType = iter->second.type;
-	std::string name = iter->second.name;
 	std::string className = iter->second.className;
+	std::string name = iter->second.className + iter->second.name;
 	struct FormParam *formParams = iter->second.params;
 	
 	struct FactParam *factParams = seg->factParam;
 	//[TODO] check params, return type etc.
 	
-	std::string paramStr = parseFactParam(result, factParams);
+	//parameters
+	//add class to params
+	FactParam *newParams = new FactParam;
+	newParams->next = seg->factParam;
+	Expression tmpExp;
+	tmpExp.left = NULL;
+	tmpExp.right = NULL;
+	tmpExp.op = OA_EXP_NONE;
+	tmpExp.leafType = OA_LEFT_VALUE;
+	//[TODO] see above, revise callerName
+	int tmpSize = callerName.size();
+	char *tmpCh = new char[tmpSize + 1];
+	for (int i = 0; i < tmpSize; ++i) {
+		tmpCh[i] = callerName[i];
+	}
+	tmpCh[tmpSize] = '\0';
+	LeftValue tmpLv;
+	tmpLv.name = tmpCh;
+	tmpLv.next = NULL;
+	tmpExp.name = &tmpLv;
+	newParams->exp = &tmpExp;
+	std::string paramStr = parseFactParam(result, newParams);
+	delete[] tmpCh;
 
 	//[TODO] align due to ret Type, now just deal with int return value
 	struct OaVar *oaVar = new OaVar;
@@ -1786,7 +1843,7 @@ void parseFormParam(std::string&result, FormParam*seg) {
 			paramVar->align = 1;
 			addVar(paramVar);
 		}else if (std::string(seg->type) == "int[]") {
-			OaArray *paramArray = new OaArray;
+			OaVar *paramArray = new OaVar;
 			paramArray->name = '%' + std::string(seg->name).substr(1);
 			paramArray->type = "i32";
 			paramArray->align = 4;
@@ -1802,7 +1859,7 @@ void parseFormParam(std::string&result, FormParam*seg) {
 
 		}
 		else if (std::string(seg->type) == "double[]") {
-			OaArray *paramArray = new OaArray;
+			OaVar *paramArray = new OaVar;
 			paramArray->name = '%' + std::string(seg->name).substr(1);
 			paramArray->type = "double";
 			paramArray->align = 8;
@@ -1818,7 +1875,7 @@ void parseFormParam(std::string&result, FormParam*seg) {
 
 		}
 		else if (std::string(seg->type) == "char[]") {
-			OaArray *paramArray = new OaArray;
+			OaVar *paramArray = new OaVar;
 			paramArray->name = '%' + std::string(seg->name).substr(1);
 			paramArray->type = "i8";
 			paramArray->align = 1;
@@ -1863,7 +1920,14 @@ std::string parseFactParam(std::string&result, FactParam* seg) {
 	OaVar *tmpVar = NULL;
 	while (seg != NULL) {
 		tmpVar = parseExpression(result, seg->exp);
-		if (tmpVar->type[0] == '#') {
+		if (tmpVar == NULL && inClassMethod) {
+			LeftValue lv;
+			lv.name = "%.this";
+			lv.next = seg->exp->name;
+			tmpVar = parseLeftValue(result, &lv);
+		}
+		if (tmpVar == NULL) { compileLog = "wrong print string"; compilePass = false; return ""; }
+		if (tmpVar->type[0] == '#'){
 			//class type
 			str += "%class." + tmpVar->type.substr(1) + "* " + tmpVar->name;
 		}
@@ -1903,12 +1967,7 @@ struct OaVar* getVar(std::string varName) {
 	}
 	return NULL;
 }
-struct OaArray* getArray(std::string arrayName) {
-	for (int i = 0; i < allArrays.size(); i++) {
-		if (allArrays[i]->name == arrayName)
-			return allArrays[i];
-	}
-}
+
 std::string reduceAt(std::string varName) {
 	if (varName[0] == '@')
 		varName.erase(varName.begin());
@@ -1916,10 +1975,11 @@ std::string reduceAt(std::string varName) {
 }
 
 void addVar(struct OaVar *oaVar) {
+	oaVar->size = 0;
 	allVars.push_back(oaVar);
 }
-void addArray(struct OaArray *oaArray) {
-	allArrays.push_back(oaArray);
+void addArray(struct OaVar *oaVar) {
+	allVars.push_back(oaVar);
 }
 std::string getType(std::string varName) {
 	for (int i = 0; i < allVars.size(); i++) {

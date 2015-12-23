@@ -1,20 +1,20 @@
 class #Array{
 	int[] @a;
 	int @low;
-        int @high;
+    int @high;
 }
 
-class #Arrarysort extends #Array{
+class #Arraysort extends #Array{
 	void @Qsort();
 }
 
 
-void #Arraysort::@Qsort() {
-	if(@low >= @high) { 
+void #Arraysort::@Qsort(int[] @a, int @l, int @h) {
+	if(@l >= @h) { 
 		return;
 	}
-	int @first = @low;
-	int @last = @high;
+	int @first = @l;
+	int @last = @h;
 	int @key = @a[@first];
 	while(@first < @last) {
 		while( @first < @last && @a[@last] >= @key ) {
@@ -27,12 +27,12 @@ void #Arraysort::@Qsort() {
 		@a[@last] = @a[@first];
 	};
 	@a[@first] = @key;
-	@Qsort(@a, @low, @first-1);
-	@Qsort(@a, @first+1, @high);
+	@Qsort(@a, @l, @first-1);
+	@Qsort(@a, @first+1, @h);
 }
 
 int @main() {
-	#Arraysort @arraySort;
+	#Arraysort @as;
 	@as.@a[0] = 57;
 	@as.@a[1] = 68;
 	@as.@a[2] = 59;
@@ -42,6 +42,6 @@ int @main() {
 	@as.@a[6] = 96;
 	@as.@a[7] = 33;
 	@as.@a[8] = 24;
-	@as.@Qsort();
+	@as.@Qsort(@as.@a, @as.@low, @as.@high);
 	return 0;
 }
