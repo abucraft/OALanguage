@@ -215,14 +215,6 @@ void parseVarDeclareNode(std::string& result, struct VarDeclareNode* seg) {
 		return;
 	}
 	lineno++;
-	/*char numStr[N_INT_CHAR];
-	sprintf(numStr, "%d", ++lineno);*/
-
-	/*result += "{\"name\":\"" + std::string(numStr) + ": var declare\",\"children\":[";
-	result += "{\"name\":\"" + std::string(seg->type) + "\"},";
-	result += "{\"name\":\"" + std::string(seg->name) + "\"}";
-	result += "]}";*/
-
 	//Modified by @Xie LW--------------------------------------
 	struct OaVar *temVar = new struct OaVar;
 	if (getVar("%" + reduceAt(std::string(seg->name))) != NULL) {
@@ -362,7 +354,7 @@ void parseVarAssignNode(std::string& result, VarAssignNode* seg) {
 		if (arrayIndex == NULL && member->type != var->type) { compilePass = false; compileLog = "in parseVarAssign: type error\n"; return; }
 		else if (arrayIndex != NULL && member->type != var->type + '*') { compilePass = false; compileLog = "in parseVarAssign: type error\n"; return; }
 		else if(arrayIndex != NULL && arrayIndex->type != "i32") { compilePass = false; compileLog = "in parseVarAssign: index should be int\n"; return; }
-		result += '%' + myItoa(temVarNo++) + " = load " + var->type + "*, " + var->type + "** %" + myItoa(index) + ", align " + myItoa(var->align) + '\n';
+		//result += '%' + myItoa(temVarNo++) + " = load " + var->type + ", " + var->type + "* %" + myItoa(index) + ", align " + myItoa(var->align) + '\n';
 		if(arrayIndex != NULL) result += '%' + myItoa(temVarNo++) + " = getelememtptr inbounds " + var->type + ", " + var->type + "* %" + myItoa(temVarNo-2) + ", i32 " + arrayIndex->name + '\n';
 		result += "store " + var->type + ' ' + var->name + ", " + var->type + "* %" + myItoa(temVarNo - 1) + ", align " + myItoa(var->align) + '\n';
 		return;
@@ -436,13 +428,7 @@ void parseArrayDeclareNode(std::string&result, ArrayDeclareNode* seg) {
 	if (seg == NULL) {
 		return;
 	}
-	/*char numStr[N_INT_CHAR];
-	sprintf(numStr, "%d", ++lineno);
-
-	result += "{\"name\":\"" + std::string(numStr) + ": array declare\",\"children\":[";
-	result += "{\"name\":\"" + std::string(seg->type) + "\"},";
-	result += "{\"name\":\"" + std::string(seg->name) + "\"}";
-	result += "]}";*/
+	
 	struct OaVar *temArray = new struct OaVar;
 	temArray->name = "%" + reduceAt(std::string(seg->name));
 	//std::cout << "Debug: " << seg->type << std::endl;
@@ -556,7 +542,7 @@ void parseArrayAssignNode(std::string&result, ArrayAssignNode*seg) {
 		}
 		int index = temVarNo - 1;
 		//do not free if .length is zero
-		//[WARNING] let align = 1 and type = i8 to indicate the first time to malloc
+		//[WARNING] size == 0 to indicate the first time to malloc
 		lv = seg->name;
 		std::string tmpName = "";
 		while (lv != NULL) {
@@ -566,11 +552,7 @@ void parseArrayAssignNode(std::string&result, ArrayAssignNode*seg) {
 		tmpName += ".length";
 		OaVar *tmpVar = getVar(tmpName);
 		if(tmpVar == NULL){ compilePass = false; compileLog = "in parseArrayAssign: no such array in class\n"; return; }
-		if (tmpVar->align == 1) {
-			tmpVar->align = 4;
-			tmpVar->type = "i32";
-		}
-		else {
+		if (tmpVar->size != 0) {
 			freeArray(index, member->type, member->align);
 		}
 		OaVar *var = parseExpression(result, seg->exp);
@@ -586,7 +568,7 @@ void parseArrayAssignNode(std::string&result, ArrayAssignNode*seg) {
 		//[WARNING] not checked
 		int index = temVarNo - 1;
 		//do not free if .length is zero
-		//[WARNING] let align = 1 and type = i8 to indicate the first time to malloc
+		//[WARNING] size == 0 to indicate the first time to malloc
 		lv = seg->name;
 		std::string tmpName = "";
 		while (lv != NULL) {
@@ -596,18 +578,14 @@ void parseArrayAssignNode(std::string&result, ArrayAssignNode*seg) {
 		tmpName += ".length";
 		OaVar *tmpVar = getVar(tmpName);
 		if (tmpVar == NULL) { compilePass = false; compileLog = "in parseArrayAssign: no such array in class\n"; return; }
-		if (tmpVar->align == 1) {
-			tmpVar->align = 4;
-			tmpVar->type = "i32";
-		}
-		else {
+		if (tmpVar->size != 0){
 			freeArray(index, member->type, member->align);
 		}
 		OaVar *var = parseExpression(result, seg->exp);
-		if (member->type != var->type + '*') { compilePass = false; compileLog = "in parseArrayAssign: type error\n"; return; }
+		if (std::string(seg->type) != tmpVar->type + "[]") { compilePass = false; compileLog = "in parseArrayAssign: type error\n"; return; }
 		if (var->type != "i32") { compilePass = false; compileLog = "in parseArrayAssign: array size should be int\n"; return; }
 		//malloc
-		std::string size = mallocArray(index, member->type, member->align, var->name);
+		std::string size = mallocArray(index, tmpVar->type, tmpVar->align, var->name);
 		//upadte .length variable
 		result += "store i32 %" + var->name + ", i32* " + size + ", align 4\n";
 	}
@@ -1190,6 +1168,9 @@ void parseClassMethodDefineNode(std::string&result, ClassMethodDefineNode*seg) {
 			//class
 		}
 	}
+	else {
+		oafunc.type = "void";
+	}
 
 	result += oafunc.type;
 
@@ -1668,7 +1649,7 @@ struct OaVar* parseLeftValue(std::string&result, LeftValue* seg) {
 			lv = lv->next;
 		}
 		int index = temVarNo - 1;
-		result += '%' + myItoa(temVarNo++) + " = load " + member->type + "*, " + member->type + "** %" + myItoa(index) + ", align " + myItoa(member->align) + '\n';
+		result += '%' + myItoa(temVarNo++) + " = load " + member->type + ", " + member->type + "* %" + myItoa(index) + ", align " + myItoa(member->align) + '\n';
 
 		//[WARNING] retVar should be freed by caller
 		OaVar *retVar = new OaVar;
@@ -1818,94 +1799,102 @@ void parseFormParam(std::string&result, FormParam*seg) {
 			result += "%class." + std::string(seg->type).substr(1) + '*';
 		}
 		else {
-			result += std::string(seg->type);
+			//add to allVars
+			if (std::string(seg->type) == "int") {
+				OaVar *paramVar = new OaVar;
+				paramVar->name = '%' + std::string(seg->name).substr(1);
+				paramVar->type = "i32";
+				paramVar->align = 4;
+				addVar(paramVar);
+				result += paramVar->type;
+			}
+			else if (std::string(seg->type) == "double") {
+				OaVar *paramVar = new OaVar;
+				paramVar->name = '%' + std::string(seg->name).substr(1);
+				paramVar->type = "double";
+				paramVar->align = 8;
+				addVar(paramVar);
+				result += paramVar->type;
+			}
+			else if (std::string(seg->type) == "char") {
+				OaVar *paramVar = new OaVar;
+				paramVar->name = '%' + std::string(seg->name).substr(1);
+				paramVar->type = "i8";
+				paramVar->align = 1;
+				addVar(paramVar);
+				result += paramVar->type;
+			}
+			else if (std::string(seg->type) == "int[]") {
+				OaVar *paramArray = new OaVar;
+				paramArray->name = '%' + std::string(seg->name).substr(1);
+				paramArray->type = "i32*";
+				paramArray->align = 4;
+				paramArray->size = 0;
+				addArray(paramArray);
+				result += paramArray->type;
+
+				//[WARNING] let size = 0 to indicate the first time to malloc
+				OaVar *tmpVar = new OaVar;
+				tmpVar->align = 4;
+				tmpVar->type = "i32";
+				tmpVar->size = 0;
+				tmpVar->name = paramArray->name + ".length";
+				addVar(tmpVar);
+
+			}
+			else if (std::string(seg->type) == "double[]") {
+				OaVar *paramArray = new OaVar;
+				paramArray->name = '%' + std::string(seg->name).substr(1);
+				paramArray->type = "double*";
+				paramArray->align = 8;
+				paramArray->size = 0;
+				addArray(paramArray);
+				result += paramArray->type;
+
+				//[WARNING] let size = 0 to indicate the first time to malloc
+				OaVar *tmpVar = new OaVar;
+				tmpVar->align = 4;
+				tmpVar->type = "i32";
+				tmpVar->size = 0;
+				tmpVar->name = paramArray->name + ".length";
+				addVar(tmpVar);
+
+			}
+			else if (std::string(seg->type) == "char[]") {
+				OaVar *paramArray = new OaVar;
+				paramArray->name = '%' + std::string(seg->name).substr(1);
+				paramArray->type = "i8*";
+				paramArray->align = 1;
+				paramArray->size = 0;
+				addArray(paramArray);
+				result += paramArray->type;
+
+				//[WARNING] let size = 0 to indicate the first time to malloc
+				OaVar *tmpVar = new OaVar;
+				tmpVar->align = 4;
+				tmpVar->type = "i32";
+				tmpVar->size = 0;
+				tmpVar->name = paramArray->name + ".length";
+				addVar(tmpVar);
+			}
+			else if (seg->type[0] == '#') {
+				//class
+				OaVar *paramVar = new OaVar;
+				std::map<std::string, OaClass>::iterator iter = oaClasses.find(std::string(seg->type).substr(1));
+				if (iter == oaClasses.end()) { compilePass = false; compileLog = "Error in parseFormParam: unknown class type\n"; return; }
+				paramVar->align = iter->second.align;
+				paramVar->type = std::string(seg->type);
+				paramVar->name = '%' + std::string(seg->name).substr(1);
+				addVar(paramVar);
+			}
+			else {
+				compilePass = false;
+				compileLog = "Error in parseFormParam: wrong type\n";
+				return;
+			}
 		}
 		result += " %";
 		result += std::string(seg->name).substr(1);
-
-		//add to allVars
-		if (std::string(seg->type) == "int") {
-			OaVar *paramVar = new OaVar;
-			paramVar->name = '%' + std::string(seg->name).substr(1);
-			paramVar->type = "i32";
-			paramVar->align = 4;
-			addVar(paramVar);
-		}
-		else if (std::string(seg->type) == "double") {
-			OaVar *paramVar = new OaVar;
-			paramVar->name = '%' + std::string(seg->name).substr(1);
-			paramVar->type = "double";
-			paramVar->align = 8;
-			addVar(paramVar);
-		}
-		else if (std::string(seg->type) == "char") {
-			OaVar *paramVar = new OaVar;
-			paramVar->name = '%' + std::string(seg->name).substr(1);
-			paramVar->type = "i8";
-			paramVar->align = 1;
-			addVar(paramVar);
-		}else if (std::string(seg->type) == "int[]") {
-			OaVar *paramArray = new OaVar;
-			paramArray->name = '%' + std::string(seg->name).substr(1);
-			paramArray->type = "i32";
-			paramArray->align = 4;
-			paramArray->size = 0;
-			addArray(paramArray);
-			
-			//[WARNING] let align = 1 and type = i8 to indicate the first time to malloc
-			OaVar *tmpVar = new OaVar;
-			tmpVar->align = 1;
-			tmpVar->type = "i8";
-			tmpVar->name = paramArray->name + ".length";
-			addVar(tmpVar);
-
-		}
-		else if (std::string(seg->type) == "double[]") {
-			OaVar *paramArray = new OaVar;
-			paramArray->name = '%' + std::string(seg->name).substr(1);
-			paramArray->type = "double";
-			paramArray->align = 8;
-			paramArray->size = 0;
-			addArray(paramArray);
-
-			//[WARNING] let align = 1 and type = i8 to indicate the first time to malloc
-			OaVar *tmpVar = new OaVar;
-			tmpVar->align = 1;
-			tmpVar->type = "i8";
-			tmpVar->name = paramArray->name + ".length";
-			addVar(tmpVar);
-
-		}
-		else if (std::string(seg->type) == "char[]") {
-			OaVar *paramArray = new OaVar;
-			paramArray->name = '%' + std::string(seg->name).substr(1);
-			paramArray->type = "i8";
-			paramArray->align = 1;
-			paramArray->size = 0;
-			addArray(paramArray);
-
-			//[WARNING] let align = 1 and type = i8 to indicate the first time to malloc
-			OaVar *tmpVar = new OaVar;
-			tmpVar->align = 1;
-			tmpVar->type = "i8";
-			tmpVar->name = paramArray->name + ".length";
-			addVar(tmpVar);
-		}
-		else if (seg->type[0] == '#') {
-			//class
-			OaVar *paramVar = new OaVar;
-			std::map<std::string, OaClass>::iterator iter = oaClasses.find(std::string(seg->type).substr(1));
-			if (iter == oaClasses.end()) { compilePass = false; compileLog = "Error in parseFormParam: unknown class type\n"; return; }
-			paramVar->align = iter->second.align;
-			paramVar->type = std::string(seg->type);
-			paramVar->name = '%' +std::string(seg->name).substr(1);
-			addVar(paramVar);
-		}
-		else {
-			compilePass = false;
-			compileLog = "Error in parseFormParam: wrong type\n";
-			return;
-		}
 		
 		if (seg->next != NULL) {
 			result += ", ";
@@ -2055,6 +2044,7 @@ void parsePrintFunction(struct FactParam *params) {
 	str.pop_back();
 	printStrings.push_back(str);
 	printStringIndex++;
+	temVarNo++;		//llvm regular
 }
 
 void freeArray(int index, std::string type, int align){
@@ -2096,10 +2086,10 @@ void zeroClassArrayLength(const std::string &name, const std::string &classType)
 			std::string newName = name + iter->second.name;
 			zeroClassArrayLength(newName, std::string(iter->second.type).substr(1));
 		}
-		else {
+		else if(iter->second.type[iter->second.type.size()-1] == '*'){
 			//[WARNINIG] using parseVarDefineNode function
 			//llvm statememnts
-			std::string newName = name + iter->second.name + ".length";
+			std::string newName = name + '.' + iter->second.name.substr(1) + ".length";
 			int size = newName.size();
 			//exp
 			Expression exp;
@@ -2119,7 +2109,7 @@ void zeroClassArrayLength(const std::string &name, const std::string &classType)
 			VarDefineNode node;
 			node.exp = &exp;
 			node.name = tmpCh;
-			node.type = "char";
+			node.type = "int";
 			parseVarDefineNode(result, &node);
 			delete[] tmpCh;
 		}

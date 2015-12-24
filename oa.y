@@ -190,7 +190,8 @@ elifParts
 		$$ = NULL;
 	}
 	|elifPart elifParts{
-		$$->next = $1;
+		$1->next = $2;
+		$$ = $1;
 	}
 	;
 	

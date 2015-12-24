@@ -203,13 +203,13 @@ static const short yyrline[] = { 0,
     77,    78,    84,    87,    97,    98,    99,   100,   101,   102,
    103,   104,   105,   106,   107,   108,   109,   115,   118,   128,
    129,   130,   131,   138,   144,   150,   153,   156,   163,   169,
-   175,   183,   189,   192,   198,   204,   207,   214,   220,   227,
-   230,   238,   241,   244,   250,   253,   256,   262,   265,   268,
-   275,   281,   288,   291,   298,   301,   308,   311,   318,   321,
-   329,   332,   335,   338,   342,   345,   348,   351,   354,   357,
-   360,   364,   367,   370,   374,   377,   380,   384,   387,   390,
-   393,   396,   399,   402,   405,   411,   418,   421,   428,   431,
-   438,   441,   448,   457,   463,   464,   465,   466
+   175,   183,   189,   192,   199,   205,   208,   215,   221,   228,
+   231,   239,   242,   245,   251,   254,   257,   263,   266,   269,
+   276,   282,   289,   292,   299,   302,   309,   312,   319,   322,
+   330,   333,   336,   339,   343,   346,   349,   352,   355,   358,
+   361,   365,   368,   371,   375,   378,   381,   385,   388,   391,
+   394,   397,   400,   403,   406,   412,   419,   422,   429,   432,
+   439,   442,   449,   458,   464,   465,   466,   467
 };
 #endif
 
@@ -1085,347 +1085,348 @@ case 43:
 case 44:
 #line 192 "oa.y"
 {
-		yyval.node->next = yyvsp[-1].node;
+		yyvsp[-1].node->next = yyvsp[0].node;
+		yyval.node = yyvsp[-1].node;
 	;
     break;}
 case 45:
-#line 198 "oa.y"
+#line 199 "oa.y"
 {
 		yyval.node = createElifPart(yyvsp[-4].expression, yyvsp[-1].node);
 	;
     break;}
 case 46:
-#line 204 "oa.y"
+#line 205 "oa.y"
 {
 		yyval.node = NULL;
 	;
     break;}
 case 47:
-#line 207 "oa.y"
+#line 208 "oa.y"
 {
 		yyval.node = createElsePart(yyvsp[-1].node);
 	;
     break;}
 case 48:
-#line 214 "oa.y"
+#line 215 "oa.y"
 {
 		yyval.node = createWhile(yyvsp[-4].expression, yyvsp[-1].node);
 	;
     break;}
 case 49:
-#line 220 "oa.y"
+#line 221 "oa.y"
 {
 		yyval.node = createForeach(yyvsp[-6].name, yyvsp[-4].leftValue, yyvsp[-1].node);
 	;
     break;}
 case 50:
-#line 227 "oa.y"
+#line 228 "oa.y"
 {
 		yyval.node = createClassDefine(yyvsp[-3].type, NULL, yyvsp[-1].node);
 	;
     break;}
 case 51:
-#line 230 "oa.y"
+#line 231 "oa.y"
 {
 		yyval.node = createClassDefine(yyvsp[-5].type, yyvsp[-3].type, yyvsp[-1].node);
 	;
     break;}
 case 52:
-#line 238 "oa.y"
+#line 239 "oa.y"
 {
 		yyval.node = createFunctionDeclare(yyvsp[-4].type, yyvsp[-3].name, yyvsp[-1].formParam);
 	;
     break;}
 case 53:
-#line 241 "oa.y"
+#line 242 "oa.y"
 {
 		yyval.node = createFunctionDeclare(yyvsp[-4].type, yyvsp[-3].name, yyvsp[-1].formParam);
 	;
     break;}
 case 54:
-#line 244 "oa.y"
+#line 245 "oa.y"
 {
 		yyval.node = createFunctionDeclare(NULL, yyvsp[-3].name, yyvsp[-1].formParam);
 	;
     break;}
 case 55:
-#line 250 "oa.y"
+#line 251 "oa.y"
 {
 		yyval.node = createFunctionDefine(yyvsp[-7].type, yyvsp[-6].name, yyvsp[-4].formParam, yyvsp[-1].node);
 	;
     break;}
 case 56:
-#line 253 "oa.y"
+#line 254 "oa.y"
 {
 		yyval.node = createFunctionDefine(yyvsp[-7].type, yyvsp[-6].name, yyvsp[-4].formParam, yyvsp[-1].node);
 	;
     break;}
 case 57:
-#line 256 "oa.y"
+#line 257 "oa.y"
 {
 		yyval.node = createFunctionDefine(NULL, yyvsp[-6].name, yyvsp[-4].formParam, yyvsp[-1].node);
 	;
     break;}
 case 58:
-#line 262 "oa.y"
+#line 263 "oa.y"
 {
 		yyval.node = createClassMethodDefine(yyvsp[-9].type, yyvsp[-6].name, yyvsp[-4].formParam, yyvsp[-1].node, yyvsp[-8].type);
 	;
     break;}
 case 59:
-#line 265 "oa.y"
+#line 266 "oa.y"
 {
 		yyval.node = createClassMethodDefine(yyvsp[-9].type, yyvsp[-6].name, yyvsp[-4].formParam, yyvsp[-1].node, yyvsp[-8].type);
 	;
     break;}
 case 60:
-#line 268 "oa.y"
+#line 269 "oa.y"
 {
 		yyval.node = createClassMethodDefine(NULL, yyvsp[-6].name, yyvsp[-4].formParam, yyvsp[-1].node, yyvsp[-8].type);
 	;
     break;}
 case 61:
-#line 275 "oa.y"
+#line 276 "oa.y"
 {
 		yyval.node = createBreak();
 	;
     break;}
 case 62:
-#line 281 "oa.y"
+#line 282 "oa.y"
 {
 		yyval.node = createContinue();
 	;
     break;}
 case 63:
-#line 288 "oa.y"
+#line 289 "oa.y"
 {
 		yyval.node = createReturn(yyvsp[0].expression);
 	;
     break;}
 case 64:
-#line 291 "oa.y"
+#line 292 "oa.y"
 {
 		yyval.node = createReturn(NULL);
 	;
     break;}
 case 65:
-#line 298 "oa.y"
+#line 299 "oa.y"
 {
 		yyval.formParam = NULL;
 	;
     break;}
 case 66:
-#line 301 "oa.y"
+#line 302 "oa.y"
 {
 		yyvsp[-1].formParam->next = yyvsp[0].formParam;
 		yyval.formParam = yyvsp[-1].formParam;
 	;
     break;}
 case 67:
-#line 308 "oa.y"
+#line 309 "oa.y"
 {
 		yyval.formParam = NULL;
 	;
     break;}
 case 68:
-#line 311 "oa.y"
+#line 312 "oa.y"
 {
 		yyvsp[-1].formParam->next = yyvsp[0].formParam;
 		yyval.formParam = yyvsp[-1].formParam;
 	;
     break;}
 case 69:
-#line 318 "oa.y"
+#line 319 "oa.y"
 {
 		yyval.formParam = createFormParam(yyvsp[-1].type, yyvsp[0].name);
 	;
     break;}
 case 70:
-#line 321 "oa.y"
+#line 322 "oa.y"
 {
 		yyval.formParam = createFormParam(yyvsp[-1].type, yyvsp[0].name);
 	;
     break;}
 case 71:
-#line 329 "oa.y"
+#line 330 "oa.y"
 {
 		yyval.expression = createExpression(yyvsp[-2].expression, yyvsp[0].expression, OA_EXP_AND);
 	;
     break;}
 case 72:
-#line 332 "oa.y"
+#line 333 "oa.y"
 {
 		yyval.expression = createExpression(yyvsp[-2].expression, yyvsp[0].expression, OA_EXP_OR);
 	;
     break;}
 case 73:
-#line 335 "oa.y"
+#line 336 "oa.y"
 {
 		yyval.expression = createExpression(yyvsp[0].expression, NULL, OA_EXP_NOT);
 	;
     break;}
 case 75:
-#line 342 "oa.y"
+#line 343 "oa.y"
 {
 		yyval.expression = createExpression(yyvsp[-2].expression, yyvsp[0].expression, OA_EXP_EQ);
 	;
     break;}
 case 76:
-#line 345 "oa.y"
+#line 346 "oa.y"
 {
 		yyval.expression = createExpression(yyvsp[-2].expression, yyvsp[0].expression, OA_EXP_NE);
 	;
     break;}
 case 77:
-#line 348 "oa.y"
+#line 349 "oa.y"
 {
 		yyval.expression = createExpression(yyvsp[-2].expression, yyvsp[0].expression, OA_EXP_GT);
 	;
     break;}
 case 78:
-#line 351 "oa.y"
+#line 352 "oa.y"
 {
 		yyval.expression = createExpression(yyvsp[-2].expression, yyvsp[0].expression, OA_EXP_GE);
 	;
     break;}
 case 79:
-#line 354 "oa.y"
+#line 355 "oa.y"
 {
 		yyval.expression = createExpression(yyvsp[-2].expression, yyvsp[0].expression, OA_EXP_LT);
 	;
     break;}
 case 80:
-#line 357 "oa.y"
+#line 358 "oa.y"
 {
 		yyval.expression = createExpression(yyvsp[-2].expression, yyvsp[0].expression, OA_EXP_LE);
 	;
     break;}
 case 82:
-#line 364 "oa.y"
+#line 365 "oa.y"
 {
 		yyval.expression = createExpression(yyvsp[-2].expression, yyvsp[0].expression, OA_EXP_PLUS);
 	;
     break;}
 case 83:
-#line 367 "oa.y"
+#line 368 "oa.y"
 {
 		yyval.expression = createExpression(yyvsp[-2].expression, yyvsp[0].expression, OA_EXP_MINUS);
 	;
     break;}
 case 85:
-#line 374 "oa.y"
+#line 375 "oa.y"
 {
 		yyval.expression = createExpression(yyvsp[-2].expression, yyvsp[0].expression, OA_EXP_MULTIPLE);
 	;
     break;}
 case 86:
-#line 377 "oa.y"
+#line 378 "oa.y"
 {
 		yyval.expression = createExpression(yyvsp[-2].expression, yyvsp[0].expression, OA_EXP_DIVIDE);
 	;
     break;}
 case 88:
-#line 384 "oa.y"
+#line 385 "oa.y"
 {
 		yyval.expression = createExpressionIntLeaf(yyvsp[0].number_int);
 	;
     break;}
 case 89:
-#line 387 "oa.y"
+#line 388 "oa.y"
 {
 		yyval.expression = createExpressionDoubleLeaf(yyvsp[0].number_double);
 	;
     break;}
 case 90:
-#line 390 "oa.y"
+#line 391 "oa.y"
 {
 		yyval.expression = createExpressionCharLeaf(yyvsp[0].type_char);
 	;
     break;}
 case 91:
-#line 393 "oa.y"
+#line 394 "oa.y"
 {
 		yyval.expression = createExpressionStringLeaf(yyvsp[0].type_string);
 	;
     break;}
 case 92:
-#line 396 "oa.y"
+#line 397 "oa.y"
 {
 		yyval.expression = createExpressionLeftValueLeaf(yyvsp[0].leftValue);
 	;
     break;}
 case 93:
-#line 399 "oa.y"
+#line 400 "oa.y"
 {
 		yyval.expression = createExpressionArrayValue(yyvsp[-3].leftValue, yyvsp[-1].expression);
 	;
     break;}
 case 94:
-#line 402 "oa.y"
+#line 403 "oa.y"
 {
 		yyval.expression = createExpressionFunctionValue(yyvsp[-3].leftValue, yyvsp[-1].factParam);
 	;
     break;}
 case 95:
-#line 405 "oa.y"
+#line 406 "oa.y"
 {
 		yyval.expression = yyvsp[-1].expression;
 	;
     break;}
 case 96:
-#line 411 "oa.y"
+#line 412 "oa.y"
 {
 		yyval.leftValue = createLeftValue(yyvsp[-1].name);
 		yyval.leftValue->next = yyvsp[0].leftValue;
 	;
     break;}
 case 97:
-#line 418 "oa.y"
+#line 419 "oa.y"
 {
 		yyval.leftValue = NULL;
 	;
     break;}
 case 98:
-#line 421 "oa.y"
+#line 422 "oa.y"
 {
 		yyval.leftValue = createLeftValue(yyvsp[-1].name);
 		yyval.leftValue->next = yyvsp[0].leftValue;
 	;
     break;}
 case 99:
-#line 428 "oa.y"
+#line 429 "oa.y"
 {
 		yyval.factParam = NULL;
 	;
     break;}
 case 100:
-#line 431 "oa.y"
+#line 432 "oa.y"
 {
 		yyvsp[-1].factParam->next = yyvsp[0].factParam;
 		yyval.factParam = yyvsp[-1].factParam;
 	;
     break;}
 case 101:
-#line 438 "oa.y"
+#line 439 "oa.y"
 {
 		yyval.factParam = NULL;
 	;
     break;}
 case 102:
-#line 441 "oa.y"
+#line 442 "oa.y"
 {
 		yyvsp[-1].factParam->next = yyvsp[0].factParam;
 		yyval.factParam = yyvsp[-1].factParam;
 	;
     break;}
 case 103:
-#line 448 "oa.y"
+#line 449 "oa.y"
 {
 		yyval.factParam = createFactParam(yyvsp[0].expression);
 	;
     break;}
 case 104:
-#line 457 "oa.y"
+#line 458 "oa.y"
 {
 		yyval.type = createArrayType(yyvsp[-2].type);
 	;
@@ -1652,7 +1653,7 @@ yyerrhandle:
     }
   return 1;
 }
-#line 470 "oa.y"
+#line 471 "oa.y"
 
 int yyerror(char* s){
 	extern int yylineno;
