@@ -10,38 +10,58 @@ class #Arraysort extends #Array{
 
 
 void #Arraysort::@Qsort(int[] @a, int @l, int @h) {
-	if(@l >= @h) { 
+	if(@l > @h - 1) { 
 		return;
 	}
 	int @first = @l;
 	int @last = @h;
 	int @key = @a[@first];
-	while(@first < @last) {
-		while( @first < @last && @a[@last] >= @key ) {
-			@last = @last - 1;
+	while(@last > @first) {
+		while(@last > @first) {
+			if(@a[@last] > @key - 1){
+				@last = @last - 1;
+			}else{
+				break;
+			}
 		}
 		@a[@first] = @a[@last];
-		while( @first < @last && @a[@first] <= @key ) {
-			@first = @first + 1;
+		while(@last > @first) {
+			if(@key > @a[@first] - 1){
+				@first = @first + 1;
+			}else{
+				break;
+			}
 		}
 		@a[@last] = @a[@first];
 	};
 	@a[@first] = @key;
 	@Qsort(@a, @l, @first-1);
 	@Qsort(@a, @first+1, @h);
+	return;
 }
 
 int @main() {
 	#Arraysort @as;
-	@as.@a[0] = 57;
-	@as.@a[1] = 68;
-	@as.@a[2] = 59;
-	@as.@a[3] = 52;
-	@as.@a[4] = 72;
-	@as.@a[5] = 28;
-	@as.@a[6] = 96;
-	@as.@a[7] = 33;
-	@as.@a[8] = 24;
-	@as.@Qsort(@as.@a, @as.@low, @as.@high);
+	int @size = 8;
+	@as.@a = int[@size];
+	
+	@as.@a[0] = 12; @as.@a[1] = 43; @as.@a[2] = 89; @as.@a[3] = 0;
+	@as.@a[4] = 32; @as.@a[5] = 1;  @as.@a[6] = 23; @as.@a[7] = 7;
+	
+	@print("before qsort ");
+	int @i = 0;
+	while(@size > @i){		//foreach
+		@print("%d ", @as.@a[@i]);
+		@i = @i + 1;
+	}
+	@print("\n");
+	@as.@Qsort(@as.@a, 0, @size - 1);
+	@print("after  qsort ");
+	@i = 0;
+	while(@size > @i){		//foreach
+		@print("%d ", @as.@a[@i]);
+		@i = @i + 1;
+	}
+	@print("\n");
 	return 0;
 }

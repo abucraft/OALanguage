@@ -123,7 +123,7 @@ struct OaVar* parseArrayValue(std::string&result, struct ArrayValue* seg);
 struct OaVar* parseFunctionValue(std::string&result, struct FunctionValue* seg);
 //-------------------end expression part-------------------
 //---------------------parameter part---------------------
-void parseFormParam(std::string&result, FormParam*seg);
+std::string parseFormParam(std::string&result, FormParam*seg);
 std::string parseFactParam(std::string&result, struct FactParam* seg);
 //-------------------end parameter part-------------------
 
@@ -407,12 +407,13 @@ void parseVarAssignNode(std::string& result, VarAssignNode* seg) {
 	if (seg->expOfVar != NULL) {
 		struct OaVar* idxVar = parseExpression(result, seg->expOfVar);
 		result += "%" + myItoa(temVarNo++) + " = ";
-		result += "load " + temVar->type + "** " + temVar->name + ", ";
+		//load i32, i32* %first, align 4
+		result += "load " + temVar->type + ", " + temVar->type + "* " + temVar->name + ", ";
 		result += "align 8" + endLine;
 		tmpName = "%" + myItoa(temVarNo - 1);
 		result += "%" + myItoa(temVarNo++) + " = ";
-		result += "getelementptr inbounds " + temVar->type + "* " + tmpName + ", ";
-		result += "i64 " + idxVar->name + endLine;
+		result += "getelementptr inbounds i32, " + temVar->type + " " + tmpName + ", ";
+		result += "i32 " + idxVar->name + endLine;
 		tmpName = "%" + myItoa(temVarNo - 1);
 	}
 
@@ -423,12 +424,12 @@ void parseVarAssignNode(std::string& result, VarAssignNode* seg) {
 		result += "zext i1 %" + myItoa(temVarNo - 2);
 		result += " to " + temVar->type + endLine;
 	}
-	result += "store " + temVar->type + " ";
+	result += "store " + refVar->type + " ";
 	if (temVar->type == "double" && refVar->name[0] != '%')
 		result += myDtoa(refVar->name) + ", ";
 	else
 		result += refVar->name + ", ";
-	result += temVar->type + "* " + tmpName + ", ";
+	result += refVar->type + "* " + tmpName + ", ";
 	result += "align " + myItoa(temVar->align) + endLine;
 }
 
@@ -553,8 +554,10 @@ void parseArrayAssignNode(std::string&result, ArrayAssignNode*seg) {
 		//[WARNING] size == 0 to indicate the first time to malloc
 		lv = seg->name;
 		std::string tmpName = "";
+		tmpName = '%' + std::string(lv->name).substr(1);
+		lv = lv->next;
 		while (lv != NULL) {
-			tmpName += '%' + std::string(lv->name).substr(1);
+			tmpName += '.' + std::string(lv->name).substr(1);
 			lv = lv->next;
 		}
 		tmpName += ".length";
@@ -569,7 +572,7 @@ void parseArrayAssignNode(std::string&result, ArrayAssignNode*seg) {
 		//malloc
 		std::string size = mallocArray(index, member->type, member->align, var->name);
 		//upadte .length variable
-		result += "store i32 %" + var->name + ", i32* " + size + ", align 4\n";
+		result += "store i32 " + size + ", i32* " + tmpVar->name + ", align 4\n";
 	}
 	else {
 		// not in class
@@ -1109,7 +1112,7 @@ void parseFunctionDefineNode(std::string&result, FunctionDefineNode *seg) {
 
 	//parameters
 	result += '(';
-	parseFormParam(result, seg->formParams);
+	std::string predefine = parseFormParam(result, seg->formParams);
 	result += ')';
 	oafunc.params = seg->formParams;
 
@@ -1119,6 +1122,7 @@ void parseFunctionDefineNode(std::string&result, FunctionDefineNode *seg) {
 
 	//statements
 	result += "{\nentry:\n";
+	result += predefine;
 	if (seg->stmts) {
 		parseNodeList(result, seg->stmts, "stmts");
 	}
@@ -1194,8 +1198,7 @@ void parseClassMethodDefineNode(std::string&result, ClassMethodDefineNode*seg) {
 	result += oafunc.type;
 
 	//function name
-	result += " ";
-	result += oafunc.name;
+	result += " @" + oafunc.className + '.' + oafunc.name.substr(1);
 
 	//store allVars and allArrays(added in parseFormParam() function and used in parsers in function)
 	int sizeOldVar = allVars.size();
@@ -1207,7 +1210,7 @@ void parseClassMethodDefineNode(std::string&result, ClassMethodDefineNode*seg) {
 	newParams->type = seg->classType;
 	newParams->name = "%.this";
 	result += '(';
-	parseFormParam(result, newParams);
+	std::string predefine = parseFormParam(result, newParams);
 	result += ')';
 	oafunc.params = newParams;
 	
@@ -1217,6 +1220,7 @@ void parseClassMethodDefineNode(std::string&result, ClassMethodDefineNode*seg) {
 
 	//statements
 	result += "{\nentry:\n";
+	result += predefine;
 	if (seg->stmts) {
 		parseNodeList(result, seg->stmts, "stmts");
 	}
@@ -1672,14 +1676,22 @@ struct OaVar* parseLeftValue(std::string&result, LeftValue* seg) {
 		if (tmpVar == NULL) {
 			return NULL;
 		}
-		int index = temVarNo - 1;
-		result += '%' + myItoa(temVarNo++) + " = load " + tmpVar->type + ", " + tmpVar->type + "* " + tmpVar->name + ", align " + myItoa(tmpVar->align) + '\n';
-
-		OaVar *retVar = new OaVar;
-		retVar->name = '%' + myItoa(temVarNo - 1);
-		retVar->align = tmpVar->align;
-		retVar->type = tmpVar->type;
-		return retVar;
+		if (tmpVar->type[0] == '#') {
+			OaVar *retVar = new OaVar;
+			retVar->name = tmpVar->name;
+			retVar->align = tmpVar->align;
+			retVar->type = tmpVar->type;
+			return retVar;
+		}
+		else{
+			int index = temVarNo - 1;
+			result += '%' + myItoa(temVarNo++) + " = load " + tmpVar->type + ", " + tmpVar->type + "* " + tmpVar->name + ", align " + myItoa(tmpVar->align) + '\n';
+			OaVar *retVar = new OaVar;
+			retVar->name = '%' + myItoa(temVarNo - 1);
+			retVar->align = tmpVar->align;
+			retVar->type = tmpVar->type;
+			return retVar;
+		}
 	}
 	
 }
@@ -1717,7 +1729,7 @@ struct OaVar* parseArrayValue(std::string&result, ArrayValue* seg) {
 		result += refVar->name + ", ";
 		result += "i32 " + idxVar->name + endLine;
 		result += '%' + myItoa(temVarNo++) + " = load i32, i32* %" + myItoa(temVarNo - 2) + ", align 4\n";
-		temVar->name = myItoa(temVarNo - 1);
+		temVar->name = '%' + myItoa(temVarNo - 1);
 		temVar->type = refVar->type;
 		temVar->type.pop_back();
 		temVar->align = refVar->align;
@@ -1756,7 +1768,13 @@ struct OaVar* parseFunctionValue(std::string&result, FunctionValue* seg) {
 
 	std::string retType = iter->second.type;
 	std::string className = iter->second.className;
-	std::string name = iter->second.className + iter->second.name;
+	std::string name = "";
+	if (iter->second.className != "") {
+		name = '@' + iter->second.className + '.' + iter->second.name.substr(1);
+	}
+	else {
+		name = '@' + iter->second.name.substr(1);
+	}
 	struct FormParam *formParams = iter->second.params;
 	
 	struct FactParam *factParams = seg->factParam;
@@ -1764,50 +1782,64 @@ struct OaVar* parseFunctionValue(std::string&result, FunctionValue* seg) {
 	
 	//parameters
 	//add class to params
-	FactParam *newParams = new FactParam;
-	newParams->next = seg->factParam;
-	Expression tmpExp;
-	tmpExp.left = NULL;
-	tmpExp.right = NULL;
-	tmpExp.op = OA_EXP_NONE;
-	tmpExp.leafType = OA_LEFT_VALUE;
-	//[TODO] see above, revise callerName
-	int tmpSize = callerName.size();
-	char *tmpCh = new char[tmpSize + 1];
-	for (int i = 0; i < tmpSize; ++i) {
-		tmpCh[i] = callerName[i];
+	//[TODO] see above, no function in extended class
+	std::string paramStr;
+	if (iter->second.className != "") {
+		FactParam *newParams = new FactParam;
+		newParams->next = seg->factParam;
+		Expression tmpExp;
+		tmpExp.left = NULL;
+		tmpExp.right = NULL;
+		tmpExp.op = OA_EXP_NONE;
+		tmpExp.leafType = OA_LEFT_VALUE;
+		//[TODO] see above, revise callerName
+		int tmpSize = callerName.size();
+		char *tmpCh = new char[tmpSize + 1];
+		for (int i = 0; i < tmpSize; ++i) {
+			tmpCh[i] = callerName[i];
+		}
+		tmpCh[tmpSize] = '\0';
+		LeftValue tmpLv;
+		tmpLv.name = tmpCh;
+		tmpLv.next = NULL;
+		tmpExp.name = &tmpLv;
+		newParams->exp = &tmpExp;
+		paramStr = parseFactParam(result, newParams);
+		delete[] tmpCh;
 	}
-	tmpCh[tmpSize] = '\0';
-	LeftValue tmpLv;
-	tmpLv.name = tmpCh;
-	tmpLv.next = NULL;
-	tmpExp.name = &tmpLv;
-	newParams->exp = &tmpExp;
-	std::string paramStr = parseFactParam(result, newParams);
-	delete[] tmpCh;
-
+	else {
+		paramStr = parseFactParam(result, factParams);
+	}
 	//[TODO] align due to ret Type, now just deal with int return value
-	struct OaVar *oaVar = new OaVar;
-	oaVar->name = '%' + myItoa(temVarNo++);
-	oaVar->type = retType;
-	oaVar->align = 4;
-	result += oaVar->name + " = call " + retType + ' ' + name + "( " + paramStr + " )\n";
-	return oaVar;
+	
+	if(retType == "void"){
+		result += "call " + retType + ' ' + name + "(" + paramStr + ")\n";
+	}
+	else {
+		struct OaVar *oaVar = new OaVar;
+		oaVar->name = '%' + myItoa(temVarNo++);
+		oaVar->type = retType;
+		oaVar->align = 4;
+		result += oaVar->name + " = call " + retType + ' ' + name + "(" + paramStr + ")\n";
+		return oaVar;
+	}
 }
 //------------------end expression part-------------------
 
 //---------------------parameter part---------------------
-void parseFormParam(std::string&result, FormParam*seg) {
+std::string parseFormParam(std::string&result, FormParam*seg) {
 	//generate formparam part, and add local variables into allVars
+	//return predefine statements
 	if (seg == NULL) {
-		return;
+		return "" ;
 	}
+	std::string retStr = "";
 	while (seg != NULL) {
 		if (seg->type[0] == '#') {
 			result += "%class." + std::string(seg->type).substr(1) + '*';
 			//add to allVars
 			std::map<std::string, OaClass>::iterator iter = oaClasses.find(std::string(seg->type).substr(1));
-			if (iter == oaClasses.end()) { compilePass = false; compileLog = "class method wrong: class type not found\n"; return; }
+			if (iter == oaClasses.end()) { compilePass = false; compileLog = "class method wrong: class type not found\n"; return ""; }
 			OaVar *var = new OaVar;
 			var->name = "%.this";
 			var->type = seg->type;
@@ -1822,7 +1854,10 @@ void parseFormParam(std::string&result, FormParam*seg) {
 				paramVar->type = "i32";
 				paramVar->align = 4;
 				addVar(paramVar);
-				result += paramVar->type + '*';
+				//temVarNo++;	//llvm regular
+				result += paramVar->type;
+				retStr += paramVar->name + " = alloca " + paramVar->type + ", align " + myItoa(paramVar->align) +'\n';
+				retStr += "store " + paramVar->type + ' ' + paramVar->name + "., " + paramVar->type + "* " + paramVar->name + ", align " + myItoa(paramVar->align) + '\n';
 			}
 			else if (std::string(seg->type) == "double") {
 				OaVar *paramVar = new OaVar;
@@ -1830,7 +1865,10 @@ void parseFormParam(std::string&result, FormParam*seg) {
 				paramVar->type = "double";
 				paramVar->align = 8;
 				addVar(paramVar);
-				result += paramVar->type + '*';
+				//temVarNo++;	//llvm regular
+				result += paramVar->type;
+				retStr += paramVar->name + " = alloca " + paramVar->type + ", align " + myItoa(paramVar->align) + '\n';
+				retStr += "store " + paramVar->type + ' ' + paramVar->name + "., " + paramVar->type + "* " + paramVar->name + ", align " + myItoa(paramVar->align) + '\n';
 			}
 			else if (std::string(seg->type) == "char") {
 				OaVar *paramVar = new OaVar;
@@ -1838,7 +1876,10 @@ void parseFormParam(std::string&result, FormParam*seg) {
 				paramVar->type = "i8";
 				paramVar->align = 1;
 				addVar(paramVar);
-				result += paramVar->type + '*';
+				//temVarNo++;	//llvm regular
+				result += paramVar->type;
+				retStr += paramVar->name + " = alloca " + paramVar->type + ", align " + myItoa(paramVar->align) + '\n';
+				retStr += "store " + paramVar->type + ' ' + paramVar->name + "., " + paramVar->type + "* " + paramVar->name + ", align " + myItoa(paramVar->align) + '\n';
 			}
 			else if (std::string(seg->type) == "int[]") {
 				OaVar *paramArray = new OaVar;
@@ -1847,7 +1888,9 @@ void parseFormParam(std::string&result, FormParam*seg) {
 				paramArray->align = 4;
 				paramArray->size = 0;
 				addArray(paramArray);
-				result += paramArray->type + '*';
+				result += paramArray->type;
+				retStr += paramArray->name + " = alloca " + paramArray->type + ", align " + myItoa(paramArray->align) + '\n';
+				retStr += "store " + paramArray->type + ' ' + paramArray->name + "., " + paramArray->type + "* " + paramArray->name + ", align " + myItoa(paramArray->align) + '\n';
 
 				//[WARNING] let size = 0 to indicate the first time to malloc
 				OaVar *tmpVar = new OaVar;
@@ -1865,7 +1908,9 @@ void parseFormParam(std::string&result, FormParam*seg) {
 				paramArray->align = 8;
 				paramArray->size = 0;
 				addArray(paramArray);
-				result += paramArray->type + '*';
+				result += paramArray->type;
+				retStr += paramArray->name + " = alloca " + paramArray->type + ", align " + myItoa(paramArray->align) + '\n';
+				retStr += "store " + paramArray->type + ' ' + paramArray->name + "., " + paramArray->type + "* " + paramArray->name + ", align " + myItoa(paramArray->align) + '\n';
 
 				//[WARNING] let size = 0 to indicate the first time to malloc
 				OaVar *tmpVar = new OaVar;
@@ -1883,7 +1928,9 @@ void parseFormParam(std::string&result, FormParam*seg) {
 				paramArray->align = 1;
 				paramArray->size = 0;
 				addArray(paramArray);
-				result += paramArray->type + '*';
+				result += paramArray->type;
+				retStr += paramArray->name + " = alloca " + paramArray->type + ", align " + myItoa(paramArray->align) + '\n';
+				retStr += "store " + paramArray->type + ' ' + paramArray->name + "., " + paramArray->type + "* " + paramArray->name + ", align " + myItoa(paramArray->align) + '\n';
 
 				//[WARNING] let size = 0 to indicate the first time to malloc
 				OaVar *tmpVar = new OaVar;
@@ -1897,7 +1944,7 @@ void parseFormParam(std::string&result, FormParam*seg) {
 				//class
 				OaVar *paramVar = new OaVar;
 				std::map<std::string, OaClass>::iterator iter = oaClasses.find(std::string(seg->type).substr(1));
-				if (iter == oaClasses.end()) { compilePass = false; compileLog = "Error in parseFormParam: unknown class type\n"; return; }
+				if (iter == oaClasses.end()) { compilePass = false; compileLog = "Error in parseFormParam: unknown class type\n"; return ""; }
 				paramVar->align = iter->second.align;
 				paramVar->type = std::string(seg->type);
 				paramVar->name = '%' + std::string(seg->name).substr(1);
@@ -1906,17 +1953,20 @@ void parseFormParam(std::string&result, FormParam*seg) {
 			else {
 				compilePass = false;
 				compileLog = "Error in parseFormParam: wrong type\n";
-				return;
+				return "";
 			}
 		}
-		result += " %";
-		result += std::string(seg->name).substr(1);
+		result += " %" + std::string(seg->name).substr(1);
+		if (seg->type[0] != '#') {
+			result += '.';	//llvm regular, for loading value due to address alloc
+		}
 		
 		if (seg->next != NULL) {
 			result += ", ";
 		}
 		seg = seg->next;
 	}
+	return retStr;
 }
 
 std::string parseFactParam(std::string&result, FactParam* seg) {
@@ -1927,6 +1977,7 @@ std::string parseFactParam(std::string&result, FactParam* seg) {
 	OaVar *tmpVar = NULL;
 	while (seg != NULL) {
 		tmpVar = parseExpression(result, seg->exp);
+		
 		if (tmpVar == NULL && inClassMethod) {
 			LeftValue lv;
 			lv.name = "%.this";
@@ -1934,13 +1985,14 @@ std::string parseFactParam(std::string&result, FactParam* seg) {
 			tmpVar = parseLeftValue(result, &lv);
 		}
 		if (tmpVar == NULL) { compileLog = "wrong param"; compilePass = false; return ""; }
+
 		if (tmpVar->type[0] == '#'){
 			//class type
 			str += "%class." + tmpVar->type.substr(1) + "* " + tmpVar->name;
 		}
 		else {
 			//not class type
-			str += tmpVar->type + ' ' + tmpVar->name;
+			str += tmpVar->type + " " + tmpVar->name;
 		}
 		if (seg->next != NULL) {
 			str += ", ";
@@ -2146,7 +2198,6 @@ int main() {
 	}
 
 	if (compilePass) {
-		std::cout << result << std::endl;
 		//generate code to file
 		std::ofstream ost("hello.ll");
 		ost << "target triple = \"i686-pc-windows-gnu\"\n\n";
@@ -2174,8 +2225,6 @@ int main() {
 		std::cout << "code generate successfully!\n";
 	}
 	else {
-
-		std::cout << result << std::endl;
 		std::cout << compileLog << std::endl;
 	}
 	std::cin.get();
