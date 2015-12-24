@@ -65,7 +65,6 @@ int OaWhileIdx = 0;
 
 //作用域的栈
 std::list<std::string> oaPathStk;
-std::list<std::string> endLbStk;
 
 //内建数组的length
 const char array_length[] = ".length";
@@ -610,14 +609,12 @@ void parseIfNode(std::string&result, IfNode*seg) {
 	//std::string cmpLabel = std::string("%cmp") + cmpIdx;
 	std::string ifLabel = std::string("if.then.") + ifIdx;
 	std::string nextLabel;
-	std::string endLabel = std::string("if.final.") + ifIdx;
 	if (seg->elseStmts != NULL || seg->elifStmts != NULL) {
 		nextLabel = std::string("if.else.") + ifIdx;
 	}
 	else {
 		nextLabel = std::string("if.end.") + ifIdx;
 	}
-	endLbStk.push_back(endLabel);
 	OaVar *p_midVar = parseExpression(result, seg->exp);
 	OaCmpIdx++;
 	OaIfIdx++;
@@ -627,7 +624,6 @@ void parseIfNode(std::string&result, IfNode*seg) {
 	oaPathStk.push_back(ifLabel);
 	parseNodeList(result, seg->stmts, ifLabel);
 	oaPathStk.pop_back();
-	result += "  br label %" + endLabel+"\n";
 	result += "\n";
 	result += nextLabel + ":\n";
 	struct TreeNode *tmp = seg->elifStmts;
@@ -646,7 +642,7 @@ void parseIfNode(std::string&result, IfNode*seg) {
 	result += endLabel + ":\n";
 	endLbStk.pop_back();
 	temVarNo++;			//llvm regular
-	/*char numStr[N_INT_CHAR];
+/*char numStr[N_INT_CHAR];
 	sprintf(numStr, "%d", ++lineno);
 	result += "{\"name\":\"" + std::string(numStr) + ": if node\",\"children\":[";
 	result += "{\"name\":\"condition\",\"children\":[{\"name\":\"";
@@ -684,7 +680,6 @@ void parseElifNode(std::string&result, ElifNode*seg) {
 	//std::string cmpLabel = std::string("%cmp") + cmpIdx;
 	std::string ifLabel = std::string("if.then.") + ifIdx;
 	std::string nextLabel = std::string("if.else.") + ifIdx;
-	std::string endLabel = endLbStk.back();
 	OaVar *p_midVar = parseExpression(result, seg->exp);
 	OaCmpIdx++;
 	OaIfIdx++;
@@ -694,7 +689,6 @@ void parseElifNode(std::string&result, ElifNode*seg) {
 	oaPathStk.push_back(ifLabel);
 	parseNodeList(result, seg->stmts, ifLabel);
 	oaPathStk.pop_back();
-	result += "  br label %" + endLabel+"\n";
 	result += "\n";
 	result += nextLabel + ":\n";
 	oaPathStk.push_back(nextLabel);
@@ -1349,10 +1343,20 @@ struct OaVar* parseExpression(std::string &result, Expression* seg) {
 			break;
 		}
 		break;
-	case OA_EXP_NOT:
-		printf("! ");
-		printExpression(seg->left);
+	case OA_EXP_NOT: {
+		struct OaVar*  leftVar = parseExpression(result, seg->left);
+		struct OaVar*   temVar = new struct OaVar;
+		result += "%" + myItoa(temVarNo++) + " = ";
+		result += "icmp ne ";
+		result += leftVar->type + " ";
+		result += leftVar->name + ", 0"  + endLine;
+
+		temVar->type = "i1";
+		temVar->align = leftVar->align;
+		return temVar;
 		break;
+		break;
+	}
 	case OA_EXP_MULTIPLE: {
 		/*parseExpression(result, seg->left);
 		result += " * ";
@@ -1440,11 +1444,8 @@ struct OaVar* parseExpression(std::string &result, Expression* seg) {
 		result += "icmp eq ";
 		result += leftVar->type + " ";
 		result += leftVar->name + ", " + rightVar->name + endLine;
-		temVar->name = "%" + myItoa(temVarNo++);
-		result += temVar->name + " = ";
-		result += "zext i1 %" + myItoa(temVarNo - 2);
-		result += " to " + leftVar->type + endLine;
-		temVar->type = leftVar->type;
+
+		temVar->type = "i1";
 		temVar->align = leftVar->align;
 		return temVar;
 		break;
@@ -1460,11 +1461,8 @@ struct OaVar* parseExpression(std::string &result, Expression* seg) {
 		result += "icmp ne ";
 		result += leftVar->type + " ";
 		result += leftVar->name + ", " + rightVar->name + endLine;
-		temVar->name = "%" + myItoa(temVarNo++);
-		result += temVar->name + " = ";
-		result += "zext i1 %" + myItoa(temVarNo - 2);
-		result += " to " + leftVar->type + endLine;
-		temVar->type = leftVar->type;
+
+		temVar->type = "i1";
 		temVar->align = leftVar->align;
 		return temVar;
 		break;
@@ -1499,11 +1497,8 @@ struct OaVar* parseExpression(std::string &result, Expression* seg) {
 		result += "icmp sge ";
 		result += leftVar->type + " ";
 		result += leftVar->name + ", " + rightVar->name + endLine;
-		temVar->name = "%" + myItoa(temVarNo++);
-		result += temVar->name + " = ";
-		result += "zext i1 %" + myItoa(temVarNo - 2);
-		result += " to " + leftVar->type + endLine;
-		temVar->type = leftVar->type;
+
+		temVar->type = "i1";
 		temVar->align = leftVar->align;
 		return temVar;
 		break;
@@ -1519,11 +1514,8 @@ struct OaVar* parseExpression(std::string &result, Expression* seg) {
 		result += "icmp sle ";
 		result += leftVar->type + " ";
 		result += leftVar->name + ", " + rightVar->name + endLine;
-		temVar->name = "%" + myItoa(temVarNo++);
-		result += temVar->name + " = ";
-		result += "zext i1 %" + myItoa(temVarNo - 2);
-		result += " to " + leftVar->type + endLine;
-		temVar->type = leftVar->type;
+
+		temVar->type = "i1";
 		temVar->align = leftVar->align;
 		return temVar;
 		break;
@@ -1539,11 +1531,8 @@ struct OaVar* parseExpression(std::string &result, Expression* seg) {
 		result += "icmp sle ";
 		result += leftVar->type + " ";
 		result += leftVar->name + ", " + rightVar->name + endLine;
-		temVar->name = "%" + myItoa(temVarNo++);
-		result += temVar->name + " = ";
-		result += "zext i1 %" + myItoa(temVarNo - 2);
-		result += " to " + leftVar->type + endLine;
-		temVar->type = leftVar->type;
+
+		temVar->type = "i1";
 		temVar->align = leftVar->align;
 		return temVar;
 		break;
@@ -1577,11 +1566,8 @@ struct OaVar* parseExpression(std::string &result, Expression* seg) {
 		result += "phi i1 [ false, %0 ], [ %" + myItoa(temVarNo - 2) + ", ";
 		result += "%" + myItoa(temLabel - 1) + " ]" + endLine;;
 
-		result += "%" + myItoa(temVarNo++) + " = ";
-		result += "zext i1 %" + myItoa(temVarNo - 2) + " to i32"+endLine;
-
 		temVar->name = "%" + myItoa(temVarNo - 1);
-		temVar->type = "i32";
+		temVar->type = "i1";
 		temVar->align = 4;
 		return temVar;
 		break;
@@ -1615,11 +1601,8 @@ struct OaVar* parseExpression(std::string &result, Expression* seg) {
 		result += "phi i1 [ true, %0 ], [ %" + myItoa(temVarNo - 2) + ", ";
 		result += "%" + myItoa(temLabel+1) + " ]" + endLine;;
 
-		result += "%" + myItoa(temVarNo++) + " = ";
-		result += "zext i1 %" + myItoa(temVarNo - 2) + " to i32" + endLine;
-
 		temVar->name = "%" + myItoa(temVarNo - 1);
-		temVar->type = "i32";
+		temVar->type = "i1";
 		temVar->align = 4;
 		return temVar;
 		break;
