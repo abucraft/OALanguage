@@ -424,6 +424,12 @@ void parseVarAssignNode(std::string& result, VarAssignNode* seg) {
 	}
 
 	struct OaVar* refVar = parseExpression(result, seg->exp);
+	if (refVar->type == "i1"&&temVar->type=="i32") {
+		refVar->name = "%" + myItoa(temVarNo++);
+		result += refVar->name + " = ";
+		result += "zext i1 %" + myItoa(temVarNo - 2);
+		result += " to " + temVar->type + endLine;
+	}
 	result += "store " + temVar->type + " ";
 	if (temVar->type == "double"&&refVar->name[0] != '%')
 		result += myDtoa(refVar->name) + ", ";
@@ -1485,15 +1491,13 @@ struct OaVar* parseExpression(std::string &result, Expression* seg) {
 		struct OaVar*  leftVar = parseExpression(result, seg->left);
 		struct OaVar* rightVar = parseExpression(result, seg->right);
 		struct OaVar*   temVar = new struct OaVar;
-		result += "%" + myItoa(temVarNo++) + " = ";
+		temVar->name = "%" + myItoa(temVarNo++);
+		result += temVar->name + " = ";
 		result += "icmp sgt ";
 		result += leftVar->type + " ";
 		result += leftVar->name + ", " + rightVar->name + endLine;
-		temVar->name = "%" + myItoa(temVarNo++);
-		result += temVar->name + " = ";
-		result += "zext i1 %" + myItoa(temVarNo - 2);
-		result += " to " + leftVar->type + endLine;
-		temVar->type = leftVar->type;
+		
+		temVar->type = "i1";
 		temVar->align = leftVar->align;
 		return temVar;
 		break;
@@ -2140,7 +2144,7 @@ void zeroClassArrayLength(const std::string &name, const std::string &classType)
 }
 
 int main() {
-	getTreeRaw("test.oa");
+	getTreeRaw("hello.oa");
 
 	//check function declared but not defined
 	std::map<std::string, OaFunction>::iterator iter;
