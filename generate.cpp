@@ -355,8 +355,8 @@ void parseVarAssignNode(std::string& result, VarAssignNode* seg) {
 		if (arrayIndex == NULL && member->type != var->type) { compilePass = false; compileLog = "in parseVarAssign: type error\n"; return; }
 		else if (arrayIndex != NULL && member->type != var->type + '*') { compilePass = false; compileLog = "in parseVarAssign: type error\n"; return; }
 		else if(arrayIndex != NULL && arrayIndex->type != "i32") { compilePass = false; compileLog = "in parseVarAssign: index should be int\n"; return; }
-		//result += '%' + myItoa(temVarNo++) + " = load " + var->type + ", " + var->type + "* %" + myItoa(index) + ", align " + myItoa(var->align) + '\n';
-		if(arrayIndex != NULL) result += '%' + myItoa(temVarNo++) + " = getelememtptr inbounds " + var->type + ", " + var->type + "* %" + myItoa(temVarNo-2) + ", i32 " + arrayIndex->name + '\n';
+		if(arrayIndex)  result += '%' + myItoa(temVarNo++) + " = load " + var->type + "*, " + var->type + "** %" + myItoa(index) + ", align " + myItoa(var->align) + '\n';
+		if(arrayIndex != NULL) result += '%' + myItoa(temVarNo++) + " = getelementptr inbounds " + var->type + ", " + var->type + "* %" + myItoa(temVarNo-2) + ", i32 " + arrayIndex->name + '\n';
 		result += "store " + var->type + ' ' + var->name + ", " + var->type + "* %" + myItoa(temVarNo - 1) + ", align " + myItoa(var->align) + '\n';
 		return;
 	}
@@ -403,31 +403,32 @@ void parseVarAssignNode(std::string& result, VarAssignNode* seg) {
 			return;
 		}
 	}
+	std::string tmpName = temVar->name;
 	if (seg->expOfVar != NULL) {
 		struct OaVar* idxVar = parseExpression(result, seg->expOfVar);
 		result += "%" + myItoa(temVarNo++) + " = ";
 		result += "load " + temVar->type + "** " + temVar->name + ", ";
 		result += "align 8" + endLine;
-		temVar->name = "%" + myItoa(temVarNo - 1);
+		tmpName = "%" + myItoa(temVarNo - 1);
 		result += "%" + myItoa(temVarNo++) + " = ";
-		result += "getelementptr inbounds " + temVar->type + "* " + temVar->name + ", ";
+		result += "getelementptr inbounds " + temVar->type + "* " + tmpName + ", ";
 		result += "i64 " + idxVar->name + endLine;
-		temVar->name = "%" + myItoa(temVarNo - 1);
+		tmpName = "%" + myItoa(temVarNo - 1);
 	}
 
 	struct OaVar* refVar = parseExpression(result, seg->exp);
-	if (refVar->type == "i1"&&temVar->type=="i32") {
+	if (refVar->type == "i1" && temVar->type == "i32") {
 		refVar->name = "%" + myItoa(temVarNo++);
 		result += refVar->name + " = ";
 		result += "zext i1 %" + myItoa(temVarNo - 2);
 		result += " to " + temVar->type + endLine;
 	}
 	result += "store " + temVar->type + " ";
-	if (temVar->type == "double"&&refVar->name[0] != '%')
+	if (temVar->type == "double" && refVar->name[0] != '%')
 		result += myDtoa(refVar->name) + ", ";
 	else
 		result += refVar->name + ", ";
-	result += temVar->type + "* " + temVar->name + ", ";
+	result += temVar->type + "* " + tmpName + ", ";
 	result += "align " + myItoa(temVar->align) + endLine;
 }
 
@@ -640,10 +641,11 @@ void parseIfNode(std::string&result, IfNode*seg) {
 		oaPathStk.push_back(nextLabel);
 		parseTreeNode(result, seg->elseStmts);
 		oaPathStk.pop_back();
-		result += "  br label %" + endLabel+"\n";
 	}
+	result += "  br label %" + endLabel + "\n";
 	result += endLabel + ":\n";
 	endLbStk.pop_back();
+	temVarNo++;			//llvm regular
 	/*char numStr[N_INT_CHAR];
 	sprintf(numStr, "%d", ++lineno);
 	result += "{\"name\":\"" + std::string(numStr) + ": if node\",\"children\":[";
@@ -1049,6 +1051,7 @@ void parseFunctionDefineNode(std::string&result, FunctionDefineNode *seg) {
 	if (seg == NULL) {
 		return;
 	}
+	temVarNo = 0;
 	OaFunction oafunc;
 	//className and name
 	if (classNameNow != "") {
@@ -1134,6 +1137,7 @@ void parseClassMethodDefineNode(std::string&result, ClassMethodDefineNode*seg) {
 	if (seg == NULL) {
 		return;
 	}
+	temVarNo = 0;
 	OaFunction oafunc;
 	//className and name
 	if (classNameNow != "") {
@@ -1271,7 +1275,7 @@ void parseReturnNode(std::string &result, struct ReturnNode *seg) {
 	//[TODO] check type
 	if (seg == NULL) return;
 	if (seg->exp == NULL) {
-		result += "ret\n";
+		result += "ret void\n";
 		return;
 	}
 	OaVar *retVal = new struct OaVar;
@@ -1663,6 +1667,7 @@ struct OaVar* parseLeftValue(std::string&result, LeftValue* seg) {
 		}
 		int index = temVarNo - 1;
 		result += '%' + myItoa(temVarNo++) + " = load " + member->type + ", " + member->type + "* %" + myItoa(index) + ", align " + myItoa(member->align) + '\n';
+		
 
 		//[WARNING] retVar should be freed by caller
 		OaVar *retVar = new OaVar;
@@ -1712,17 +1717,18 @@ struct OaVar* parseArrayValue(std::string&result, ArrayValue* seg) {
 		LeftValue lv;
 		char tmpCh[7] = "%.this";
 		lv.name = tmpCh;
-		lv.next = seg->name;
+		lv.next = seg->index->name;
 		idxVar = parseLeftValue(result, &lv);
 		if (idxVar == NULL) { compilePass = false; compileLog = "Error in parseArrayValue: no variable found\n"; return NULL; }
 	}
 	struct OaVar* temVar = new struct OaVar;
-	if (refVar != NULL&&idxVar != NULL) {
-		temVar->name = "%" + myItoa(temVarNo++);
-		result += temVar->name + " = ";
-		result += "getelementptr inbounds " + refVar->type + "* ";
+	if (refVar != NULL && idxVar != NULL) {
+		result += '%' + myItoa(temVarNo++) + " = ";
+		result += "getelementptr inbounds i32, " + refVar->type + " ";
 		result += refVar->name + ", ";
-		result += "i64 " + idxVar->name + endLine;
+		result += "i32 " + idxVar->name + endLine;
+		result += '%' + myItoa(temVarNo++) + " = load i32, i32* %" + myItoa(temVarNo - 2) + ", align 4\n";
+		temVar->name = myItoa(temVarNo - 1);
 		temVar->type = refVar->type;
 		temVar->type.pop_back();
 		temVar->align = refVar->align;
@@ -1810,6 +1816,14 @@ void parseFormParam(std::string&result, FormParam*seg) {
 	while (seg != NULL) {
 		if (seg->type[0] == '#') {
 			result += "%class." + std::string(seg->type).substr(1) + '*';
+			//add to allVars
+			std::map<std::string, OaClass>::iterator iter = oaClasses.find(std::string(seg->type).substr(1));
+			if (iter == oaClasses.end()) { compilePass = false; compileLog = "class method wrong: class type not found\n"; return; }
+			OaVar *var = new OaVar;
+			var->name = "%.this";
+			var->type = seg->type;
+			var->align = iter->second.align;
+			addVar(var);
 		}
 		else {
 			//add to allVars
@@ -1819,7 +1833,7 @@ void parseFormParam(std::string&result, FormParam*seg) {
 				paramVar->type = "i32";
 				paramVar->align = 4;
 				addVar(paramVar);
-				result += paramVar->type;
+				result += paramVar->type + '*';
 			}
 			else if (std::string(seg->type) == "double") {
 				OaVar *paramVar = new OaVar;
@@ -1827,7 +1841,7 @@ void parseFormParam(std::string&result, FormParam*seg) {
 				paramVar->type = "double";
 				paramVar->align = 8;
 				addVar(paramVar);
-				result += paramVar->type;
+				result += paramVar->type + '*';
 			}
 			else if (std::string(seg->type) == "char") {
 				OaVar *paramVar = new OaVar;
@@ -1835,7 +1849,7 @@ void parseFormParam(std::string&result, FormParam*seg) {
 				paramVar->type = "i8";
 				paramVar->align = 1;
 				addVar(paramVar);
-				result += paramVar->type;
+				result += paramVar->type + '*';
 			}
 			else if (std::string(seg->type) == "int[]") {
 				OaVar *paramArray = new OaVar;
@@ -1844,7 +1858,7 @@ void parseFormParam(std::string&result, FormParam*seg) {
 				paramArray->align = 4;
 				paramArray->size = 0;
 				addArray(paramArray);
-				result += paramArray->type;
+				result += paramArray->type + '*';
 
 				//[WARNING] let size = 0 to indicate the first time to malloc
 				OaVar *tmpVar = new OaVar;
@@ -1862,7 +1876,7 @@ void parseFormParam(std::string&result, FormParam*seg) {
 				paramArray->align = 8;
 				paramArray->size = 0;
 				addArray(paramArray);
-				result += paramArray->type;
+				result += paramArray->type + '*';
 
 				//[WARNING] let size = 0 to indicate the first time to malloc
 				OaVar *tmpVar = new OaVar;
@@ -1880,7 +1894,7 @@ void parseFormParam(std::string&result, FormParam*seg) {
 				paramArray->align = 1;
 				paramArray->size = 0;
 				addArray(paramArray);
-				result += paramArray->type;
+				result += paramArray->type + '*';
 
 				//[WARNING] let size = 0 to indicate the first time to malloc
 				OaVar *tmpVar = new OaVar;
@@ -1930,7 +1944,7 @@ std::string parseFactParam(std::string&result, FactParam* seg) {
 			lv.next = seg->exp->name;
 			tmpVar = parseLeftValue(result, &lv);
 		}
-		if (tmpVar == NULL) { compileLog = "wrong print string"; compilePass = false; return ""; }
+		if (tmpVar == NULL) { compileLog = "wrong param"; compilePass = false; return ""; }
 		if (tmpVar->type[0] == '#'){
 			//class type
 			str += "%class." + tmpVar->type.substr(1) + "* " + tmpVar->name;
