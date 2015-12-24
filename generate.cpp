@@ -2134,7 +2134,7 @@ void zeroClassArrayLength(const std::string &name, const std::string &classType)
 }
 
 int main() {
-	getTreeRaw("hello.oa");
+	getTreeRaw("test.oa");
 
 	//check function declared but not defined
 	std::map<std::string, OaFunction>::iterator iter;
