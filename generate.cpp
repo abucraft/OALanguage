@@ -87,8 +87,8 @@ int printStringIndex = 0;
 std::vector<std::string> printStrings;
 
 void zeroClassArrayLength(const std::string &name, const std::string &classType);
-void freeArray(int index, std::string type, int align);
-std::string mallocArray(int index, std::string type, int align, std::string size);
+void freeArray(std::string index, std::string type, int align);
+std::string mallocArray(std::string index, std::string type, int align, std::string size);
 
 void replaceUtilForeach(struct TreeNode* seg, char* namein, LeftValue* nameout, std::string idx);
 void replaceUtilForeachEXP(struct Expression* seg, char* namein, LeftValue* nameout, std::string idx);
@@ -481,7 +481,7 @@ void parseArrayDeclareNode(std::string&result, ArrayDeclareNode* seg) {
 		temArray->size = 0;
 		addArray(temArray);
 		result += temArray->name + " ";
-		result += "= " + std::string("alloca " + temArray->type + "*, ");
+		result += "= " + std::string("alloca " + temArray->type + "*, align ");
 		result += myItoa(temArray->align) + endLine;
 
 		OaVar *tmpVar = new OaVar;
@@ -549,6 +549,7 @@ void parseArrayAssignNode(std::string&result, ArrayAssignNode*seg) {
 			classType = std::string(member->type).substr(1);
 			lv = lv->next;
 		}
+		//[WARNING] not check index maybe change, see below else
 		int index = temVarNo - 1;
 		//do not free if .length is zero
 		//[WARNING] size == 0 to indicate the first time to malloc
@@ -564,20 +565,19 @@ void parseArrayAssignNode(std::string&result, ArrayAssignNode*seg) {
 		OaVar *tmpVar = getVar(tmpName);
 		if(tmpVar == NULL){ compilePass = false; compileLog = "in parseArrayAssign: no such array in class\n"; return; }
 		if (tmpVar->size != 0) {
-			freeArray(index, member->type, member->align);
+			freeArray(myItoa(index), member->type, member->align);
 		}
 		OaVar *var = parseExpression(result, seg->exp);
 		if(member->type != var->type + '*') { compilePass = false; compileLog = "in parseArrayAssign: type error\n"; return; }
 		if(var->type != "i32") { compilePass = false; compileLog = "in parseArrayAssign: array size should be int\n"; return; }
 		//malloc
-		std::string size = mallocArray(index, member->type, member->align, var->name);
+		std::string size = mallocArray(myItoa(index), member->type, member->align, var->name);
 		//upadte .length variable
 		result += "store i32 " + size + ", i32* " + tmpVar->name + ", align 4\n";
 	}
 	else {
 		// not in class
 		//[WARNING] not checked
-		int index = temVarNo - 1;
 		//do not free if .length is zero
 		//[WARNING] size == 0 to indicate the first time to malloc
 		lv = seg->name;
@@ -590,15 +590,26 @@ void parseArrayAssignNode(std::string&result, ArrayAssignNode*seg) {
 		OaVar *tmpVar = getVar(tmpName);
 		if (tmpVar == NULL) { compilePass = false; compileLog = "in parseArrayAssign: no such array in class\n"; return; }
 		if (tmpVar->size != 0){
-			freeArray(index, member->type, member->align);
+			freeArray(std::string(seg->name->name).substr(1), member->type, member->align);
 		}
 		OaVar *var = parseExpression(result, seg->exp);
-		if (std::string(seg->type) != tmpVar->type + "[]") { compilePass = false; compileLog = "in parseArrayAssign: type error\n"; return; }
+		std::string tmpType = "";
+		if (strcmp(seg->type, "int[]") == 0) {
+			tmpType = "i32*";
+		}
+		else if (strcmp(seg->type, "char[]") == 0) {
+			tmpType = "i8*";
+		}
+		else if (strcmp(seg->type, "double[]") == 0) {
+			tmpType = "double*";
+		}
+
+		if (tmpType != tmpVar->type + '*') { compilePass = false; compileLog = "in parseArrayAssign: type error\n"; return; }
 		if (var->type != "i32") { compilePass = false; compileLog = "in parseArrayAssign: array size should be int\n"; return; }
 		//malloc
-		std::string size = mallocArray(index, tmpVar->type, tmpVar->align, var->name);
+		std::string size = mallocArray(std::string(seg->name->name).substr(1), tmpVar->type + '*', tmpVar->align, var->name);
 		//upadte .length variable
-		result += "store i32 %" + var->name + ", i32* " + size + ", align 4\n";
+		result += "store i32 " + size + ", i32* " + tmpVar->name + ", align 4\n";
 	}
 }
 
@@ -921,7 +932,7 @@ void parseForeachNode(std::string &result, ForeachNode *seg) {
 	}
 	LeftValue *array_name = seg->nameOut;
 	//首先添加一个循环index的定义
-	std::string idx = std::string(seg->nameIn) + "@idx";
+	std::string idx = std::string(seg->nameIn) + ".idx";
 	//这里取值-1方便把赋值放在while.cond label之后
 	Expression *assign_zero = createExpressionIntLeaf(-1);
 	char *idxname = new char[idx.size() + 1];
@@ -929,20 +940,31 @@ void parseForeachNode(std::string &result, ForeachNode *seg) {
 	LeftValue *idxleft = createLeftValue(idxname);
 	TreeNode *assign_node = createVarDefine("int",idxname, assign_zero);
 
-	//创建一个比较index是否超过数组长度的语句
+	//创建一个比较index是否超过数组长度的语句,深拷贝leftvalue
 	LeftValue *final_left = array_name;
+	LeftValue *new_left = new LeftValue;
+	LeftValue *new_final = new_left;
+	char *tmp = new char[sizeof(final_left->name)];
+	strcpy(tmp, final_left->name);
+	new_final->name = tmp;
 	while (final_left->next != NULL) {
+		new_final->next = new LeftValue;
+		char *tmp = new char[sizeof(final_left->next->name)];
+		strcpy(tmp, final_left->next->name);
+		new_final->next->name = tmp;
 		final_left = final_left->next;
+		new_final = new_final->next;
 	}
 	std::string tmp_str = std::string(final_left->name) + array_length;
 	char *tmp_name = new char[tmp_str.size() + 1];
 	strcpy(tmp_name, tmp_str.c_str());
-	char *mid_name = final_left->name;
-	final_left->name = tmp_name;
-	free(mid_name);
+	char *mid_name = new_final->name;
+	new_final->name = tmp_name;
+	new_final->next = NULL;
+	delete[] mid_name;
 	Expression *cmp_left = createExpressionLeftValueLeaf(idxleft);
-	Expression *cmp_right = createExpressionLeftValueLeaf(array_name);
-	Expression *is_less = createExpression(cmp_left, cmp_right, OA_EXP_LT);
+	Expression *cmp_right = createExpressionLeftValueLeaf(new_final);
+	Expression *is_more = createExpression(cmp_right, cmp_left, OA_EXP_GT);
 	
 	//创建一个递增index的语句
 	Expression *assign_one = createExpressionIntLeaf(1);
@@ -963,7 +985,7 @@ void parseForeachNode(std::string &result, ForeachNode *seg) {
 	result += wCondLabel + ":\n";
 	//进行递增以及比较
 	parseTreeNode(result, assign_add);
-	OaVar *p_midVar = parseExpression(result, is_less);
+	OaVar *p_midVar = parseExpression(result, is_more);
 	result += std::string("  br i1 ") + p_midVar->name + ',' + " label %" + wBodyLabel + ',' + " label %" + wEndLabel + '\n';
 	result += "\n";
 	result += wBodyLabel + ":\n";
@@ -2115,13 +2137,15 @@ void parsePrintFunction(struct FactParam *params) {
 	temVarNo++;		//llvm regular
 }
 
-void freeArray(int index, std::string type, int align){
+void freeArray(std::string index, std::string type, int align){
+	//index does not contain %
 	hasFree = true;
-	result += '%' + myItoa(temVarNo++) + " = load " + type + ", " + type + "* %" + myItoa(index) + " align " + myItoa(align) + '\n';
+	result += '%' + myItoa(temVarNo++) + " = load " + type + ", " + type + "* %" + index + " align " + myItoa(align) + '\n';
 	if (type != "i8*")  result += '%' + myItoa(temVarNo++) + " = bitcast " + type + "* %" + myItoa(temVarNo-2) + " to i8*\n";
 	result += "call void @free(i8* %" + myItoa(temVarNo-1) + ")\n";
 }
-std::string mallocArray(int index, std::string type, int align, std::string size) {
+std::string mallocArray(std::string index, std::string type, int align, std::string size) {
+	//index does not contain %
 	hasMalloc = true;
 	if (size[0] != '%') {
 		int newSize = atoi(size.c_str());
@@ -2135,7 +2159,7 @@ std::string mallocArray(int index, std::string type, int align, std::string size
 
 	result += '%' + myItoa(temVarNo++) + " = call noalias i8* @malloc (i32 " + size + ")\n";
 	result += '%' + myItoa(temVarNo++) + " = bitcast i8* %" + myItoa(temVarNo-2) + " to " + type + '\n';
-	result += "store " + type + " %" + myItoa(temVarNo - 1) + ", " + type + "* %" + myItoa(index) + ", align " + myItoa(align) + '\n';
+	result += "store " + type + " %" + myItoa(temVarNo - 1) + ", " + type + "* %" + index + ", align " + myItoa(align) + '\n';
 	return size;
 }
 
