@@ -381,10 +381,10 @@ term
 	
 factor
 	:DECIMAL_LITERAL{
-		$$ = createExpressionIntLeaf($1, 1);
+		$$ = createExpressionIntLeaf($1, 0);
 	}
 	|DECIMAL_FLOATING_POINT_LITERAL{
-		$$ = createExpressionDoubleLeaf($1, 1);
+		$$ = createExpressionDoubleLeaf($1, 0);
 	}
 	|CHAR_LITERAL{
 		$$ = createExpressionCharLeaf($1);
@@ -405,10 +405,10 @@ factor
 		$$ = $2;
 	}
 	|MINUS DECIMAL_LITERAL{
-		$$ = createExpressionIntLeaf($2, 0);
+		$$ = createExpressionIntLeaf($2, 1);
 	}
 	|MINUS DECIMAL_FLOATING_POINT_LITERAL{
-		$$ = createExpressionDoubleLeaf($2, 0);
+		$$ = createExpressionDoubleLeaf($2, 1);
 	}
 	;
 	

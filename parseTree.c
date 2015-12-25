@@ -23,11 +23,11 @@ struct Expression *createExpressionIntLeaf(int value, int changeSymbol) {
 	exp->right = NULL;
 	exp->op = OA_EXP_NONE;
 	exp->leafType = OA_INT;
-	if (changeSymbol) {
-		exp->number_int = value;
+	if (changeSymbol == 1) {
+		exp->number_int = -value;
 	}
 	else {
-		exp->number_int = -value;
+		exp->number_int = value;
 	}
 	return exp;
 }
@@ -37,8 +37,8 @@ struct Expression *createExpressionDoubleLeaf(double value, int changeSymbol) {
 	exp->right = NULL;
 	exp->op = OA_EXP_NONE;
 	exp->leafType = OA_DOUBLE;
-	if (changeSymbol) {
-		exp->number_double = value;
+	if (changeSymbol == 1) {
+		exp->number_double = -value;
 	}
 	else {
 		exp->number_double = value;
@@ -191,7 +191,14 @@ struct TreeNode *createArrayAssign(struct LeftValue *name, char *type, struct Ex
 	//name, type is malloced by caller
 	struct ArrayAssignNode *varNode = (struct ArrayAssignNode*)malloc(sizeof(struct ArrayAssignNode));
 	varNode->name = name;
-	varNode->type = type;
+	int newSize = strlen(type) + 3;
+	char *newType = (char*)malloc(newSize);
+	strcpy(newType, type);
+	newType[newSize - 3] = '[';
+	newType[newSize - 2] = ']';
+	newType[newSize - 1] = '\0';
+	free(type);
+	varNode->type = newType;
 	varNode->exp = exp;
 
 	struct TreeNode *node = (struct TreeNode*)malloc(sizeof(struct TreeNode));

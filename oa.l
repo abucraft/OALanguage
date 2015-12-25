@@ -76,7 +76,7 @@ int yywrap(void){
 	extern FILE *tokenStream; fprintf(tokenStream, "%lf ", temp); 
 	return DECIMAL_FLOATING_POINT_LITERAL;
 }
-<INITIAL>"'"([0-9]|[a-z]|[A-Z]|"\\"|"!"|" "|"%"|"@"|"="|":")"'" {
+<INITIAL>"'"([0-9]|[a-z]|[A-Z]|"\\"|"!"|" "|"%"|"@"|"="|":"|"#")"'" {
 	char temp[4];
     sscanf(yytext, "%s", temp);
 	yylval.type_char = temp[1];
@@ -84,7 +84,7 @@ int yywrap(void){
     return CHAR_LITERAL;
 }
 
-<INITIAL>"\""([0-9]|[a-z]|[A-Z]|"\\"|"!"|" "|"%"|"@"|"="|":")+"\"" {
+<INITIAL>"\""([0-9]|[a-z]|[A-Z]|"\\"|"!"|" "|"%"|"@"|"="|":"|"#")+"\"" {
 	yylval.type_string = (char*)malloc(strlen(yytext) + 1);
     strcpy(yylval.type_string, yytext);
 	extern FILE *tokenStream; fprintf(tokenStream, "%s ", yylval.type_string); 

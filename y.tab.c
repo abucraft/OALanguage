@@ -1328,13 +1328,13 @@ case 84:
 case 86:
 #line 383 "oa.y"
 {
-		yyval.expression = createExpressionIntLeaf(yyvsp[0].number_int, 1);
+		yyval.expression = createExpressionIntLeaf(yyvsp[0].number_int, 0);
 	;
     break;}
 case 87:
 #line 386 "oa.y"
 {
-		yyval.expression = createExpressionDoubleLeaf(yyvsp[0].number_double, 1);
+		yyval.expression = createExpressionDoubleLeaf(yyvsp[0].number_double, 0);
 	;
     break;}
 case 88:
@@ -1376,13 +1376,13 @@ case 93:
 case 94:
 #line 407 "oa.y"
 {
-		yyval.expression = createExpressionIntLeaf(yyvsp[0].number_int, 0);
+		yyval.expression = createExpressionIntLeaf(yyvsp[0].number_int, 1);
 	;
     break;}
 case 95:
 #line 410 "oa.y"
 {
-		yyval.expression = createExpressionDoubleLeaf(yyvsp[0].number_double, 0);
+		yyval.expression = createExpressionDoubleLeaf(yyvsp[0].number_double, 1);
 	;
     break;}
 case 96:
