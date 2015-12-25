@@ -241,8 +241,6 @@ struct TreeNode *createReturn(struct Expression *exp);
 //----------------end word and syntax part----------------
 
 
-//--------------------parase tree part--------------------
-
 //-------------helper variables and functions-------------
 extern struct ParseTree *parseTree;
 void printJason(struct TreeNode *node);

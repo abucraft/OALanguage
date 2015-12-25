@@ -23,6 +23,7 @@ exports.visualize = function (filename) {
 		} catch (err) {
 			alert(err);
 		}
+		alert("finish");
 	});
 	/*compilerNative.callback(function(result){
 		alert(result);
