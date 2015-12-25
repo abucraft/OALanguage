@@ -67,9 +67,7 @@ outerStatements
 
 outerStatement
 	:varDeclareStatement		SEMICOLON
-	|varDefineStatement			SEMICOLON
 	|arrayDeclareStatement		SEMICOLON
-	|arrayDefineStatement		SEMICOLON
 	|classDefineStatement 
 	|functionDeclareStatement	SEMICOLON
 	|functionDefineStatement

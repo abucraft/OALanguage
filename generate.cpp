@@ -79,12 +79,14 @@ OaClass classNow;
 std::string classNameNow = "";
 bool inClassMethod = false;
 std::string methodClassNameNow = "";
+bool inGlobal = true;
 int classMemberIndex;
 bool hasPrint = false;
 bool hasMalloc = false;
 bool hasFree = false;
 int printStringIndex = 0;
 std::vector<std::string> printStrings;
+std::vector<std::string> globalVariables;
 
 void zeroClassArrayLength(const std::string &name, const std::string &classType);
 void freeArray(std::string index, std::string type, int align);
@@ -186,16 +188,24 @@ void parseTreeNode(std::string& result, TreeNode* seg) {
 		parseForeachNode(result, seg->foreachNode);
 		break;
 	case CLASS_DEFINE_NODE:
+		inGlobal = false;
 		parseClassDefineNode(result, seg->classDefineNode);
+		inGlobal = true;
 		break;
 	case FUNCTION_DECLARE_NODE:
+		inGlobal = false;
 		parseFunctionDeclareNode(result, seg->functionDeclareNode);
+		inGlobal = true;
 		break;
 	case FUNCTION_DEFINE_NODE:
+		inGlobal = false;
 		parseFunctionDefineNode(result, seg->functionDefineNode);
+		inGlobal = true;
 		break;
 	case CLASS_METHOD_DEFINE_NODE:
+		inGlobal = false;
 		parseClassMethodDefineNode(result, seg->classMethodDefineNode);
+		inGlobal = true;
 		break;
 	case BREAK_NODE:
 		parseBreakNode(result);
@@ -224,7 +234,19 @@ void parseVarDeclareNode(std::string& result, struct VarDeclareNode* seg) {
 		compileLog += "Already Declared Identifier" + endLine;
 		return;
 	}
-	temVar->name = "%" + reduceAt(std::string(seg->name));
+	if (inGlobal) {
+		temVar->name = "@" + reduceAt(std::string(seg->name));
+	}
+	else if(oaPathStk.size() != 0){
+		temVar->name = "%";
+		for (std::list<std::string>::iterator iter = oaPathStk.begin(); iter != oaPathStk.end(); ++iter) {
+			temVar->name += *iter + ".";
+		}
+		temVar->name += reduceAt(std::string(seg->name));
+	}
+	else {
+		temVar->name = "%" + reduceAt(std::string(seg->name));
+	}
 	temVar->align = 0;
 	if (seg->type == std::string("int")) {
 		temVar->type = "i32";
@@ -254,7 +276,24 @@ void parseVarDeclareNode(std::string& result, struct VarDeclareNode* seg) {
 		return;
 	}
 
-	if (classNameNow != "") {
+	if (inGlobal) {
+		addVar(temVar);
+		std::string tmpStr;
+		if (temVar->type == "i32") {
+			tmpStr = temVar->name + " = common global i32 0, align 4\n";
+		}
+		else if (temVar->type == "double") {
+			tmpStr = temVar->name + " = common global double 0.000000e+00, align 8\n";
+		}
+		else if (temVar->type == "i8") {
+			tmpStr = temVar->name + " = common global i8 0, align 1\n";
+		}
+		else {
+			//[TODO] wrong type
+		}
+		globalVariables.push_back(tmpStr);
+	}
+	else if (classNameNow != "") {
 		result += temVar->type;
 		result += ", ";
 		OaClassMember tmpMember;
@@ -403,6 +442,10 @@ void parseVarAssignNode(std::string& result, VarAssignNode* seg) {
 			return;
 		}
 	}
+	if (temVar == NULL) {
+		//[TODO] not found
+		return;
+	}
 	std::string tmpName = temVar->name;
 	if (seg->expOfVar != NULL) {
 		struct OaVar* idxVar = parseExpression(result, seg->expOfVar);
@@ -439,18 +482,30 @@ void parseArrayDeclareNode(std::string&result, ArrayDeclareNode* seg) {
 	}
 	
 	struct OaVar *temArray = new struct OaVar;
-	temArray->name = "%" + reduceAt(std::string(seg->name));
-	//std::cout << "Debug: " << seg->type << std::endl;
+	if (inGlobal) {
+		temArray->name = "@" + reduceAt(std::string(seg->name));
+	}
+	else if (oaPathStk.size() != 0) {
+		temArray->name = "%";
+		for (std::list<std::string>::iterator iter = oaPathStk.begin(); iter != oaPathStk.end(); ++iter) {
+			temArray->name += *iter + ".";
+		}
+		temArray->name = "%" + reduceAt(std::string(seg->name));
+	}
+	else {
+		temArray->name = "%" + reduceAt(std::string(seg->name));
+	}
+
 	if (seg->type == std::string("int[]")) {
-		temArray->type = "i32";
+		temArray->type = "i32*";
 		temArray->align = 4;
 	}
 	else if (seg->type == std::string("char[]")) {
-		temArray->type = "i8";
+		temArray->type = "i8*";
 		temArray->align = 1;
 	}
 	else if (seg->type == std::string("double[]")) {
-		temArray->type = "double";
+		temArray->type = "double*";
 		temArray->align = 8;
 	}
 	else if (seg->type[0] == '#') {
@@ -464,14 +519,39 @@ void parseArrayDeclareNode(std::string&result, ArrayDeclareNode* seg) {
 		return;
 	}
 
-	if (classNameNow != "") {
+	if (inGlobal) {
+		addVar(temArray);
+		std::string tmpStr;
+		if (temArray->type == "i32*") {
+			tmpStr = temArray->name + " = common global i32 0, align 4\n";
+		}
+		else if (temArray->type == "double*") {
+			tmpStr = temArray->name + " = common global double 0.000000e+00, align 8\n";
+
+		}
+		else if (temArray->type == "i8*") {
+			tmpStr = temArray->name + " = common global i8 0, align 1\n";
+		}
+		else {
+			//[TODO] wrong type
+		}
+		globalVariables.push_back(tmpStr);
+		tmpStr = temArray->name +".length = common global i32 0, align 4\n";
+		OaVar *lengthVar = new OaVar;
+		lengthVar->align = 4;
+		lengthVar->name = temArray->name + ".length";
+		lengthVar->type = "i32";
+		globalVariables.push_back(tmpStr);
+		addVar(lengthVar);
+	}
+	else if (classNameNow != "") {
 		result += temArray->type;
-		result += "*, ";
+		result += ", ";
 		OaClassMember tmpMember;
 		tmpMember.isFunc = false;
 		tmpMember.name = temArray->name;
 		tmpMember.params = NULL;
-		tmpMember.type = temArray->type + '*';
+		tmpMember.type = temArray->type;
 		tmpMember.align = temArray->align;
 		tmpMember.pos = classMemberIndex++;
 		classNow.align = (classNow.align > tmpMember.align) ? classNow.align : tmpMember.align;
@@ -481,7 +561,7 @@ void parseArrayDeclareNode(std::string&result, ArrayDeclareNode* seg) {
 		temArray->size = 0;
 		addArray(temArray);
 		result += temArray->name + " ";
-		result += "= " + std::string("alloca " + temArray->type + "*, align ");
+		result += "= " + std::string("alloca " + temArray->type + ", align ");
 		result += myItoa(temArray->align) + endLine;
 
 		OaVar *tmpVar = new OaVar;
@@ -639,7 +719,17 @@ void parseIfNode(std::string&result, IfNode*seg) {
 	result += "\n";
 	result += ifLabel + ":\n";
 	oaPathStk.push_back(ifLabel);
+
+	//store allVars and allArrays(added in parseFormParam() function and used in parsers in function)
+	int sizeOldVar = allVars.size();
 	parseNodeList(result, seg->stmts, ifLabel);
+	//recover allVars
+	int sizeNewVar = allVars.size();
+
+	while (sizeNewVar != sizeOldVar) {
+		allVars.pop_back();
+		sizeNewVar--;
+	}
 	oaPathStk.pop_back();
 	result += "  br label %" + endLabel + "\n";
 	result += "\n";
@@ -660,31 +750,6 @@ void parseIfNode(std::string&result, IfNode*seg) {
 	result += endLabel + ":\n";
 	endLbStk.pop_back();
 	temVarNo++;			//llvm regular
-/*char numStr[N_INT_CHAR];
-	sprintf(numStr, "%d", ++lineno);
-	result += "{\"name\":\"" + std::string(numStr) + ": if node\",\"children\":[";
-	result += "{\"name\":\"condition\",\"children\":[{\"name\":\"";
-	parseExpression(result, seg->exp);
-	result += "\"}]},";
-	parseNodeList(result, seg->stmts, "if_stmts");
-	struct TreeNode * tmp = seg->elifStmts;
-	char tmpNumC[N_INT_CHAR];
-	int tmpNum = 0;
-	while (tmp != NULL) {
-	result += ",";
-	tmpNum++;
-	sprintf(tmpNumC, "%d", tmpNum);
-	result += "{\"name\":\"elif_part" + std::string(tmpNumC) + "\",\"children\":[";
-	parseTreeNode(result, seg->elifStmts);
-	tmp = tmp->next;
-	}
-	if (seg->elseStmts) {
-	result += ",";
-	result += "{\"name\":\"else_part\",\"children\":[";
-	parseTreeNode(result, seg->elseStmts);
-	result += "]}";
-	}
-	result += "]}";*/
 }
 
 void parseElifNode(std::string&result, ElifNode*seg) {
@@ -706,27 +771,35 @@ void parseElifNode(std::string&result, ElifNode*seg) {
 	result += "\n";
 	result += ifLabel + ":\n";
 	oaPathStk.push_back(ifLabel);
+	//store allVars and allArrays(added in parseFormParam() function and used in parsers in function)
+	int sizeOldVar = allVars.size();
 	parseNodeList(result, seg->stmts, ifLabel);
+	//recover allVars
+	int sizeNewVar = allVars.size();
+	while (sizeNewVar != sizeOldVar) {
+		allVars.pop_back();
+		sizeNewVar--;
+	}
 	oaPathStk.pop_back();
 	result += "  br label %" + endLabel + "\n";
 	result += "\n";
 	result += nextLabel + ":\n";
 	oaPathStk.push_back(nextLabel);
-	/*result += "{\"name\":\"condition\",\"children\":[{\"name\":\"";
-	parseExpression(result, seg->exp);
-	result += "\"}]}";
-	if (seg->stmts) {
-	result += ",";
-	parseNodeList(result, seg->stmts, "elif_stmts");
-	}*/
 }
 
 void parseElseNode(std::string&result, ElseNode*seg) {
 	if (seg == NULL) {
 		return;
 	}
+	//store allVars and allArrays(added in parseFormParam() function and used in parsers in function)
+	int sizeOldVar = allVars.size();
 	parseTreeNode(result, seg->stmts);
-	//parseNodeList(result, seg->stmts, "else_stmts");
+	//recover allVars
+	int sizeNewVar = allVars.size();
+	while (sizeNewVar != sizeOldVar) {
+		allVars.pop_back();
+		sizeNewVar--;
+	}
 }
 
 void parseWhileNode(std::string&result, WhileNode*seg) {
@@ -747,24 +820,19 @@ void parseWhileNode(std::string&result, WhileNode*seg) {
 	result += "\n";
 	result += wBodyLabel + ":\n";
 	oaPathStk.push_back(wBodyLabel);
+	//store allVars and allArrays(added in parseFormParam() function and used in parsers in function)
+	int sizeOldVar = allVars.size();
 	parseNodeList(result, seg->stmts, wBodyLabel);
+	//recover allVars
+	int sizeNewVar = allVars.size();
+	while (sizeNewVar != sizeOldVar) {
+		allVars.pop_back();
+		sizeNewVar--;
+	}
 	oaPathStk.pop_back();
 	result += std::string("  br label %") + wCondLabel + '\n';
 	result += "\n";
 	result += wEndLabel + ":\n";
-
-	/*char numStr[N_INT_CHAR];
-	sprintf(numStr, "%d", ++lineno);
-
-	result += "{\"name\":\"" + std::string(numStr) + ": while node\",\"children\":[";
-	result += "{\"name\":\"condition\",\"children\":[{\"name\":\"";
-	parseExpression(result, seg->exp);
-	result += "\"}]}";
-	if (seg->stmts) {
-		result += ",";
-		parseNodeList(result, seg->stmts, "stmts");
-	}
-	result += "]}";*/
 }
 
 void replaceUtilForeachVDF(struct VarDefineNode *seg, char* namein, LeftValue* nameout, std::string idx) {
@@ -993,24 +1061,19 @@ void parseForeachNode(std::string &result, ForeachNode *seg) {
 	//对body部分进行替换
 	replaceUtilForeach(seg->stmts, seg->nameIn, seg->nameOut, idx);	
 	oaPathStk.push_back(wBodyLabel);
+	//store allVars and allArrays(added in parseFormParam() function and used in parsers in function)
+	int sizeOldVar = allVars.size();
 	parseNodeList(result, seg->stmts, wBodyLabel);
+	//recover allVars
+	int sizeNewVar = allVars.size();
+	while (sizeNewVar != sizeOldVar) {
+		allVars.pop_back();
+		sizeNewVar--;
+	}
 	oaPathStk.pop_back();
 	result += std::string("  br label %") + wCondLabel + '\n';
 	result += "\n";
 	result += wEndLabel + ":\n";
-	/*
-	char numStr[N_INT_CHAR];
-	sprintf(numStr, "%d", ++lineno);
-
-	result += "{\"name\":\"" + std::string(numStr) + ": foreach node\",\"children\":[";
-	result += "{\"name\":\"" + std::string(seg->nameIn) + "\"},";
-	result += "{\"name\":\"in " + std::string(seg->nameOut) + "\"}";
-	if (seg->stmts) {
-		result += ",";
-		parseNodeList(result, seg->stmts, "stmts");
-	}
-	result += "]}";
-	*/
 }
 
 void parseClassDefineNode(std::string&result, struct ClassDefineNode *seg) {
@@ -2049,6 +2112,25 @@ std::string myDtoa(std::string num_s) {
 	return myDtoa(num);
 }
 struct OaVar* getVar(std::string varName) {
+	//if, elif, else, while, foreach oaPathStk local variable
+	if (oaPathStk.size() != 0) {
+		std::string tmpVarName = "%";
+		for (std::list<std::string>::iterator iter = oaPathStk.begin(); iter != oaPathStk.end(); ++iter) {
+			tmpVarName += *iter + ".";
+		}
+		tmpVarName += varName.substr(1);
+		for (int i = 0; i < allVars.size(); i++) {
+			if (allVars[i]->name == tmpVarName)
+				return allVars[i];
+		}
+	}
+	//normal local variable
+	for (int i = 0; i < allVars.size(); i++) {
+		if (allVars[i]->name == varName)
+			return allVars[i];
+	}
+	//global variable
+	varName = '@' + varName.substr(1);
 	for (int i = 0; i < allVars.size(); i++) {
 		if (allVars[i]->name == varName)
 			return allVars[i];
@@ -2241,6 +2323,13 @@ int main() {
 			ost << "@.str." + myItoa(i) + " = constant [" + myItoa(size) + " x i8] c\"" + printStrings[i] + "\\00\", align 1\n";
 		}
 		ost << "\n";
+
+		//print global variables
+		int tmpSize = globalVariables.size();
+		for (int i = 0; i < tmpSize; ++i) {
+			ost << globalVariables[i];
+		}
+
 		ost << result << std::endl;
 		if (hasPrint) {
 			ost << "declare i32 @printf(i8*, ...)\n";
