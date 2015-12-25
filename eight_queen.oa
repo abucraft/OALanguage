@@ -1,0 +1,70 @@
+int[] @gEightQueen;
+int @gCount;
+void @print_queen()//输出每一种情况下棋盘中皇后的摆放情况
+{
+	int @outer = 0;
+    while( @outer < 8 )
+    {   
+        int @inner = 0;
+        while( @inner < @gEightQueen[@outer]){
+			@print(" ");
+			@inner = @inner + 1;
+		}
+        @print("#\n");
+		@outer = @outer + 1;
+    }
+    @print("==========================\n");
+	return;
+}
+int @check_pos_valid(int @loop, int @value)//检查是否存在有多个皇后在同一行/列/对角线的情况
+{
+    int @index = 0;
+    int @data;
+    while( @index < @loop)
+    {
+        @data = @gEightQueen[@index];
+        if (@value == @data){
+            return 0;
+		}
+        if ((@index + @data) == (@loop + @value)){
+            return 0;
+		}
+        if ((@index - @data) == (@loop - @value)){
+            return 0;
+		}
+		@index = @index + 1;
+    }
+    return 1;
+}
+void @eight_queen(int @index)
+{
+    int @loop=0;
+    while( @loop < 8)
+    {
+        if (@check_pos_valid(@index, @loop) == 1)
+        {
+            @gEightQueen[@index] = @loop;
+            if (7 == @index)
+            {
+                @gCount = @gCount + 1;
+				@print_queen();
+                @gEightQueen[@index] = 0;
+                return;
+            }
+            @eight_queen(@index + 1);
+            @gEightQueen[@index] = 0;
+        }
+		@loop= @loop+1;
+    }
+	return;
+}
+int @main()
+{
+	@gEightQueen = int[8];
+	@gCount = 0;
+	foreach(@queen in @gEightQueen){
+		@queen = 0;
+	}
+    @eight_queen(0);
+    return 0;
+}

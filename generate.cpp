@@ -91,42 +91,43 @@ std::vector<std::string> globalVariables;
 void zeroClassArrayLength(const std::string &name, const std::string &classType);
 void freeArray(std::string index, std::string type, int align);
 std::string mallocArray(std::string index, std::string type, int align, std::string size);
+void panic(const std::string &wrongInfo);
 
 void replaceUtilForeach(struct TreeNode* seg, char* namein, LeftValue* nameout, std::string idx);
 void replaceUtilForeachEXP(struct Expression* seg, char* namein, LeftValue* nameout, std::string idx);
 
 //---------------------tree node part---------------------
-void parseNodeList(std::string &result, struct TreeNode* seg, std::string name);
-void parseTreeNode(std::string &result, struct TreeNode *seg);
-void parseVarDeclareNode(std::string &result, struct VarDeclareNode *seg);
-void parseVarDefineNode(std::string &result, struct VarDefineNode *seg);
-void parseVarAssignNode(std::string &result, struct VarAssignNode *seg);
-void parseArrayDeclareNode(std::string &result, struct ArrayDeclareNode *seg);
-void parseArrayDefineNode(std::string &result, struct ArrayDefineNode *seg);
-void parseArrayAssignNode(std::string &result, struct ArrayAssignNode *seg);
-void parseIfNode(std::string &result, struct IfNode *seg);
-void parseElifNode(std::string &result, struct ElifNode *seg);
-void parseElseNode(std::string &result, struct ElseNode *seg);
-void parseWhileNode(std::string &result, struct WhileNode *seg);
-void parseForeachNode(std::string &result, struct ForeachNode *seg);
-void parseClassDefineNode(std::string &result, struct ClassDefineNode *seg);
-void parseFunctionDeclareNode(std::string &result, struct FunctionDeclareNode *seg);
-void parseFunctionDefineNode(std::string &result, struct FunctionDefineNode *seg);
-void parseClassMethodDefineNode(std::string &result, struct ClassMethodDefineNode *seg);
-void parseBreakNode(std::string &result);
-void parseContinueNode(std::string &result);
-void parseReturnNode(std::string &result, struct ReturnNode *seg);
+void g_parseNodeList(std::string &result, struct TreeNode* seg, std::string name);
+void g_parseTreeNode(std::string &result, struct TreeNode *seg);
+void g_parseVarDeclareNode(std::string &result, struct VarDeclareNode *seg);
+void g_parseVarDefineNode(std::string &result, struct VarDefineNode *seg);
+void g_parseVarAssignNode(std::string &result, struct VarAssignNode *seg);
+void g_parseArrayDeclareNode(std::string &result, struct ArrayDeclareNode *seg);
+void g_parseArrayDefineNode(std::string &result, struct ArrayDefineNode *seg);
+void g_parseArrayAssignNode(std::string &result, struct ArrayAssignNode *seg);
+void g_parseIfNode(std::string &result, struct IfNode *seg);
+void g_parseElifNode(std::string &result, struct ElifNode *seg);
+void g_parseElseNode(std::string &result, struct ElseNode *seg);
+void g_parseWhileNode(std::string &result, struct WhileNode *seg);
+void g_parseForeachNode(std::string &result, struct ForeachNode *seg);
+void g_parseClassDefineNode(std::string &result, struct ClassDefineNode *seg);
+void g_parseFunctionDeclareNode(std::string &result, struct FunctionDeclareNode *seg);
+void g_parseFunctionDefineNode(std::string &result, struct FunctionDefineNode *seg);
+void g_parseClassMethodDefineNode(std::string &result, struct ClassMethodDefineNode *seg);
+void g_parseBreakNode(std::string &result);
+void g_parseContinueNode(std::string &result);
+void g_parseReturnNode(std::string &result, struct ReturnNode *seg);
 //-------------- -----end tree node part-------------------
 //---------------------expression part---------------------
 
-struct OaVar* parseExpression(std::string& result, struct Expression* seg);
-struct OaVar* parseLeftValue(std::string&result, struct LeftValue* seg);
-struct OaVar* parseArrayValue(std::string&result, struct ArrayValue* seg);
-struct OaVar* parseFunctionValue(std::string&result, struct FunctionValue* seg);
+struct OaVar* g_parseExpression(std::string& result, struct Expression* seg);
+struct OaVar* g_parseLeftValue(std::string&result, struct LeftValue* seg);
+struct OaVar* g_parseArrayValue(std::string&result, struct ArrayValue* seg);
+struct OaVar* g_parseFunctionValue(std::string&result, struct FunctionValue* seg);
 //-------------------end expression part-------------------
 //---------------------parameter part---------------------
-std::string parseFormParam(std::string&result, FormParam*seg);
-std::string parseFactParam(std::string&result, struct FactParam* seg);
+std::string g_parseFormParam(std::string&result, FormParam*seg);
+std::string g_parseFactParam(std::string&result, struct FactParam* seg);
 //-------------------end parameter part-------------------
 
 
@@ -134,104 +135,95 @@ std::string parseFactParam(std::string&result, struct FactParam* seg);
 
 
 //---------------------tree node part---------------------
-void parseNodeList(std::string& result, TreeNode* seg, std::string name) {
-	//result += "{\"name\":\"";
-	//result += name;
-	//result += "\",\"children\":[\n";
+void g_parseNodeList(std::string& result, TreeNode* seg, std::string name) {
 	while (seg != NULL) {
-		parseTreeNode(result, seg);
-		if (seg->next != NULL) {
-			//result += ",\n";
-		}
+		g_parseTreeNode(result, seg);
+		if (!compilePass) return;
 		seg = seg->next;
 	}
-	//result += "]}";
 }
 
-void parseTreeNode(std::string& result, TreeNode* seg) {
+void g_parseTreeNode(std::string& result, TreeNode* seg) {
 	if (seg == NULL) {
 		return;
 	}
-
+	lineno = seg->lineno;
 	switch (seg->type) {
 	case VAR_DECLARE_NODE:
-		parseVarDeclareNode(result, seg->varDeclareNode);
+		g_parseVarDeclareNode(result, seg->varDeclareNode);
 		break;
 	case VAR_DEFINE_NODE:
-		parseVarDefineNode(result, seg->varDefineNode);
+		g_parseVarDefineNode(result, seg->varDefineNode);
 		break;
 	case VAR_ASSIGN_NODE:
-		parseVarAssignNode(result, seg->varAssignNode);
+		g_parseVarAssignNode(result, seg->varAssignNode);
 		break;
 	case ARRAY_DECLARE_NODE:
-		parseArrayDeclareNode(result, seg->arrayDeclareNode);
+		g_parseArrayDeclareNode(result, seg->arrayDeclareNode);
 		break;
 	case ARRAY_DEFINE_NODE:
-		parseArrayDefineNode(result, seg->arrayDefineNode);
+		g_parseArrayDefineNode(result, seg->arrayDefineNode);
 		break;
 	case ARRAY_ASSIGN_NODE:
-		parseArrayAssignNode(result, seg->arrayAssignNode);
+		g_parseArrayAssignNode(result, seg->arrayAssignNode);
 		break;
 	case IF_NODE:
-		parseIfNode(result, seg->ifNode);
+		g_parseIfNode(result, seg->ifNode);
 		break;
 	case ELIF_NODE:
-		parseElifNode(result, seg->elifNode);
+		g_parseElifNode(result, seg->elifNode);
 		break;
 	case ELSE_NODE:
-		parseElseNode(result, seg->elseNode);
+		g_parseElseNode(result, seg->elseNode);
 		break;
 	case WHILE_NODE:
-		parseWhileNode(result, seg->whileNode);
+		g_parseWhileNode(result, seg->whileNode);
 		break;
 	case FOREACH_NODE:
-		parseForeachNode(result, seg->foreachNode);
+		g_parseForeachNode(result, seg->foreachNode);
 		break;
 	case CLASS_DEFINE_NODE:
 		inGlobal = false;
-		parseClassDefineNode(result, seg->classDefineNode);
+		g_parseClassDefineNode(result, seg->classDefineNode);
 		inGlobal = true;
 		break;
 	case FUNCTION_DECLARE_NODE:
 		inGlobal = false;
-		parseFunctionDeclareNode(result, seg->functionDeclareNode);
+		g_parseFunctionDeclareNode(result, seg->functionDeclareNode);
 		inGlobal = true;
 		break;
 	case FUNCTION_DEFINE_NODE:
 		inGlobal = false;
-		parseFunctionDefineNode(result, seg->functionDefineNode);
+		g_parseFunctionDefineNode(result, seg->functionDefineNode);
 		inGlobal = true;
 		break;
 	case CLASS_METHOD_DEFINE_NODE:
 		inGlobal = false;
-		parseClassMethodDefineNode(result, seg->classMethodDefineNode);
+		g_parseClassMethodDefineNode(result, seg->classMethodDefineNode);
 		inGlobal = true;
 		break;
 	case BREAK_NODE:
-		parseBreakNode(result);
+		g_parseBreakNode(result);
 		break;
 	case CONTINUE_NODE:
-		parseContinueNode(result);
+		g_parseContinueNode(result);
 		break;
 	case RETURN_NODE:
-		parseReturnNode(result, seg->returnNode);
+		g_parseReturnNode(result, seg->returnNode);
 		break;
 	default:
 		break;
 	}
 }
 
-void parseVarDeclareNode(std::string& result, struct VarDeclareNode* seg) {
+void g_parseVarDeclareNode(std::string& result, struct VarDeclareNode* seg) {
 	if (seg == NULL) {
 		return;
 	}
-	lineno++;
 	//Modified by @Xie LW--------------------------------------
 	struct OaVar *temVar = new struct OaVar;
 	if (getVar("%" + reduceAt(std::string(seg->name))) != NULL) {
-		compilePass = false;
-		compileLog += "Error[Line " + myItoa(lineno) + "]: ";
-		compileLog += "Already Declared Identifier" + endLine;
+		panic("Already Declared Identifier");
 		return;
 	}
 	if (inGlobal) {
@@ -265,14 +257,13 @@ void parseVarDeclareNode(std::string& result, struct VarDeclareNode* seg) {
 		temVar->type = std::string(seg->type);
 		std::map<std::string, OaClass>::iterator iter = oaClasses.find(temVar->type.substr(1));
 		if (iter == oaClasses.end()) {
-			compilePass = false;
-			compileLog = "in varDeclare Node, no such class\n";
+			panic("in varDeclare Node, no such class");
+			return;
 		}
 		temVar->align = iter->second.align;
 	}
 	else {
-		compileLog = "error in varDeclareNode: type error\n";
-		compilePass = false;
+		panic("error in varDeclareNode: type error");
 		return;
 	}
 
@@ -326,7 +317,7 @@ void parseVarDeclareNode(std::string& result, struct VarDeclareNode* seg) {
 	}
 }
 
-void parseVarDefineNode(std::string& result, VarDefineNode* seg) {
+void g_parseVarDefineNode(std::string& result, VarDefineNode* seg) {
 	if (seg == NULL) {
 		return;
 	}
@@ -340,11 +331,11 @@ void parseVarDefineNode(std::string& result, VarDefineNode* seg) {
 	assNode.name = &lv;
 	assNode.exp = seg->exp;
 	assNode.expOfVar = NULL;
-	parseVarDeclareNode(result, &decNode);
-	parseVarAssignNode(result, &assNode);
+	g_parseVarDeclareNode(result, &decNode);
+	g_parseVarAssignNode(result, &assNode);
 }
 
-void parseVarAssignNode(std::string& result, VarAssignNode* seg) {
+void g_parseVarAssignNode(std::string& result, VarAssignNode* seg) {
 	if (seg == NULL) {
 		return;
 	}
@@ -355,7 +346,7 @@ void parseVarAssignNode(std::string& result, VarAssignNode* seg) {
 				return;
 			}
 			else {
-				parseExpression(result, seg->exp);
+				g_parseExpression(result, seg->exp);
 				return;
 			}
 		}
@@ -377,7 +368,7 @@ void parseVarAssignNode(std::string& result, VarAssignNode* seg) {
 				member = findMemberInClass('%' + std::string(lv->next->name).substr(1), oaClass);
 				inParent = true;
 			}
-			if (member == NULL) { compilePass = false; compileLog = "in parseVarAssign: no member in class\n"; return; }
+			if (member == NULL) { panic("in parseVarAssign: no member in class"); return; }
 			if (inParent) {
 				result += '%' + myItoa(temVarNo++) + " = getelementptr inbounds %class." + oaClass->name + ", %class." + oaClass->name + "* %" + myItoa(temVarNo - 2) + ", i32 0, i32 " + myItoa(member->pos) + "\n";
 			}
@@ -388,12 +379,12 @@ void parseVarAssignNode(std::string& result, VarAssignNode* seg) {
 			lv = lv->next;
 		}
 		int index = temVarNo - 1;
-		OaVar *var = parseExpression(result, seg->exp);
+		OaVar *var = g_parseExpression(result, seg->exp);
 		//[TODO] [without check] var->type + '*' and var->type (var and array)
-		OaVar *arrayIndex = parseExpression(result, seg->expOfVar);
-		if (arrayIndex == NULL && member->type != var->type) { compilePass = false; compileLog = "in parseVarAssign: type error\n"; return; }
-		else if (arrayIndex != NULL && member->type != var->type + '*') { compilePass = false; compileLog = "in parseVarAssign: type error\n"; return; }
-		else if(arrayIndex != NULL && arrayIndex->type != "i32") { compilePass = false; compileLog = "in parseVarAssign: index should be int\n"; return; }
+		OaVar *arrayIndex = g_parseExpression(result, seg->expOfVar);
+		if (arrayIndex == NULL && member->type != var->type) { panic("in parseVarAssign: type error"); return; }
+		else if (arrayIndex != NULL && member->type != var->type + '*') { panic("in parseVarAssign: type error"); return;}
+		else if (arrayIndex != NULL && arrayIndex->type != "i32") { panic("in parseVarAssign: index should be int"); return;}
 		if(arrayIndex)  result += '%' + myItoa(temVarNo++) + " = load " + var->type + "*, " + var->type + "** %" + myItoa(index) + ", align " + myItoa(var->align) + '\n';
 		if(arrayIndex != NULL) result += '%' + myItoa(temVarNo++) + " = getelementptr inbounds " + var->type + ", " + var->type + "* %" + myItoa(temVarNo-2) + ", i32 " + arrayIndex->name + '\n';
 		result += "store " + var->type + ' ' + var->name + ", " + var->type + "* %" + myItoa(temVarNo - 1) + ", align " + myItoa(var->align) + '\n';
@@ -410,12 +401,7 @@ void parseVarAssignNode(std::string& result, VarAssignNode* seg) {
 		}
 		temLv = temLv->next;
 	}
-	if (temName == "") {
-		compilePass = false;
-		compileLog += "Error[Line " + myItoa(lineno) + "]: ";
-		compileLog += "Lack of LeftValue" + endLine;
-		return;
-	}
+	if (temName == "") { panic("Lack of LeftValue"); return; }
 
 	struct OaVar *temVar = NULL;
 	temVar = getVar("%" + temName);
@@ -433,14 +419,9 @@ void parseVarAssignNode(std::string& result, VarAssignNode* seg) {
 		tmpCh[tmpSize] = '\0';
 		lv2.name = tmpCh;
 		lv2.next = NULL;
-		temVar = parseLeftValue(result, &lv1);
+		temVar = g_parseLeftValue(result, &lv1);
 		delete[] tmpCh;
-		if(temVar == NULL){	
-			compilePass = false;
-			compileLog += "Error[Line " + myItoa(lineno) + "]: ";
-			compileLog += "Undeclared Identifier" + endLine;
-			return;
-		}
+		if (temVar == NULL) { panic("Undeclared Identifier"); return; }
 	}
 	if (temVar == NULL) {
 		//[TODO] not found
@@ -448,7 +429,7 @@ void parseVarAssignNode(std::string& result, VarAssignNode* seg) {
 	}
 	std::string tmpName = temVar->name;
 	if (seg->expOfVar != NULL) {
-		struct OaVar* idxVar = parseExpression(result, seg->expOfVar);
+		struct OaVar* idxVar = g_parseExpression(result, seg->expOfVar);
 		result += "%" + myItoa(temVarNo++) + " = ";
 		//load i32, i32* %first, align 4
 		result += "load " + temVar->type + ", " + temVar->type + "* " + temVar->name + ", ";
@@ -460,7 +441,7 @@ void parseVarAssignNode(std::string& result, VarAssignNode* seg) {
 		tmpName = "%" + myItoa(temVarNo - 1);
 	}
 
-	struct OaVar* refVar = parseExpression(result, seg->exp);
+	struct OaVar* refVar = g_parseExpression(result, seg->exp);
 	if (refVar->type == "i1" && temVar->type == "i32") {
 		refVar->name = "%" + myItoa(temVarNo++);
 		result += refVar->name + " = ";
@@ -476,7 +457,7 @@ void parseVarAssignNode(std::string& result, VarAssignNode* seg) {
 	result += "align " + myItoa(temVar->align) + endLine;
 }
 
-void parseArrayDeclareNode(std::string&result, ArrayDeclareNode* seg) {
+void g_parseArrayDeclareNode(std::string&result, ArrayDeclareNode* seg) {
 	if (seg == NULL) {
 		return;
 	}
@@ -514,8 +495,7 @@ void parseArrayDeclareNode(std::string&result, ArrayDeclareNode* seg) {
 		temArray->align = 0;
 	}
 	else {
-		compileLog = "error in varDeclareNode: type error\n";
-		compilePass = false;
+		panic("error in varDeclareNode: type error");
 		return;
 	}
 
@@ -579,7 +559,7 @@ void parseArrayDeclareNode(std::string&result, ArrayDeclareNode* seg) {
 	}
 }
 
-void parseArrayDefineNode(std::string&result, ArrayDefineNode*seg) {
+void g_parseArrayDefineNode(std::string&result, ArrayDefineNode*seg) {
 	if (seg == NULL) {
 		return;
 	}
@@ -593,11 +573,11 @@ void parseArrayDefineNode(std::string&result, ArrayDefineNode*seg) {
 	assNode.name = &lv;
 	assNode.type = seg->type;
 	assNode.exp = seg->exp;
-	parseArrayDeclareNode(result, &decNode);
-	parseArrayAssignNode(result, &assNode);
+	g_parseArrayDeclareNode(result, &decNode);
+	g_parseArrayAssignNode(result, &assNode);
 }
 
-void parseArrayAssignNode(std::string&result, ArrayAssignNode*seg) {
+void g_parseArrayAssignNode(std::string&result, ArrayAssignNode*seg) {
 	if (seg == NULL) {
 		return;
 	}
@@ -619,7 +599,7 @@ void parseArrayAssignNode(std::string&result, ArrayAssignNode*seg) {
 				member = findMemberInClass('%' + std::string(lv->next->name).substr(1), oaClass);
 				inParent = true;
 			}
-			if (member == NULL) { compilePass = false; compileLog = "in parseArrayAssign: no member in class\n"; return; }
+			if (member == NULL) { panic("in parseArrayAssign: no member in class"); return; }
 			if (inParent) {
 				result += '%' + myItoa(temVarNo++) + " = getelementptr inbounds %class." + oaClass->name + ", %class." + oaClass->name + "* %" + myItoa(temVarNo - 2) + ", i32 0, i32 " + myItoa(member->pos) + "\n";
 			}
@@ -643,11 +623,11 @@ void parseArrayAssignNode(std::string&result, ArrayAssignNode*seg) {
 		}
 		tmpName += ".length";
 		OaVar *tmpVar = getVar(tmpName);
-		if(tmpVar == NULL){ compilePass = false; compileLog = "in parseArrayAssign: no such array in class\n"; return; }
+		if(tmpVar == NULL){ panic("in parseArrayAssign: no such array in class"); return; }
 		if (tmpVar->size != 0) {
 			freeArray('%' + myItoa(index), member->type, member->align);
 		}
-		OaVar *var = parseExpression(result, seg->exp);
+		OaVar *var = g_parseExpression(result, seg->exp);
 		std::string tmpType = "";
 		if (strcmp(seg->type, "int[]") == 0) {
 			tmpType = "i32*";
@@ -659,8 +639,8 @@ void parseArrayAssignNode(std::string&result, ArrayAssignNode*seg) {
 			tmpType = "double*";
 		}
 
-		if (tmpType != member->type) { compilePass = false; compileLog = "in parseArrayAssign: type error\n"; return; }
-		if(var->type != "i32") { compilePass = false; compileLog = "in parseArrayAssign: array size should be int\n"; return; }
+		if (tmpType != member->type) { panic("in parseArrayAssign: type error"); return;}
+		if(var->type != "i32") { panic("in parseArrayAssign: array size should be int"); return; }
 		//malloc
 		std::string size = mallocArray('%' + myItoa(index), member->type, member->align, var->name);
 		//upadte .length variable
@@ -680,11 +660,11 @@ void parseArrayAssignNode(std::string&result, ArrayAssignNode*seg) {
 		OaVar *nameVar = getVar(tmpName);
 		tmpName += ".length";
 		OaVar *tmpVar = getVar(tmpName);
-		if (tmpVar == NULL) { compilePass = false; compileLog = "in parseArrayAssign: no such array in class\n"; return; }
+		if (tmpVar == NULL) { panic("in parseArrayAssign: no such array in class"); return; }
 		if (tmpVar->size != 0){
 			freeArray(nameVar->name.substr(1), nameVar->type, nameVar->align);
 		}
-		OaVar *var = parseExpression(result, seg->exp);
+		OaVar *var = g_parseExpression(result, seg->exp);
 		std::string tmpType = "";
 		if (strcmp(seg->type, "int[]") == 0) {
 			tmpType = "i32*";
@@ -696,8 +676,8 @@ void parseArrayAssignNode(std::string&result, ArrayAssignNode*seg) {
 			tmpType = "double*";
 		}
 
-		if (tmpType != nameVar->type) { compilePass = false; compileLog = "in parseArrayAssign: type error\n"; return; }
-		if (var->type != "i32") { compilePass = false; compileLog = "in parseArrayAssign: array size should be int\n"; return; }
+		if (tmpType != nameVar->type) { panic("in parseArrayAssign: type error"); return; }
+		if (var->type != "i32") { panic("in parseArrayAssign: array size should be int"); return; }
 		//malloc
 		std::string size = mallocArray(nameVar->name.substr(1), nameVar->type, nameVar->align, var->name);
 		//upadte .length variable
@@ -705,7 +685,7 @@ void parseArrayAssignNode(std::string&result, ArrayAssignNode*seg) {
 	}
 }
 
-void parseIfNode(std::string&result, IfNode*seg) {
+void g_parseIfNode(std::string&result, IfNode*seg) {
 	if (seg == NULL) {
 		return;
 	}
@@ -724,7 +704,7 @@ void parseIfNode(std::string&result, IfNode*seg) {
 		nextLabel = std::string("if.end.") + ifIdx;
 	}
 	endLbStk.push_back(endLabel);
-	OaVar *p_midVar = parseExpression(result, seg->exp);
+	OaVar *p_midVar = g_parseExpression(result, seg->exp);
 	OaCmpIdx++;
 	OaIfIdx++;
 	result += std::string("  br i1 ") + p_midVar->name + ',' + " label %" + ifLabel + ',' + " label %" + nextLabel + '\n';
@@ -734,7 +714,7 @@ void parseIfNode(std::string&result, IfNode*seg) {
 
 	//store allVars and allArrays(added in parseFormParam() function and used in parsers in function)
 	int sizeOldVar = allVars.size();
-	parseNodeList(result, seg->stmts, ifLabel);
+	g_parseNodeList(result, seg->stmts, ifLabel);
 	//recover allVars
 	int sizeNewVar = allVars.size();
 
@@ -748,14 +728,14 @@ void parseIfNode(std::string&result, IfNode*seg) {
 	result += nextLabel + ":\n";
 	struct TreeNode *tmp = seg->elifStmts;
 	while (tmp != NULL) {
-		parseTreeNode(result, seg->elifStmts);
+		g_parseTreeNode(result, seg->elifStmts);
 		nextLabel = oaPathStk.back();
 		oaPathStk.pop_back();
 		tmp = tmp->next;
 	}
 	if (seg->elseStmts) {
 		oaPathStk.push_back(nextLabel);
-		parseTreeNode(result, seg->elseStmts);
+		g_parseTreeNode(result, seg->elseStmts);
 		oaPathStk.pop_back();
 	}
 	result += "  br label %" + endLabel + "\n";
@@ -764,7 +744,7 @@ void parseIfNode(std::string&result, IfNode*seg) {
 	//temVarNo++;			//llvm regular
 }
 
-void parseElifNode(std::string&result, ElifNode*seg) {
+void g_parseElifNode(std::string&result, ElifNode*seg) {
 	if (seg == NULL) {
 		return;
 	}
@@ -776,7 +756,7 @@ void parseElifNode(std::string&result, ElifNode*seg) {
 	std::string ifLabel = std::string("if.then.") + ifIdx;
 	std::string nextLabel = std::string("if.else.") + ifIdx;
 	std::string endLabel = endLbStk.back();
-	OaVar *p_midVar = parseExpression(result, seg->exp);
+	OaVar *p_midVar = g_parseExpression(result, seg->exp);
 	OaCmpIdx++;
 	OaIfIdx++;
 	result += std::string("  br i1 ") + p_midVar->name + ',' + " label %" + ifLabel + ',' + " label %" + nextLabel + '\n';
@@ -785,7 +765,7 @@ void parseElifNode(std::string&result, ElifNode*seg) {
 	oaPathStk.push_back(ifLabel);
 	//store allVars and allArrays(added in parseFormParam() function and used in parsers in function)
 	int sizeOldVar = allVars.size();
-	parseNodeList(result, seg->stmts, ifLabel);
+	g_parseNodeList(result, seg->stmts, ifLabel);
 	//recover allVars
 	int sizeNewVar = allVars.size();
 	while (sizeNewVar != sizeOldVar) {
@@ -799,13 +779,13 @@ void parseElifNode(std::string&result, ElifNode*seg) {
 	oaPathStk.push_back(nextLabel);
 }
 
-void parseElseNode(std::string&result, ElseNode*seg) {
+void g_parseElseNode(std::string&result, ElseNode*seg) {
 	if (seg == NULL) {
 		return;
 	}
 	//store allVars and allArrays(added in parseFormParam() function and used in parsers in function)
 	int sizeOldVar = allVars.size();
-	parseTreeNode(result, seg->stmts);
+	g_parseTreeNode(result, seg->stmts);
 	//recover allVars
 	int sizeNewVar = allVars.size();
 	while (sizeNewVar != sizeOldVar) {
@@ -814,7 +794,7 @@ void parseElseNode(std::string&result, ElseNode*seg) {
 	}
 }
 
-void parseWhileNode(std::string&result, WhileNode*seg) {
+void g_parseWhileNode(std::string&result, WhileNode*seg) {
 	if (seg == NULL) {
 		return;
 	}
@@ -827,14 +807,14 @@ void parseWhileNode(std::string&result, WhileNode*seg) {
 	result += std::string("  br label %") + wCondLabel + '\n';
 	result += "\n";
 	result += wCondLabel + ":\n";
-	OaVar *p_midVar = parseExpression(result, seg->exp);
+	OaVar *p_midVar = g_parseExpression(result, seg->exp);
 	result += std::string("  br i1 ") + p_midVar->name + ',' + " label %" + wBodyLabel + ',' + " label %" + wEndLabel + '\n';
 	result += "\n";
 	result += wBodyLabel + ":\n";
 	oaPathStk.push_back(wBodyLabel);
 	//store allVars and allArrays(added in parseFormParam() function and used in parsers in function)
 	int sizeOldVar = allVars.size();
-	parseNodeList(result, seg->stmts, wBodyLabel);
+	g_parseNodeList(result, seg->stmts, wBodyLabel);
 	//recover allVars
 	int sizeNewVar = allVars.size();
 	while (sizeNewVar != sizeOldVar) {
@@ -921,7 +901,6 @@ void replaceUtilForeachRT(struct ReturnNode* seg, char* namein, LeftValue* nameo
 	replaceUtilForeachEXP(seg->exp, namein, nameout, idx);
 }
 
-
 void replaceUtilForeachEXP(struct Expression* seg, char* namein, LeftValue* nameout, std::string idx) {
 	if (seg == NULL) {
 		return;
@@ -1006,7 +985,7 @@ void replaceUtilForeach(struct TreeNode* seg, char* namein, LeftValue* nameout, 
 	}
 }
 
-void parseForeachNode(std::string &result, ForeachNode *seg) {
+void g_parseForeachNode(std::string &result, ForeachNode *seg) {
 	if (seg == NULL) {
 		return;
 	}
@@ -1058,13 +1037,13 @@ void parseForeachNode(std::string &result, ForeachNode *seg) {
 	std::string wEndLabel = std::string("while.end.") + wIdx;
 	OaWhileIdx++;
 	//首先给index赋值
-	parseTreeNode(result, assign_node);
+	g_parseTreeNode(result, assign_node);
 	result += std::string("  br label %") + wCondLabel + '\n';
 	result += "\n";
 	result += wCondLabel + ":\n";
 	//进行递增以及比较
-	parseTreeNode(result, assign_add);
-	OaVar *p_midVar = parseExpression(result, is_more);
+	g_parseTreeNode(result, assign_add);
+	OaVar *p_midVar = g_parseExpression(result, is_more);
 	result += std::string("  br i1 ") + p_midVar->name + ',' + " label %" + wBodyLabel + ',' + " label %" + wEndLabel + '\n';
 	result += "\n";
 	result += wBodyLabel + ":\n";
@@ -1075,7 +1054,7 @@ void parseForeachNode(std::string &result, ForeachNode *seg) {
 	oaPathStk.push_back(wBodyLabel);
 	//store allVars and allArrays(added in parseFormParam() function and used in parsers in function)
 	int sizeOldVar = allVars.size();
-	parseNodeList(result, seg->stmts, wBodyLabel);
+	g_parseNodeList(result, seg->stmts, wBodyLabel);
 	//recover allVars
 	int sizeNewVar = allVars.size();
 	while (sizeNewVar != sizeOldVar) {
@@ -1088,7 +1067,7 @@ void parseForeachNode(std::string &result, ForeachNode *seg) {
 	result += wEndLabel + ":\n";
 }
 
-void parseClassDefineNode(std::string&result, struct ClassDefineNode *seg) {
+void g_parseClassDefineNode(std::string&result, struct ClassDefineNode *seg) {
 	if (seg == NULL) {
 		return;
 	}
@@ -1107,7 +1086,7 @@ void parseClassDefineNode(std::string&result, struct ClassDefineNode *seg) {
 	if (seg->typeParent) {
 		result += "%class." + classNow.parent + ", ";
 	}
-	parseNodeList(result, seg->stmts, "stmts");
+	g_parseNodeList(result, seg->stmts, "stmts");
 	result.pop_back();
 	result.pop_back();
 	result += " }\n\n";
@@ -1119,7 +1098,7 @@ void parseClassDefineNode(std::string&result, struct ClassDefineNode *seg) {
 	classNameNow = "";
 }
 
-void parseFunctionDeclareNode(std::string&result, FunctionDeclareNode*seg) {
+void g_parseFunctionDeclareNode(std::string&result, FunctionDeclareNode*seg) {
 	if (seg == NULL) {
 		return;
 	}
@@ -1130,8 +1109,7 @@ void parseFunctionDeclareNode(std::string&result, FunctionDeclareNode*seg) {
 
 	//check for redeclare
 	if (oaFunctions.find(oafunc.className + oafunc.name) != oaFunctions.end()) {
-		compileLog = "wrong in declare node, function " + oafunc.name + "has been declared!\n";
-		compilePass = false;
+		panic("wrong in declare node, function " + oafunc.name + "has been declared!");
 		return;
 	}
 
@@ -1148,7 +1126,7 @@ void parseFunctionDeclareNode(std::string&result, FunctionDeclareNode*seg) {
 	oaFunctions.insert(std::pair<std::string, OaFunction>(oafunc.className + oafunc.name, oafunc));
 }
 
-void parseFunctionDefineNode(std::string&result, FunctionDefineNode *seg) {
+void g_parseFunctionDefineNode(std::string&result, FunctionDefineNode *seg) {
 	if (seg == NULL) {
 		return;
 	}
@@ -1156,8 +1134,7 @@ void parseFunctionDefineNode(std::string&result, FunctionDefineNode *seg) {
 	OaFunction oafunc;
 	//className and name
 	if (classNameNow != "") {
-		compileLog = "functionDefineNode error: cannot define function in class";
-		compilePass = false;
+		panic("functionDefineNode error: cannot define function in class");
 		return;
 	}
 	oafunc.className = classNameNow;
@@ -1167,8 +1144,7 @@ void parseFunctionDefineNode(std::string&result, FunctionDefineNode *seg) {
 	std::map<std::string, OaFunction>::iterator iter = oaFunctions.find(oafunc.className + oafunc.name);
 	if (iter != oaFunctions.end()) {
 		if (iter->second.isDefined == true) {
-			compileLog = "wrong in defined node, function " + oafunc.name + "has been defined!\n";
-			compilePass = false;
+			panic("wrong in defined node, function " + oafunc.name + "has been defined!");
 			return;
 		}
 		else {
@@ -1210,7 +1186,7 @@ void parseFunctionDefineNode(std::string&result, FunctionDefineNode *seg) {
 
 	//parameters
 	result += '(';
-	std::string predefine = parseFormParam(result, seg->formParams);
+	std::string predefine = g_parseFormParam(result, seg->formParams);
 	result += ')';
 	oafunc.params = seg->formParams;
 
@@ -1222,7 +1198,7 @@ void parseFunctionDefineNode(std::string&result, FunctionDefineNode *seg) {
 	result += "{\nentry:\n";
 	result += predefine;
 	if (seg->stmts) {
-		parseNodeList(result, seg->stmts, "stmts");
+		g_parseNodeList(result, seg->stmts, "stmts");
 	}
 	result += "}\n\n";
 
@@ -1235,7 +1211,7 @@ void parseFunctionDefineNode(std::string&result, FunctionDefineNode *seg) {
 	}
 }
 
-void parseClassMethodDefineNode(std::string&result, ClassMethodDefineNode*seg) {
+void g_parseClassMethodDefineNode(std::string&result, ClassMethodDefineNode*seg) {
 	if (seg == NULL) {
 		return;
 	}
@@ -1243,8 +1219,7 @@ void parseClassMethodDefineNode(std::string&result, ClassMethodDefineNode*seg) {
 	OaFunction oafunc;
 	//className and name
 	if (classNameNow != "") {
-		compileLog = "functionDefineNode error: cannot define class method in class";
-		compilePass = false;
+		panic("functionDefineNode error: cannot define class method in class");
 		return;
 	}
 	oafunc.className = std::string(seg->classType).substr(1);
@@ -1256,8 +1231,7 @@ void parseClassMethodDefineNode(std::string&result, ClassMethodDefineNode*seg) {
 	std::map<std::string, OaFunction>::iterator iter = oaFunctions.find(oafunc.className + oafunc.name);
 	if (iter != oaFunctions.end()) {
 		if (iter->second.isDefined == true) {
-			compileLog = "wrong in defined node, function " + oafunc.name + "has been defined!\n";
-			compilePass = false;
+			panic("wrong in defined node, function " + oafunc.name + "has been defined!");
 			inClassMethod = false;
 			methodClassNameNow = "";
 			return;
@@ -1308,7 +1282,7 @@ void parseClassMethodDefineNode(std::string&result, ClassMethodDefineNode*seg) {
 	newParams->type = seg->classType;
 	newParams->name = "%.this";
 	result += '(';
-	std::string predefine = parseFormParam(result, newParams);
+	std::string predefine = g_parseFormParam(result, newParams);
 	result += ')';
 	oafunc.params = newParams;
 	
@@ -1320,7 +1294,7 @@ void parseClassMethodDefineNode(std::string&result, ClassMethodDefineNode*seg) {
 	result += "{\nentry:\n";
 	result += predefine;
 	if (seg->stmts) {
-		parseNodeList(result, seg->stmts, "stmts");
+		g_parseNodeList(result, seg->stmts, "stmts");
 	}
 	result += "}\n\n";
 
@@ -1335,9 +1309,9 @@ void parseClassMethodDefineNode(std::string&result, ClassMethodDefineNode*seg) {
 	methodClassNameNow = "";
 }
 
-void parseBreakNode(std::string &result) {
+void g_parseBreakNode(std::string &result) {
 	std::string num;
-	for (std::list<std::string>::reverse_iterator i = oaPathStk.rbegin();i != oaPathStk.rend();i++) {
+	for (std::list<std::string>::reverse_iterator i = oaPathStk.rbegin(); i != oaPathStk.rend(); i++) {
 		std::size_t first = (*i).find('.');
 		std::string loopType = (*i).substr(0, first);
 		if (loopType == "while") {
@@ -1347,15 +1321,9 @@ void parseBreakNode(std::string &result) {
 		}
 	}
 	result += "  br label %while.end." + num;
-	/*
-	char numStr[N_INT_CHAR];
-	sprintf(numStr, "%d", ++lineno);
-
-	result += "{\"name\":\"" + std::string(numStr) + ": break\"}";
-	*/
 }
 
-void parseContinueNode(std::string &result) {
+void g_parseContinueNode(std::string &result) {
 	std::string num;
 	for (std::list<std::string>::reverse_iterator i = oaPathStk.rbegin();i != oaPathStk.rend();i++) {
 		std::size_t first = (*i).find('.');
@@ -1367,13 +1335,9 @@ void parseContinueNode(std::string &result) {
 		}
 	}
 	result += "  br label %while.cond." + num;
-	/*char numStr[N_INT_CHAR];
-	sprintf(numStr, "%d", ++lineno);
-
-	result += "{\"name\":\"" + std::string(numStr) + ": continue\"}";*/
 }
 
-void parseReturnNode(std::string &result, struct ReturnNode *seg) {
+void g_parseReturnNode(std::string &result, struct ReturnNode *seg) {
 	//[TODO] check type
 	if (seg == NULL) return;
 	if (seg->exp == NULL) {
@@ -1382,7 +1346,7 @@ void parseReturnNode(std::string &result, struct ReturnNode *seg) {
 		return;
 	}
 	OaVar *retVal = new struct OaVar;
-	retVal = parseExpression(result, seg->exp);
+	retVal = g_parseExpression(result, seg->exp);
 	//[TODO] CHECK TYPE
 	result += "ret " + retVal->type + ' ' + retVal->name + '\n';
 	temVarNo++;			//llvm regular
@@ -1391,7 +1355,7 @@ void parseReturnNode(std::string &result, struct ReturnNode *seg) {
 
 //---------------------expression part---------------------
 
-struct OaVar* parseExpression(std::string &result, Expression* seg) {
+struct OaVar* g_parseExpression(std::string &result, Expression* seg) {
 	if (seg == NULL) {
 		return NULL;
 	}
@@ -1440,13 +1404,13 @@ struct OaVar* parseExpression(std::string &result, Expression* seg) {
 			temVar->name = std::string(seg->type_string);
 		}
 		case OA_LEFT_VALUE:
-			return parseLeftValue(result, seg->name);
+			return g_parseLeftValue(result, seg->name);
 			break;
 		case OA_ARRAY_VALUE:
-			return parseArrayValue(result, seg->arrayValue);
+			return g_parseArrayValue(result, seg->arrayValue);
 			break;
 		case OA_FUNCTION_VALUE:
-			return parseFunctionValue(result, seg->functionValue);
+			return g_parseFunctionValue(result, seg->functionValue);
 			break;
 		default:
 			std::cout << "Wrong with expression, leafType\n";
@@ -1454,7 +1418,7 @@ struct OaVar* parseExpression(std::string &result, Expression* seg) {
 		}
 		break;
 	case OA_EXP_NOT: {
-		struct OaVar*  leftVar = parseExpression(result, seg->left);
+		struct OaVar*  leftVar = g_parseExpression(result, seg->left);
 		struct OaVar*   temVar = new struct OaVar;
 		temVar->name = "%" + myItoa(temVarNo++);
 		result += temVar->name + " = ";
@@ -1473,8 +1437,8 @@ struct OaVar* parseExpression(std::string &result, Expression* seg) {
 		result += " * ";
 		parseExpression(result, seg->right);*/
 		//Added by @Xie LW
-		struct OaVar*  leftVar = parseExpression(result, seg->left);
-		struct OaVar* rightVar = parseExpression(result, seg->right);
+		struct OaVar*  leftVar = g_parseExpression(result, seg->left);
+		struct OaVar* rightVar = g_parseExpression(result, seg->right);
 		struct OaVar*   temVar = new struct OaVar;
 		temVar->name = "%" + myItoa(temVarNo++);
 		result += temVar->name + " = ";
@@ -1491,8 +1455,8 @@ struct OaVar* parseExpression(std::string &result, Expression* seg) {
 		result += " / ";
 		parseExpression(result, seg->right);*/
 		//Added by @Xie LW
-		struct OaVar*  leftVar = parseExpression(result, seg->left);
-		struct OaVar* rightVar = parseExpression(result, seg->right);
+		struct OaVar*  leftVar = g_parseExpression(result, seg->left);
+		struct OaVar* rightVar = g_parseExpression(result, seg->right);
 		struct OaVar*   temVar = new struct OaVar;
 		temVar->name = "%" + myItoa(temVarNo++);
 		result += temVar->name + " = ";
@@ -1512,8 +1476,8 @@ struct OaVar* parseExpression(std::string &result, Expression* seg) {
 		result += " + ";
 		parseExpression(result, seg->right);*/
 		//Added by @Xie LW
-		struct OaVar*  leftVar = parseExpression(result, seg->left);
-		struct OaVar* rightVar = parseExpression(result, seg->right);
+		struct OaVar*  leftVar = g_parseExpression(result, seg->left);
+		struct OaVar* rightVar = g_parseExpression(result, seg->right);
 		struct OaVar*   temVar = new struct OaVar;
 		temVar->name = "%" + myItoa(temVarNo++);
 		result += temVar->name + " = ";
@@ -1531,8 +1495,8 @@ struct OaVar* parseExpression(std::string &result, Expression* seg) {
 		parseExpression(result, seg->right);
 		break;*/
 		//Added by @Xie LW
-		struct OaVar*  leftVar = parseExpression(result, seg->left);
-		struct OaVar* rightVar = parseExpression(result, seg->right);
+		struct OaVar*  leftVar = g_parseExpression(result, seg->left);
+		struct OaVar* rightVar = g_parseExpression(result, seg->right);
 		struct OaVar*   temVar = new struct OaVar;
 		temVar->name = "%" + myItoa(temVarNo++);
 		result += temVar->name + " = ";
@@ -1548,8 +1512,8 @@ struct OaVar* parseExpression(std::string &result, Expression* seg) {
 		/*parseExpression(result, seg->left);
 		result += " == ";
 		parseExpression(result, seg->right);*/
-		struct OaVar*  leftVar = parseExpression(result, seg->left);
-		struct OaVar* rightVar = parseExpression(result, seg->right);
+		struct OaVar*  leftVar = g_parseExpression(result, seg->left);
+		struct OaVar* rightVar = g_parseExpression(result, seg->right);
 		struct OaVar*   temVar = new struct OaVar;
 		temVar->name = "%" + myItoa(temVarNo++);
 		result += temVar->name + " = ";
@@ -1566,8 +1530,8 @@ struct OaVar* parseExpression(std::string &result, Expression* seg) {
 		/*parseExpression(result, seg->left);
 		result += " != ";
 		parseExpression(result, seg->right);*/
-		struct OaVar*  leftVar = parseExpression(result, seg->left);
-		struct OaVar* rightVar = parseExpression(result, seg->right);
+		struct OaVar*  leftVar = g_parseExpression(result, seg->left);
+		struct OaVar* rightVar = g_parseExpression(result, seg->right);
 		struct OaVar*   temVar = new struct OaVar;
 		temVar->name = "%" + myItoa(temVarNo++);
 		result += temVar->name + " = ";
@@ -1584,8 +1548,8 @@ struct OaVar* parseExpression(std::string &result, Expression* seg) {
 		/*parseExpression(result, seg->left);
 		result += " > ";
 		parseExpression(result, seg->right);*/
-		struct OaVar*  leftVar = parseExpression(result, seg->left);
-		struct OaVar* rightVar = parseExpression(result, seg->right);
+		struct OaVar*  leftVar = g_parseExpression(result, seg->left);
+		struct OaVar* rightVar = g_parseExpression(result, seg->right);
 		struct OaVar*   temVar = new struct OaVar;
 		temVar->name = "%" + myItoa(temVarNo++);
 		result += temVar->name + " = ";
@@ -1603,8 +1567,8 @@ struct OaVar* parseExpression(std::string &result, Expression* seg) {
 		result += " >= ";
 		parseExpression(result, seg->right);*/
 		//Added by @Xie LW
-		struct OaVar*  leftVar = parseExpression(result, seg->left);
-		struct OaVar* rightVar = parseExpression(result, seg->right);
+		struct OaVar*  leftVar = g_parseExpression(result, seg->left);
+		struct OaVar* rightVar = g_parseExpression(result, seg->right);
 		struct OaVar*   temVar = new struct OaVar;
 		temVar->name = "%" + myItoa(temVarNo++);
 		result += temVar->name + " = ";
@@ -1621,8 +1585,8 @@ struct OaVar* parseExpression(std::string &result, Expression* seg) {
 		/*parseExpression(result, seg->left);
 		result += " < ";
 		parseExpression(result, seg->right);*/
-		struct OaVar*  leftVar = parseExpression(result, seg->left);
-		struct OaVar* rightVar = parseExpression(result, seg->right);
+		struct OaVar*  leftVar = g_parseExpression(result, seg->left);
+		struct OaVar* rightVar = g_parseExpression(result, seg->right);
 		struct OaVar*   temVar = new struct OaVar;
 		temVar->name = "%" + myItoa(temVarNo++);
 		result += temVar->name + " = ";
@@ -1639,8 +1603,8 @@ struct OaVar* parseExpression(std::string &result, Expression* seg) {
 		/*parseExpression(result, seg->left);
 		result += " <= ";
 		parseExpression(result, seg->right);*/
-		struct OaVar*  leftVar = parseExpression(result, seg->left);
-		struct OaVar* rightVar = parseExpression(result, seg->right);
+		struct OaVar*  leftVar = g_parseExpression(result, seg->left);
+		struct OaVar* rightVar = g_parseExpression(result, seg->right);
 		struct OaVar*   temVar = new struct OaVar;
 		temVar->name = "%" + myItoa(temVarNo++);
 		result += temVar->name + " = ";
@@ -1658,7 +1622,7 @@ struct OaVar* parseExpression(std::string &result, Expression* seg) {
 		result += " && ";
 		parseExpression(result, seg->right);*/
 		struct OaVar* temVar = new struct OaVar;
-		struct OaVar* leftVar = parseExpression(result, seg->left);
+		struct OaVar* leftVar = g_parseExpression(result, seg->left);
 		result += "%" + myItoa(temVarNo++) + " = ";
 		result += "icmp ne " + leftVar->type + " " + leftVar->name;
 		result += ", 0" + endLine;
@@ -1669,7 +1633,7 @@ struct OaVar* parseExpression(std::string &result, Expression* seg) {
 		int temLabel = temVarNo - 1;
 		result += myItoa(temVarNo - 2)+endLine;
 
-		struct OaVar* rightVar = parseExpression(result, seg->right);
+		struct OaVar* rightVar = g_parseExpression(result, seg->right);
 		result += "%" + myItoa(temVarNo++) + " = ";
 		result += "icmp ne " + rightVar->type + " " + rightVar->name;
 		result += ", 0" + endLine;
@@ -1693,7 +1657,7 @@ struct OaVar* parseExpression(std::string &result, Expression* seg) {
 		result += " || ";
 		parseExpression(result, seg->right);*/
 		struct OaVar* temVar = new struct OaVar;
-		struct OaVar* leftVar = parseExpression(result, seg->left);
+		struct OaVar* leftVar = g_parseExpression(result, seg->left);
 		result += "%" + myItoa(temVarNo++) + " = ";
 		result += "icmp ne " + leftVar->type + " " + leftVar->name;
 		result += ", 0" + endLine;
@@ -1704,7 +1668,7 @@ struct OaVar* parseExpression(std::string &result, Expression* seg) {
 		int temLabel = temVarNo-2;
 		result += myItoa(temVarNo - 1) + endLine;
 
-		struct OaVar* rightVar = parseExpression(result, seg->right);
+		struct OaVar* rightVar = g_parseExpression(result, seg->right);
 		result += "%" + myItoa(temVarNo++) + " = ";
 		result += "icmp ne " + rightVar->type + " " + rightVar->name;
 		result += ", 0" + endLine;
@@ -1730,7 +1694,7 @@ struct OaVar* parseExpression(std::string &result, Expression* seg) {
 	return NULL;
 }
 
-struct OaVar* parseLeftValue(std::string&result, LeftValue* seg) {
+struct OaVar* g_parseLeftValue(std::string&result, LeftValue* seg) {
 	if (seg == NULL) {
 		return NULL;
 	}
@@ -1754,7 +1718,7 @@ struct OaVar* parseLeftValue(std::string&result, LeftValue* seg) {
 				member = findMemberInClass('%' + std::string(lv->next->name).substr(1), oaClass);
 				inParent = true;
 			}
-			if (member == NULL) { compilePass = false; compileLog = "Error in parseLeftValue: no member in class\n"; return NULL; }
+			if (member == NULL) { panic("Error in parseLeftValue: no member in class"); return NULL; }
 			if (inParent) {
 				result += '%' + myItoa(temVarNo++) + " = getelementptr inbounds %class." + oaClass->name + ", %class." + oaClass->name + "* %" + myItoa(temVarNo - 2) + ", i32 0, i32 " + myItoa(member->pos) + "\n";
 			}
@@ -1802,31 +1766,31 @@ struct OaVar* parseLeftValue(std::string&result, LeftValue* seg) {
 	
 }
 
-struct OaVar* parseArrayValue(std::string&result, ArrayValue* seg) {
+struct OaVar* g_parseArrayValue(std::string&result, ArrayValue* seg) {
 	if (seg == NULL) {
 		return NULL;
 	}
 	//[WARNING] temVar should be freed by caller
-	struct OaVar* refVar = parseLeftValue(result, seg->name);
+	struct OaVar* refVar = g_parseLeftValue(result, seg->name);
 	if (refVar == NULL && inClassMethod) {
 		//class method
 		LeftValue lv;
 		char tmpCh[7] = "%.this";
 		lv.name = tmpCh;
 		lv.next = seg->name;
-		refVar = parseLeftValue(result, &lv);
-		if (refVar == NULL) { compilePass = false; compileLog = "Error in parseArrayValue: no variable found\n"; return NULL; }
+		refVar = g_parseLeftValue(result, &lv);
+		if (refVar == NULL) { panic("Error in parseArrayValue: no variable found"); return NULL; }
 	}
 	
-	struct OaVar* idxVar = parseExpression(result, seg->index);
+	struct OaVar* idxVar = g_parseExpression(result, seg->index);
 	if (idxVar == NULL && inClassMethod) {
 		//class method
 		LeftValue lv;
 		char tmpCh[7] = "%.this";
 		lv.name = tmpCh;
 		lv.next = seg->index->name;
-		idxVar = parseLeftValue(result, &lv);
-		if (idxVar == NULL) { compilePass = false; compileLog = "Error in parseArrayValue: no variable found\n"; return NULL; }
+		idxVar = g_parseLeftValue(result, &lv);
+		if (idxVar == NULL) { panic("Error in parseArrayValue: no variable found"); return NULL; }
 	}
 	struct OaVar* temVar = new struct OaVar;
 	if (refVar != NULL && idxVar != NULL) {
@@ -1843,7 +1807,7 @@ struct OaVar* parseArrayValue(std::string&result, ArrayValue* seg) {
 	}
 }
 
-struct OaVar* parseFunctionValue(std::string&result, FunctionValue* seg) {
+struct OaVar* g_parseFunctionValue(std::string&result, FunctionValue* seg) {
 	if (seg == NULL) {
 		return NULL;
 	}
@@ -1853,7 +1817,7 @@ struct OaVar* parseFunctionValue(std::string&result, FunctionValue* seg) {
 	std::string callerName = seg->name->name;
 	if (seg->name->next != NULL) {
 		OaVar *tmpVar = getVar('%' + std::string(seg->name->name).substr(1));
-		if (tmpVar == NULL) { compilePass = false; compileLog = "Error in parseFunctionValue: class name not found\n"; return NULL; }
+		if (tmpVar == NULL) { panic("Error in parseFunctionValue: class name not found"); return NULL; }
 		funcName = tmpVar->type.substr(1) + seg->name->next->name;
 	}
 	else {
@@ -1865,9 +1829,7 @@ struct OaVar* parseFunctionValue(std::string&result, FunctionValue* seg) {
 		iter = oaFunctions.find(methodClassNameNow + funcName);
 		callerName = "%.this";
 		if (iter == oaFunctions.end()) {
-			//no this function
-			compilePass = false;
-			compileLog = "in parseFunctionValue: no function named" + std::string(seg->name->name) + "\n";
+			panic("in parseFunctionValue: no function named" + std::string(seg->name->name));
 			return NULL;
 		}
 	}
@@ -1910,11 +1872,11 @@ struct OaVar* parseFunctionValue(std::string&result, FunctionValue* seg) {
 		tmpLv.next = NULL;
 		tmpExp.name = &tmpLv;
 		newParams->exp = &tmpExp;
-		paramStr = parseFactParam(result, newParams);
+		paramStr = g_parseFactParam(result, newParams);
 		delete[] tmpCh;
 	}
 	else {
-		paramStr = parseFactParam(result, factParams);
+		paramStr = g_parseFactParam(result, factParams);
 	}
 	//[TODO] align due to ret Type, now just deal with int return value
 	
@@ -1933,7 +1895,7 @@ struct OaVar* parseFunctionValue(std::string&result, FunctionValue* seg) {
 //------------------end expression part-------------------
 
 //---------------------parameter part---------------------
-std::string parseFormParam(std::string&result, FormParam*seg) {
+std::string g_parseFormParam(std::string&result, FormParam*seg) {
 	//generate formparam part, and add local variables into allVars
 	//return predefine statements
 	if (seg == NULL) {
@@ -1945,7 +1907,7 @@ std::string parseFormParam(std::string&result, FormParam*seg) {
 			result += "%class." + std::string(seg->type).substr(1) + '*';
 			//add to allVars
 			std::map<std::string, OaClass>::iterator iter = oaClasses.find(std::string(seg->type).substr(1));
-			if (iter == oaClasses.end()) { compilePass = false; compileLog = "class method wrong: class type not found\n"; return ""; }
+			if (iter == oaClasses.end()) { panic("class method wrong: class type not found"); return ""; }
 			OaVar *var = new OaVar;
 			var->name = "%.this";
 			var->type = seg->type;
@@ -2050,15 +2012,14 @@ std::string parseFormParam(std::string&result, FormParam*seg) {
 				//class
 				OaVar *paramVar = new OaVar;
 				std::map<std::string, OaClass>::iterator iter = oaClasses.find(std::string(seg->type).substr(1));
-				if (iter == oaClasses.end()) { compilePass = false; compileLog = "Error in parseFormParam: unknown class type\n"; return ""; }
+				if (iter == oaClasses.end()) { panic("Error in parseFormParam: unknown class type"); return ""; }
 				paramVar->align = iter->second.align;
 				paramVar->type = std::string(seg->type);
 				paramVar->name = '%' + std::string(seg->name).substr(1);
 				addVar(paramVar);
 			}
 			else {
-				compilePass = false;
-				compileLog = "Error in parseFormParam: wrong type\n";
+				panic("Error in parseFormParam: wrong type");
 				return "";
 			}
 		}
@@ -2075,22 +2036,22 @@ std::string parseFormParam(std::string&result, FormParam*seg) {
 	return retStr;
 }
 
-std::string parseFactParam(std::string&result, FactParam* seg) {
+std::string g_parseFactParam(std::string&result, FactParam* seg) {
 	if (seg == NULL) {
 		return "";
 	}
 	std::string str;
 	OaVar *tmpVar = NULL;
 	while (seg != NULL) {
-		tmpVar = parseExpression(result, seg->exp);
+		tmpVar = g_parseExpression(result, seg->exp);
 		
 		if (tmpVar == NULL && inClassMethod) {
 			LeftValue lv;
 			lv.name = "%.this";
 			lv.next = seg->exp->name;
-			tmpVar = parseLeftValue(result, &lv);
+			tmpVar = g_parseLeftValue(result, &lv);
 		}
-		if (tmpVar == NULL) { compileLog = "wrong param"; compilePass = false; return ""; }
+		if (tmpVar == NULL) { panic("wrong param"); return ""; }
 
 		if (tmpVar->type[0] == '#'){
 			//class type
@@ -2195,7 +2156,7 @@ int getTreeRaw(const char* filename) {
 	lineno = 0;
 	//Added by @Xie LW
 	temVarNo = 0;
-	parseNodeList(result, parseTree->root, "root");
+	g_parseNodeList(result, parseTree->root, "root");
 	return rtcode;
 }
 
@@ -2209,8 +2170,7 @@ void parsePrintFunction(struct FactParam *params) {
 	for (int i = 0; i < size; ++i) {
 		if (tmpstr[i] == '\\') {
 			if (i == size - 1) {
-				compileLog = "wrong print string";
-				compilePass = false;
+				panic("wrong print string");
 				return;
 			}
 			i++;
@@ -2232,7 +2192,7 @@ void parsePrintFunction(struct FactParam *params) {
 		if (str[i] == '\\') size -= 2;
 	}
 	std::string paramStr = "";
-	if(params->next) paramStr = parseFactParam(result, params->next);
+	if(params->next) paramStr = g_parseFactParam(result, params->next);
 	result += "call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([" + myItoa(size) + " x i8], [" + myItoa(size) + " x i8]* @.str." + myItoa(printStringIndex) + ", i32 0, i32 0)";
 	if (params->next) result += ", " + paramStr;
 	result += ")\n";
@@ -2312,7 +2272,7 @@ OaClassMember *findMemberInClass(std::string member, OaClass *oaClass) {
 
 void zeroClassArrayLength(const std::string &name, const std::string &classType) {
 	std::map<std::string, OaClass>::iterator classIter = oaClasses.find(classType);
-	if (classIter == oaClasses.end()) { compilePass = false; compileLog = "error in zeroClassArrayLength: class" + classType + "not found"; return; }
+	if (classIter == oaClasses.end()) { panic("error in zeroClassArrayLength: class" + classType + "not found"); return; }
 	std::map<std::string, OaClassMember>::iterator iter;
 	for (iter = classIter->second.members.begin(); iter != classIter->second.members.end(); ++iter) {
 		if (iter->second.type[0] == '#') {
@@ -2343,7 +2303,7 @@ void zeroClassArrayLength(const std::string &name, const std::string &classType)
 			node.exp = &exp;
 			node.name = tmpCh;
 			node.type = "int";
-			parseVarDefineNode(result, &node);
+			g_parseVarDefineNode(result, &node);
 			delete[] tmpCh;
 		}
 	}
@@ -2351,6 +2311,12 @@ void zeroClassArrayLength(const std::string &name, const std::string &classType)
 	if (classIter->second.parent != "") {
 		zeroClassArrayLength(name, classIter->second.parent);
 	}
+}
+
+void panic(const std::string &wrongInfo) {
+	compilePass = false;
+	compileLog = "Error[Line " + myItoa(lineno) + "]:" + wrongInfo;
+	return;
 }
 
 int main() {

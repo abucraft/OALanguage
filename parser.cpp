@@ -257,7 +257,13 @@ void parseForeachNode(std::string &result ,ForeachNode *seg){
 
 	result += "{\"name\":\"" + std::string(numStr) + ": foreach node\",\"children\":[";
 	result += "{\"name\":\"" + std::string(seg->nameIn) + "\"},";
-	result += "{\"name\":\"in " + std::string(seg->nameOut) + "\"},";
+	std::string nameOutStr = "";
+	LeftValue *nameOutLv = seg->nameOut;
+	while (nameOutLv) {
+		nameOutStr += nameOutLv->name + '.';
+		nameOutLv = nameOutLv->next;
+	}
+	result += "{\"name\":\"in " + nameOutStr + "\"},";
 	parseNodeList(result, seg->stmts, "stmts");
 	result += "]}";
 }
