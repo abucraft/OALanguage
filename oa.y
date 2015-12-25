@@ -383,10 +383,10 @@ term
 	
 factor
 	:DECIMAL_LITERAL{
-		$$ = createExpressionIntLeaf($1);
+		$$ = createExpressionIntLeaf($1, 1);
 	}
 	|DECIMAL_FLOATING_POINT_LITERAL{
-		$$ = createExpressionDoubleLeaf($1);
+		$$ = createExpressionDoubleLeaf($1, 1);
 	}
 	|CHAR_LITERAL{
 		$$ = createExpressionCharLeaf($1);
@@ -405,6 +405,12 @@ factor
 	}
 	|LPAREN expression RPAREN{
 		$$ = $2;
+	}
+	|MINUS DECIMAL_LITERAL{
+		$$ = createExpressionIntLeaf($2, 0);
+	}
+	|MINUS DECIMAL_FLOATING_POINT_LITERAL{
+		$$ = createExpressionDoubleLeaf($2, 0);
 	}
 	;
 	

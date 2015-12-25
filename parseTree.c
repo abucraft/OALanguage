@@ -17,22 +17,32 @@ struct Expression *createExpression(struct Expression *left, struct Expression *
 	exp->op = op;
 	return exp;
 }
-struct Expression *createExpressionIntLeaf(int value) {
+struct Expression *createExpressionIntLeaf(int value, int changeSymbol) {
 	struct Expression *exp = (struct Expression*)malloc(sizeof(struct Expression));
 	exp->left = NULL;
 	exp->right = NULL;
 	exp->op = OA_EXP_NONE;
 	exp->leafType = OA_INT;
-	exp->number_int = value;
+	if (changeSymbol) {
+		exp->number_int = value;
+	}
+	else {
+		exp->number_int = -value;
+	}
 	return exp;
 }
-struct Expression *createExpressionDoubleLeaf(double value) {
+struct Expression *createExpressionDoubleLeaf(double value, int changeSymbol) {
 	struct Expression *exp = (struct Expression*)malloc(sizeof(struct Expression));
 	exp->left = NULL;
 	exp->right = NULL;
 	exp->op = OA_EXP_NONE;
 	exp->leafType = OA_DOUBLE;
-	exp->number_double = value;
+	if (changeSymbol) {
+		exp->number_double = value;
+	}
+	else {
+		exp->number_double = value;
+	}
 	return exp;
 }
 struct Expression *createExpressionCharLeaf(char value) {

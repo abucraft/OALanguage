@@ -101,8 +101,8 @@ struct Expression{
 };
 struct LeftValue *createLeftValue(char *name);
 struct Expression *createExpression(struct Expression *left, struct Expression *right, int op);
-struct Expression *createExpressionIntLeaf(int value);
-struct Expression *createExpressionDoubleLeaf(double value);
+struct Expression *createExpressionIntLeaf(int value, int changeSymbol);
+struct Expression *createExpressionDoubleLeaf(double value, int changeSymbol);
 struct Expression *createExpressionCharLeaf(char value);
 struct Expression *createExpressionStringLeaf(char *value);
 struct Expression *createExpressionLeftValueLeaf(struct LeftValue *name);

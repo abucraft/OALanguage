@@ -1,5 +1,5 @@
 int @main(){
 	@print("Hello World!\n");
-	//@print("%d\n", 100);
+	@print("%d\n", 100);
 	return 0;
 }

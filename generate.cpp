@@ -934,7 +934,7 @@ void parseForeachNode(std::string &result, ForeachNode *seg) {
 	//首先添加一个循环index的定义
 	std::string idx = std::string(seg->nameIn) + ".idx";
 	//这里取值-1方便把赋值放在while.cond label之后
-	Expression *assign_zero = createExpressionIntLeaf(-1);
+	Expression *assign_zero = createExpressionIntLeaf(-1, 0);
 	char *idxname = new char[idx.size() + 1];
 	strcpy(idxname, idx.c_str());
 	LeftValue *idxleft = createLeftValue(idxname);
@@ -967,7 +967,7 @@ void parseForeachNode(std::string &result, ForeachNode *seg) {
 	Expression *is_more = createExpression(cmp_right, cmp_left, OA_EXP_GT);
 	
 	//创建一个递增index的语句
-	Expression *assign_one = createExpressionIntLeaf(1);
+	Expression *assign_one = createExpressionIntLeaf(1, 0);
 	Expression *add_one = createExpression(cmp_left, assign_one, OA_EXP_PLUS);
 	TreeNode *assign_add = createVarAssign(idxleft, add_one, NULL);
 
@@ -989,8 +989,9 @@ void parseForeachNode(std::string &result, ForeachNode *seg) {
 	result += std::string("  br i1 ") + p_midVar->name + ',' + " label %" + wBodyLabel + ',' + " label %" + wEndLabel + '\n';
 	result += "\n";
 	result += wBodyLabel + ":\n";
+	
 	//对body部分进行替换
-	replaceUtilForeach(seg->stmts, seg->nameIn, seg->nameOut, idx);
+	replaceUtilForeach(seg->stmts, seg->nameIn, seg->nameOut, idx);	
 	oaPathStk.push_back(wBodyLabel);
 	parseNodeList(result, seg->stmts, wBodyLabel);
 	oaPathStk.pop_back();
@@ -1548,7 +1549,7 @@ struct OaVar* parseExpression(std::string &result, Expression* seg) {
 		struct OaVar*   temVar = new struct OaVar;
 		temVar->name = "%" + myItoa(temVarNo++);
 		result += temVar->name + " = ";
-		result += "icmp sle ";
+		result += "icmp slt ";
 		result += leftVar->type + " ";
 		result += leftVar->name + ", " + rightVar->name + endLine;
 
