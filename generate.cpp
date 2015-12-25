@@ -2209,7 +2209,25 @@ void panic(const std::string &wrongInfo) {
 	return;
 }
 
-int g_main(const char* filename) {
+int g_getTreeRaw(const char* filename) {
+	int rtcode = executeParser(filename);
+	if (rtcode != 0) {
+		printf("error\n");
+	}
+
+	lineno = 0;
+	//Added by @Xie LW
+	temVarNo = 0;
+	g_parseNodeList(result, parseTree->root, "root");
+	return rtcode;
+}
+
+int main(int argc, char** argv) {
+	if (argc < 3) {
+		std::cout << "oa_compiler.exe [input_name] [output_name]";
+		return 1;
+	}
+	g_getTreeRaw(argv[1]);
 	//check function declared but not defined
 	std::map<std::string, OaFunction>::iterator iter;
 	for (iter = oaFunctions.begin(); iter != oaFunctions.end(); ++iter) {
@@ -2247,7 +2265,8 @@ int g_main(const char* filename) {
 			ost << "declare void @free(i8*)\n";
 		}
 		ost.close();
-		system("clang tmp.ll");
+		std::string sysStr = "clang -o " + std::string(argv[2]) + " tmp.ll";
+		system(sysStr.c_str());
 		std::cout << "code generate successfully!\n";
 	}
 	else {
