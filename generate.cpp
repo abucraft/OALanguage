@@ -1378,7 +1378,8 @@ struct OaVar* parseExpression(std::string &result, Expression* seg) {
 	case OA_EXP_NOT: {
 		struct OaVar*  leftVar = parseExpression(result, seg->left);
 		struct OaVar*   temVar = new struct OaVar;
-		result += "%" + myItoa(temVarNo++) + " = ";
+		temVar->name = "%" + myItoa(temVarNo++);
+		result += temVar->name + " = ";
 		result += "icmp ne ";
 		result += leftVar->type + " ";
 		result += leftVar->name + ", 0"  + endLine;
@@ -1472,7 +1473,8 @@ struct OaVar* parseExpression(std::string &result, Expression* seg) {
 		struct OaVar*  leftVar = parseExpression(result, seg->left);
 		struct OaVar* rightVar = parseExpression(result, seg->right);
 		struct OaVar*   temVar = new struct OaVar;
-		result += "%" + myItoa(temVarNo++) + " = ";
+		temVar->name = "%" + myItoa(temVarNo++);
+		result += temVar->name + " = ";
 		result += "icmp eq ";
 		result += leftVar->type + " ";
 		result += leftVar->name + ", " + rightVar->name + endLine;
@@ -1489,7 +1491,8 @@ struct OaVar* parseExpression(std::string &result, Expression* seg) {
 		struct OaVar*  leftVar = parseExpression(result, seg->left);
 		struct OaVar* rightVar = parseExpression(result, seg->right);
 		struct OaVar*   temVar = new struct OaVar;
-		result += "%" + myItoa(temVarNo++) + " = ";
+		temVar->name = "%" + myItoa(temVarNo++);
+		result += temVar->name + " = ";
 		result += "icmp ne ";
 		result += leftVar->type + " ";
 		result += leftVar->name + ", " + rightVar->name + endLine;
@@ -1525,7 +1528,8 @@ struct OaVar* parseExpression(std::string &result, Expression* seg) {
 		struct OaVar*  leftVar = parseExpression(result, seg->left);
 		struct OaVar* rightVar = parseExpression(result, seg->right);
 		struct OaVar*   temVar = new struct OaVar;
-		result += "%" + myItoa(temVarNo++) + " = ";
+		temVar->name = "%" + myItoa(temVarNo++);
+		result += temVar->name + " = ";
 		result += "icmp sge ";
 		result += leftVar->type + " ";
 		result += leftVar->name + ", " + rightVar->name + endLine;
@@ -1542,7 +1546,8 @@ struct OaVar* parseExpression(std::string &result, Expression* seg) {
 		struct OaVar*  leftVar = parseExpression(result, seg->left);
 		struct OaVar* rightVar = parseExpression(result, seg->right);
 		struct OaVar*   temVar = new struct OaVar;
-		result += "%" + myItoa(temVarNo++) + " = ";
+		temVar->name = "%" + myItoa(temVarNo++);
+		result += temVar->name + " = ";
 		result += "icmp sle ";
 		result += leftVar->type + " ";
 		result += leftVar->name + ", " + rightVar->name + endLine;
@@ -1559,7 +1564,8 @@ struct OaVar* parseExpression(std::string &result, Expression* seg) {
 		struct OaVar*  leftVar = parseExpression(result, seg->left);
 		struct OaVar* rightVar = parseExpression(result, seg->right);
 		struct OaVar*   temVar = new struct OaVar;
-		result += "%" + myItoa(temVarNo++) + " = ";
+		temVar->name = "%" + myItoa(temVarNo++);
+		result += temVar->name + " = ";
 		result += "icmp sle ";
 		result += leftVar->type + " ";
 		result += leftVar->name + ", " + rightVar->name + endLine;
