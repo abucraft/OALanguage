@@ -24,6 +24,10 @@
 			for(i=0;i<childlist.length;i++){
 				depthOfJson(tmpDepth +1,childlist[i]);
 			}
+			alert(json.name);
+			if(childlist[0].children ==null){
+				alert("none child");
+			}
 		}
 	}
 	
@@ -47,6 +51,7 @@
 			return;
 		}
 		depthOfJson(0,jsonobj);
+		alert("2");
 		treeWidth = treeSpace*depth;
 		treeHeight= treeWidth;
 		var margin = { top: 20, right: 120, bottom: 20, left: 120 },
@@ -54,6 +59,7 @@
 			height = treeHeight - margin.top - margin.bottom;
 		//alert(rawText);
 		//alert(JSON.stringify(jsonobj));
+		alert("1");
 		tree = d3.layout.tree()
 			.size([height, width]);
 

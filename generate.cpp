@@ -1,63 +1,14 @@
-#include"oa.h"
-#include <iostream>
-#include <string>
-#include <sstream>
-#include <vector>
-#include <stdlib.h>
-#include <map>
-#include <fstream>
-#include<list>
-
-#define N_INT_CHAR 11
-
-std::string result;
-struct ParseTree *parseTree;
+#include"generate.h"
+static std::string result;
+extern struct ParseTree *parseTree;
 static int lineno;
 static bool compilePass = true;
 static std::string compileLog = "";
 //Added by @Xie LW----------------------
 static int temVarNo;
-struct OaVar {
-	std::string name;
-	std::string type;
-	int align;
-	int size;
-};
 
 std::vector<struct OaVar*>allVars;
 const std::string endLine = "\n";
-std::string myItoa(int num);
-std::string myDtoa(double num);
-std::string myDtoa(std::string num);
-std::string reduceAt(std::string varName);
-std::string getType(std::string varName);
-int getAlign(std::string varName);
-struct OaVar* getVar(std::string varName, int *isGlobal = NULL);
-void addVar(struct OaVar* oaVar);
-void addArray(struct OaVar* oaVar);
-struct OaFunction {
-	std::string name;
-	std::string type;
-	std::string className;
-	bool isDefined;
-	FormParam *params;
-};
-
-struct OaClassMember {
-	std::string name;
-	int isFunc;
-	std::string type;
-	FormParam *params;
-	int pos;
-	int align;
-};
-
-struct OaClass {
-	std::string name;
-	std::string parent;
-	std::map<std::string, OaClassMember> members;
-	int align;
-};
 
 int OaIfIdx = 0;
 int OaCmpIdx = 0;
@@ -73,8 +24,6 @@ const char array_length[] = ".length";
 std::map<std::string, OaFunction> oaFunctions;
 std::map<std::string, OaClass> oaClasses;
 
-OaClassMember *findMemberInClass(std::string member, OaClass *oaClass);
-
 OaClass classNow;
 std::string classNameNow = "";
 bool inClassMethod = false;
@@ -87,52 +36,6 @@ bool hasFree = false;
 int printStringIndex = 0;
 std::vector<std::string> printStrings;
 std::vector<std::string> globalVariables;
-
-void zeroClassArrayLength(const std::string &name, const std::string &classType);
-void freeArray(std::string index, std::string type, int align);
-std::string mallocArray(std::string index, std::string type, int align, std::string size);
-void panic(const std::string &wrongInfo);
-
-void replaceUtilForeach(struct TreeNode* seg, char* namein, LeftValue* nameout, std::string idx);
-void replaceUtilForeachEXP(struct Expression* seg, char* namein, LeftValue* nameout, std::string idx);
-
-//---------------------tree node part---------------------
-void g_parseNodeList(std::string &result, struct TreeNode* seg, std::string name);
-void g_parseTreeNode(std::string &result, struct TreeNode *seg);
-void g_parseVarDeclareNode(std::string &result, struct VarDeclareNode *seg);
-void g_parseVarDefineNode(std::string &result, struct VarDefineNode *seg);
-void g_parseVarAssignNode(std::string &result, struct VarAssignNode *seg);
-void g_parseArrayDeclareNode(std::string &result, struct ArrayDeclareNode *seg);
-void g_parseArrayDefineNode(std::string &result, struct ArrayDefineNode *seg);
-void g_parseArrayAssignNode(std::string &result, struct ArrayAssignNode *seg);
-void g_parseIfNode(std::string &result, struct IfNode *seg);
-void g_parseElifNode(std::string &result, struct ElifNode *seg);
-void g_parseElseNode(std::string &result, struct ElseNode *seg);
-void g_parseWhileNode(std::string &result, struct WhileNode *seg);
-void g_parseForeachNode(std::string &result, struct ForeachNode *seg);
-void g_parseClassDefineNode(std::string &result, struct ClassDefineNode *seg);
-void g_parseFunctionDeclareNode(std::string &result, struct FunctionDeclareNode *seg);
-void g_parseFunctionDefineNode(std::string &result, struct FunctionDefineNode *seg);
-void g_parseClassMethodDefineNode(std::string &result, struct ClassMethodDefineNode *seg);
-void g_parseBreakNode(std::string &result);
-void g_parseContinueNode(std::string &result);
-void g_parseReturnNode(std::string &result, struct ReturnNode *seg);
-//-------------- -----end tree node part-------------------
-//---------------------expression part---------------------
-
-struct OaVar* g_parseExpression(std::string& result, struct Expression* seg);
-struct OaVar* g_parseLeftValue(std::string&result, struct LeftValue* seg);
-struct OaVar* g_parseArrayValue(std::string&result, struct ArrayValue* seg);
-struct OaVar* g_parseFunctionValue(std::string&result, struct FunctionValue* seg);
-//-------------------end expression part-------------------
-//---------------------parameter part---------------------
-std::string g_parseFormParam(std::string&result, FormParam*seg);
-std::string g_parseFactParam(std::string&result, struct FactParam* seg);
-//-------------------end parameter part-------------------
-
-
-
-
 
 //---------------------tree node part---------------------
 void g_parseNodeList(std::string& result, TreeNode* seg, std::string name) {
@@ -2147,20 +2050,6 @@ int getAlign(std::string varName) {
 //-------------------end parameter part-------------------
 
 
-//------------------------main part-----------------------
-int getTreeRaw(const char* filename) {
-	int rtcode = executeParser(filename);
-	if (rtcode != 0) {
-		printf("error\n");
-	}
-
-	lineno = 0;
-	//Added by @Xie LW
-	temVarNo = 0;
-	g_parseNodeList(result, parseTree->root, "root");
-	return rtcode;
-}
-
 void parsePrintFunction(struct FactParam *params) {
 	//[TODO] check parameters
 	//[TODO] % param
@@ -2320,9 +2209,7 @@ void panic(const std::string &wrongInfo) {
 	return;
 }
 
-int main() {
-	getTreeRaw("test.oa");
-
+int g_main(const char* filename) {
 	//check function declared but not defined
 	std::map<std::string, OaFunction>::iterator iter;
 	for (iter = oaFunctions.begin(); iter != oaFunctions.end(); ++iter) {
@@ -2331,7 +2218,7 @@ int main() {
 
 	if (compilePass) {
 		//generate code to file
-		std::ofstream ost("hello.ll");
+		std::ofstream ost("tmp.ll");
 		ost << "target triple = \"i686-pc-windows-gnu\"\n\n";
 		for (int i = 0; i < printStringIndex; ++i) {
 			int size = printStrings[i].size() + 1;
@@ -2360,11 +2247,10 @@ int main() {
 			ost << "declare void @free(i8*)\n";
 		}
 		ost.close();
-		system("clang hello.ll");
+		system("clang tmp.ll");
 		std::cout << "code generate successfully!\n";
 	}
 	else {
 		std::cout << compileLog << std::endl;
 	}
-	std::cin.get();
 }
