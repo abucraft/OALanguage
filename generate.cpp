@@ -741,7 +741,6 @@ void g_parseIfNode(std::string&result, IfNode*seg) {
 	result += "  br label %" + endLabel + "\n";
 	result += endLabel + ":\n";
 	endLbStk.pop_back();
-	//temVarNo++;			//llvm regular
 }
 
 void g_parseElifNode(std::string&result, ElifNode*seg) {
@@ -777,6 +776,7 @@ void g_parseElifNode(std::string&result, ElifNode*seg) {
 	result += "\n";
 	result += nextLabel + ":\n";
 	oaPathStk.push_back(nextLabel);
+	temVarNo++;			//llvm regular
 }
 
 void g_parseElseNode(std::string&result, ElseNode*seg) {
@@ -792,6 +792,7 @@ void g_parseElseNode(std::string&result, ElseNode*seg) {
 		allVars.pop_back();
 		sizeNewVar--;
 	}
+	temVarNo++;			//llvm regular
 }
 
 void g_parseWhileNode(std::string&result, WhileNode*seg) {
