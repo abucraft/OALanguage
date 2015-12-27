@@ -1,0 +1,31 @@
+void @twoSum(int[] @nums, int @numsSize, int @target, int[] @result) {
+    int @i = 0;
+    int @j = 0;
+    while(@i < @numsSize){
+        @j = @i+1;
+        while(@j<@numsSize){
+            if(@nums[@i]+@nums[@j]==@target){
+                @result[0]=@i+1;
+                @result[1]=@j+1;
+                return;
+            }
+            @j = @j + 1;
+        }
+        @i = @i + 1;
+    }
+    return;
+}
+
+int @main(){
+	int[] @a = int[3];
+	@a[0] = 1;
+	@a[1] = 2;
+	@a[2] = 3;
+	int @target = 3;
+	int[] @result = int[2];
+	@twoSum(@a,5,@target,@result);
+	@print("input: %d %d %d\n", @a[0], @a[1], @a[2]);
+	@print("target: %d\n", @target);
+	@print("index1: %d\nindex2: %d", @result[0], @result[1]);
+	return 0;
+}

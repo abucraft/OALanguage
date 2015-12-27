@@ -1,0 +1,41 @@
+int @main(){
+	int @is_neg = 0;
+	int @x = -123;
+	int @origin = @x;
+	if(@x < 0){
+		@is_neg = 1;
+		@x = 0-@x;
+	}
+	int @x_cpy = @x;
+	int @length= 0;
+	while(@x != 0){
+		@x = @x/10;
+		@length = @length+1;
+	}
+	int[] @buffer = int[@length];
+	@x = @x_cpy;
+	int @index = 0;
+	while(@x != 0){
+		@buffer[@index] = @x - (@x/10)*10;
+		@x = @x/10;
+		@index = @index +1;
+	}
+	int @result = 0;
+	int @i = 0;
+	while(@index>@i){
+		int @count = 0;
+		int @temp = @buffer[@i];
+		while(@index - (@i+1)>@count){
+			@temp = @temp*10;
+			@count= @count+1;
+		}
+		@result= @result +@temp;
+		@i=@i+1;
+	}
+	if(@is_neg!=0){
+		@result = 0- @result;
+	}
+	@print("input: %d\n",@origin);
+	@print("result:%d\n",@result);
+	return 0;
+}

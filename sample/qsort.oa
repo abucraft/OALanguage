@@ -1,10 +1,11 @@
 class #Array{
-	int[] @a;
-	int @low;
-    int @high;
+	int @x;
 }
 
 class #Arraysort extends #Array{
+	int @low;
+	int @high;
+	int[] @a;
 	void @Qsort();
 }
 
@@ -44,7 +45,6 @@ int @main() {
 	#Arraysort @as;
 	int @size = 8;
 	@as.@a = int[@size];
-	
 	@as.@a[0] = 12; @as.@a[1] = -43; @as.@a[2] = 839; @as.@a[3] = 0;
 	@as.@a[4] = -0;  @as.@a[5] = 1;  @as.@a[6] = 23; @as.@a[7] = 7;
 	

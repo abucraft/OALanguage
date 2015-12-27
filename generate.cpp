@@ -36,6 +36,7 @@ bool hasFree = false;
 int printStringIndex = 0;
 std::vector<std::string> printStrings;
 std::vector<std::string> globalVariables;
+std::map<std::string, int> classAllocaTable;
 
 //---------------------tree node part---------------------
 void g_parseNodeList(std::string& result, TreeNode* seg, std::string name) {
@@ -210,8 +211,10 @@ void g_parseVarDeclareNode(std::string& result, struct VarDeclareNode* seg, bool
 		if (temVar->type[0] == '#') {
 			result += temVar->name + " ";
 			result += "= " + std::string("alloca %class." + temVar->type.substr(1) + "*, ");
-			result += std::string("align ") + myItoa(temVar->align) + endLine;
+			result += "align 4\n";
 			
+			result += '%' + myItoa(temVarNo++) + " = alloca %class." + temVar->type.substr(1) + ", align " + myItoa(temVar->align) + "\n";
+			result += "store %class." + temVar->type.substr(1) + "* " + '%' + myItoa(temVarNo - 1) + ", %class." + temVar->type.substr(1) + "** " + temVar->name + '\n';
 			//let initial array length be zero
 			std::string classType = std::string(temVar->type).substr(1);
 			std::string className = std::string(temVar->name);
@@ -271,7 +274,8 @@ void g_parseVarAssignNode(std::string& result, VarAssignNode* seg) {
 			member = findMemberInClass('%' + std::string(lv->next->name).substr(1), oaClass);
 			bool inParent = false;
 			while (member == NULL && oaClass->parent != "") {
-				result += '%' + myItoa(temVarNo++) + " = getelementptr inbounds %class." + oaClass->name + ", %class." + oaClass->name + "* %" + std::string(lv->name).substr(1) + ", i32 0, i32 0\n";
+				result += '%' + myItoa(temVarNo++) + " = load %class." + oaClass->name + "*, %class." + oaClass->name + "** %" + std::string(lv->name).substr(1) + ", align 4\n";
+				result += '%' + myItoa(temVarNo++) + " = getelementptr inbounds %class." + oaClass->name + ", %class." + oaClass->name + "* %" + myItoa(temVarNo - 2) + ", i32 0, i32 0\n";
 				classType = oaClass->parent;
 				oaClass = &(oaClasses.find(oaClass->parent)->second);
 				member = findMemberInClass('%' + std::string(lv->next->name).substr(1), oaClass);
@@ -506,7 +510,8 @@ void g_parseArrayAssignNode(std::string&result, ArrayAssignNode*seg) {
 			member = findMemberInClass('%' + std::string(lv->next->name).substr(1), oaClass);
 			bool inParent = false;
 			while (member == NULL && oaClass->parent != "") {
-				result += '%' + myItoa(temVarNo++) + " = getelementptr inbounds %class." + oaClass->name + ", %class." + oaClass->name + "* %" + std::string(lv->name).substr(1) + ", i32 0, i32 0\n";
+				result += '%' + myItoa(temVarNo++) + " = load %class." + oaClass->name + "*, %class." + oaClass->name + "** %" + std::string(lv->name).substr(1) + ", align 4\n";
+				result += '%' + myItoa(temVarNo++) + " = getelementptr inbounds %class." + oaClass->name + ", %class." + oaClass->name + "* %" + myItoa(temVarNo - 2) + ", i32 0, i32 0\n";
 				classType = oaClass->parent;
 				oaClass = &(oaClasses.find(oaClass->parent)->second);
 				member = findMemberInClass('%' + std::string(lv->next->name).substr(1), oaClass);
@@ -1017,6 +1022,7 @@ void g_parseClassDefineNode(std::string&result, struct ClassDefineNode *seg) {
 	result += "%class." + classNow.name + " = type { ";
 	if (seg->typeParent) {
 		result += "%class." + classNow.parent + "*, ";
+		classMemberIndex++;
 	}
 	//[TODO] check class redifined
 	//insert first, case of class in class
@@ -1680,7 +1686,8 @@ struct OaVar* g_parseLeftValue(std::string&result, LeftValue* seg) {
 			member = findMemberInClass('%' + std::string(lv->next->name).substr(1), oaClass);
 			bool inParent = false;
 			while (member == NULL && oaClass->parent != "") {
-				result += '%' + myItoa(temVarNo++) + " = getelementptr inbounds %class." + oaClass->name + ", %class." + oaClass->name + "* %" + std::string(lv->name).substr(1) + ", i32 0, i32 0\n";
+				result += '%' + myItoa(temVarNo++) + " = load %class." + oaClass->name + "*, %class." + oaClass->name + "** %" + std::string(lv->name).substr(1) + ", align 4\n";
+				result += '%' + myItoa(temVarNo++) + " = getelementptr inbounds %class." + oaClass->name + ", %class." + oaClass->name + "* %" + myItoa(temVarNo - 2) + ", i32 0, i32 0\n";
 				classType = oaClass->parent;
 				oaClass = &(oaClasses.find(oaClass->parent)->second);
 				member = findMemberInClass('%' + std::string(lv->next->name).substr(1), oaClass);
@@ -1877,7 +1884,7 @@ std::string g_parseFormParam(std::string&result, FormParam*seg) {
 	int cnt = 0;
 	while (seg != NULL) {
 		if (seg->type[0] == '#') {
-			result += "%class." + std::string(seg->type).substr(1) + '*';
+			result += "%class." + std::string(seg->type).substr(1) + "*";
 			//add to allVars
 			std::map<std::string, OaClass>::iterator iter = oaClasses.find(std::string(seg->type).substr(1));
 			if (iter == oaClasses.end()) { panic("class method wrong: class type not found"); return ""; }
@@ -1892,121 +1899,114 @@ std::string g_parseFormParam(std::string&result, FormParam*seg) {
 			var->type = seg->type;
 			var->align = iter->second.align;
 			addVar(var);
+			retStr += var->name + " = alloca %class." + var->type.substr(1) + "*, align " + myItoa(var->align) + '\n';
+			retStr += "store %class." + var->type.substr(1) + "* " + var->name + "., %class." + var->type.substr(1) + "** " + var->name + ", align " + myItoa(var->align) + '\n';
+		}
+		else if (std::string(seg->type) == "int") {
+			OaVar *paramVar = new OaVar;
+			paramVar->name = '%' + std::string(seg->name).substr(1);
+			paramVar->type = "i32";
+			paramVar->align = 4;
+			addVar(paramVar);
+			result += paramVar->type;
+			retStr += paramVar->name + " = alloca " + paramVar->type + ", align " + myItoa(paramVar->align) +'\n';
+			retStr += "store " + paramVar->type + ' ' + paramVar->name + "., " + paramVar->type + "* " + paramVar->name + ", align " + myItoa(paramVar->align) + '\n';
+		}
+		else if (std::string(seg->type) == "double") {
+			OaVar *paramVar = new OaVar;
+			paramVar->name = '%' + std::string(seg->name).substr(1);
+			paramVar->type = "double";
+			paramVar->align = 8;
+			addVar(paramVar);
+			result += paramVar->type;
+			retStr += paramVar->name + " = alloca " + paramVar->type + ", align " + myItoa(paramVar->align) + '\n';
+			retStr += "store " + paramVar->type + ' ' + paramVar->name + "., " + paramVar->type + "* " + paramVar->name + ", align " + myItoa(paramVar->align) + '\n';
+		}
+		else if (std::string(seg->type) == "char") {
+			OaVar *paramVar = new OaVar;
+			paramVar->name = '%' + std::string(seg->name).substr(1);
+			paramVar->type = "i8";
+			paramVar->align = 1;
+			addVar(paramVar);
+			result += paramVar->type;
+			retStr += paramVar->name + " = alloca " + paramVar->type + ", align " + myItoa(paramVar->align) + '\n';
+			retStr += "store " + paramVar->type + ' ' + paramVar->name + "., " + paramVar->type + "* " + paramVar->name + ", align " + myItoa(paramVar->align) + '\n';
+		}
+		else if (std::string(seg->type) == "int[]") {
+			OaVar *paramArray = new OaVar;
+			paramArray->name = '%' + std::string(seg->name).substr(1);
+			paramArray->type = "i32*";
+			paramArray->align = 4;
+			paramArray->size = 0;
+			addArray(paramArray);
+			result += paramArray->type;
+			retStr += paramArray->name + " = alloca " + paramArray->type + ", align " + myItoa(paramArray->align) + '\n';
+			retStr += "store " + paramArray->type + ' ' + paramArray->name + "., " + paramArray->type + "* " + paramArray->name + ", align " + myItoa(paramArray->align) + '\n';
+
+			//[WARNING] let size = 0 to indicate the first time to malloc
+			OaVar *tmpVar = new OaVar;
+			tmpVar->align = 4;
+			tmpVar->type = "i32";
+			tmpVar->size = 0;
+			tmpVar->name = paramArray->name + ".length";
+			addVar(tmpVar);
+
+		}
+		else if (std::string(seg->type) == "double[]") {
+			OaVar *paramArray = new OaVar;
+			paramArray->name = '%' + std::string(seg->name).substr(1);
+			paramArray->type = "double*";
+			paramArray->align = 8;
+			paramArray->size = 0;
+			addArray(paramArray);
+			result += paramArray->type;
+			retStr += paramArray->name + " = alloca " + paramArray->type + ", align " + myItoa(paramArray->align) + '\n';
+			retStr += "store " + paramArray->type + ' ' + paramArray->name + "., " + paramArray->type + "* " + paramArray->name + ", align " + myItoa(paramArray->align) + '\n';
+
+			//[WARNING] let size = 0 to indicate the first time to malloc
+			OaVar *tmpVar = new OaVar;
+			tmpVar->align = 4;
+			tmpVar->type = "i32";
+			tmpVar->size = 0;
+			tmpVar->name = paramArray->name + ".length";
+			addVar(tmpVar);
+
+		}
+		else if (std::string(seg->type) == "char[]") {
+			OaVar *paramArray = new OaVar;
+			paramArray->name = '%' + std::string(seg->name).substr(1);
+			paramArray->type = "i8*";
+			paramArray->align = 1;
+			paramArray->size = 0;
+			addArray(paramArray);
+			result += paramArray->type;
+			retStr += paramArray->name + " = alloca " + paramArray->type + ", align " + myItoa(paramArray->align) + '\n';
+			retStr += "store " + paramArray->type + ' ' + paramArray->name + "., " + paramArray->type + "* " + paramArray->name + ", align " + myItoa(paramArray->align) + '\n';
+
+			//[WARNING] let size = 0 to indicate the first time to malloc
+			OaVar *tmpVar = new OaVar;
+			tmpVar->align = 4;
+			tmpVar->type = "i32";
+			tmpVar->size = 0;
+			tmpVar->name = paramArray->name + ".length";
+			addVar(tmpVar);
+		}
+		else if (seg->type[0] == '#') {
+			//class
+			OaVar *paramVar = new OaVar;
+			std::map<std::string, OaClass>::iterator iter = oaClasses.find(std::string(seg->type).substr(1));
+			if (iter == oaClasses.end()) { panic("Error in parseFormParam: unknown class type"); return ""; }
+			paramVar->align = iter->second.align;
+			paramVar->type = std::string(seg->type);
+			paramVar->name = '%' + std::string(seg->name).substr(1);
+			addVar(paramVar);
 		}
 		else {
-			//add to allVars
-			if (std::string(seg->type) == "int") {
-				OaVar *paramVar = new OaVar;
-				paramVar->name = '%' + std::string(seg->name).substr(1);
-				paramVar->type = "i32";
-				paramVar->align = 4;
-				addVar(paramVar);
-				//temVarNo++;	//llvm regular
-				result += paramVar->type;
-				retStr += paramVar->name + " = alloca " + paramVar->type + ", align " + myItoa(paramVar->align) +'\n';
-				retStr += "store " + paramVar->type + ' ' + paramVar->name + "., " + paramVar->type + "* " + paramVar->name + ", align " + myItoa(paramVar->align) + '\n';
-			}
-			else if (std::string(seg->type) == "double") {
-				OaVar *paramVar = new OaVar;
-				paramVar->name = '%' + std::string(seg->name).substr(1);
-				paramVar->type = "double";
-				paramVar->align = 8;
-				addVar(paramVar);
-				//temVarNo++;	//llvm regular
-				result += paramVar->type;
-				retStr += paramVar->name + " = alloca " + paramVar->type + ", align " + myItoa(paramVar->align) + '\n';
-				retStr += "store " + paramVar->type + ' ' + paramVar->name + "., " + paramVar->type + "* " + paramVar->name + ", align " + myItoa(paramVar->align) + '\n';
-			}
-			else if (std::string(seg->type) == "char") {
-				OaVar *paramVar = new OaVar;
-				paramVar->name = '%' + std::string(seg->name).substr(1);
-				paramVar->type = "i8";
-				paramVar->align = 1;
-				addVar(paramVar);
-				//temVarNo++;	//llvm regular
-				result += paramVar->type;
-				retStr += paramVar->name + " = alloca " + paramVar->type + ", align " + myItoa(paramVar->align) + '\n';
-				retStr += "store " + paramVar->type + ' ' + paramVar->name + "., " + paramVar->type + "* " + paramVar->name + ", align " + myItoa(paramVar->align) + '\n';
-			}
-			else if (std::string(seg->type) == "int[]") {
-				OaVar *paramArray = new OaVar;
-				paramArray->name = '%' + std::string(seg->name).substr(1);
-				paramArray->type = "i32*";
-				paramArray->align = 4;
-				paramArray->size = 0;
-				addArray(paramArray);
-				result += paramArray->type;
-				retStr += paramArray->name + " = alloca " + paramArray->type + ", align " + myItoa(paramArray->align) + '\n';
-				retStr += "store " + paramArray->type + ' ' + paramArray->name + "., " + paramArray->type + "* " + paramArray->name + ", align " + myItoa(paramArray->align) + '\n';
-
-				//[WARNING] let size = 0 to indicate the first time to malloc
-				OaVar *tmpVar = new OaVar;
-				tmpVar->align = 4;
-				tmpVar->type = "i32";
-				tmpVar->size = 0;
-				tmpVar->name = paramArray->name + ".length";
-				addVar(tmpVar);
-
-			}
-			else if (std::string(seg->type) == "double[]") {
-				OaVar *paramArray = new OaVar;
-				paramArray->name = '%' + std::string(seg->name).substr(1);
-				paramArray->type = "double*";
-				paramArray->align = 8;
-				paramArray->size = 0;
-				addArray(paramArray);
-				result += paramArray->type;
-				retStr += paramArray->name + " = alloca " + paramArray->type + ", align " + myItoa(paramArray->align) + '\n';
-				retStr += "store " + paramArray->type + ' ' + paramArray->name + "., " + paramArray->type + "* " + paramArray->name + ", align " + myItoa(paramArray->align) + '\n';
-
-				//[WARNING] let size = 0 to indicate the first time to malloc
-				OaVar *tmpVar = new OaVar;
-				tmpVar->align = 4;
-				tmpVar->type = "i32";
-				tmpVar->size = 0;
-				tmpVar->name = paramArray->name + ".length";
-				addVar(tmpVar);
-
-			}
-			else if (std::string(seg->type) == "char[]") {
-				OaVar *paramArray = new OaVar;
-				paramArray->name = '%' + std::string(seg->name).substr(1);
-				paramArray->type = "i8*";
-				paramArray->align = 1;
-				paramArray->size = 0;
-				addArray(paramArray);
-				result += paramArray->type;
-				retStr += paramArray->name + " = alloca " + paramArray->type + ", align " + myItoa(paramArray->align) + '\n';
-				retStr += "store " + paramArray->type + ' ' + paramArray->name + "., " + paramArray->type + "* " + paramArray->name + ", align " + myItoa(paramArray->align) + '\n';
-
-				//[WARNING] let size = 0 to indicate the first time to malloc
-				OaVar *tmpVar = new OaVar;
-				tmpVar->align = 4;
-				tmpVar->type = "i32";
-				tmpVar->size = 0;
-				tmpVar->name = paramArray->name + ".length";
-				addVar(tmpVar);
-			}
-			else if (seg->type[0] == '#') {
-				//class
-				OaVar *paramVar = new OaVar;
-				std::map<std::string, OaClass>::iterator iter = oaClasses.find(std::string(seg->type).substr(1));
-				if (iter == oaClasses.end()) { panic("Error in parseFormParam: unknown class type"); return ""; }
-				paramVar->align = iter->second.align;
-				paramVar->type = std::string(seg->type);
-				paramVar->name = '%' + std::string(seg->name).substr(1);
-				addVar(paramVar);
-			}
-			else {
-				panic("Error in parseFormParam: wrong type");
-				return "";
-			}
+			panic("Error in parseFormParam: wrong type");
+			return "";
 		}
 		result += " %" + std::string(seg->name).substr(1);
-		if (seg->type[0] != '#') {
-			result += '.';	//llvm regular, for loading value due to address alloc
-		}
-		
+		result += '.';	//llvm regular, for loading value due to address alloc
 		if (seg->next != NULL) {
 			result += ", ";
 		}
@@ -2269,6 +2269,7 @@ OaClassMember *findMemberInClass(std::string member, OaClass *oaClass) {
 }
 
 void zeroClassArrayLength(const std::string &name, const std::string &classType) {
+	//[WARNING] this function also alloc class pointers int the class
 	std::map<std::string, OaClass>::iterator classIter = oaClasses.find(classType);
 	if (classIter == oaClasses.end()) { panic("error in zeroClassArrayLength: class" + classType + "not found"); return; }
 	std::map<std::string, OaClassMember>::iterator iter;
@@ -2336,13 +2337,12 @@ int g_getTreeRaw(const char* filename) {
 }
 
 int main(int argc, char** argv) {
-	/*if (argc < 3) {
+	if (argc < 3) {
 		std::cout << "oa_compiler.exe [input_name] [output_name]";
 		return 1;
 	}
 	g_getTreeRaw(argv[1]);
-	*/
-	g_getTreeRaw("test.oa");
+
 	//check function declared but not defined
 	std::map<std::string, OaFunction>::iterator iter;
 	for (iter = oaFunctions.begin(); iter != oaFunctions.end(); ++iter) {
@@ -2380,13 +2380,11 @@ int main(int argc, char** argv) {
 			ost << "declare void @free(i8*)\n";
 		}
 		ost.close();
-		//std::string sysStr = "clang -o " + std::string(argv[2]) + " tmp.ll";
-		std::string sysStr = "clang tmp.ll";
+		std::string sysStr = "clang -o " + std::string(argv[2]) + " tmp.ll";
 		system(sysStr.c_str());
 		std::cout << "code generate successfully!\n";
 	}
 	else {
 		std::cout << compileLog << std::endl;
 	}
-	std::cin.get();
 }

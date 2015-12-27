@@ -369,20 +369,20 @@ compareExpression
 	;
 	
 mathExpression
-	:term PLUS mathExpression{
+	:mathExpression PLUS term{
 		$$ = createExpression($1, $3, OA_EXP_PLUS);
 	}
-	|term MINUS mathExpression{
+	|mathExpression MINUS term{
 		$$ = createExpression($1, $3, OA_EXP_MINUS);
 	}
 	|term
 	;
 	
 term
-	:factor STAR term{
+	:term STAR factor{
 		$$ = createExpression($1, $3, OA_EXP_MULTIPLE);
 	}
-	|factor SLASH term{
+	|term SLASH factor{
 		$$ = createExpression($1, $3, OA_EXP_DIVIDE);
 	}
 	|factor

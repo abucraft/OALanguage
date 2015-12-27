@@ -102,11 +102,11 @@ rule 79   compareExpression -> mathExpression GE mathExpression
 rule 80   compareExpression -> mathExpression LT mathExpression
 rule 81   compareExpression -> mathExpression LE mathExpression
 rule 82   compareExpression -> mathExpression
-rule 83   mathExpression -> term PLUS mathExpression
-rule 84   mathExpression -> term MINUS mathExpression
+rule 83   mathExpression -> mathExpression PLUS term
+rule 84   mathExpression -> mathExpression MINUS term
 rule 85   mathExpression -> term
-rule 86   term -> factor STAR term
-rule 87   term -> factor SLASH term
+rule 86   term -> term STAR factor
+rule 87   term -> term SLASH factor
 rule 88   term -> factor
 rule 89   factor -> DECIMAL_LITERAL
 rule 90   factor -> DECIMAL_FLOATING_POINT_LITERAL
@@ -647,6 +647,8 @@ state 30
     compareExpression  ->  mathExpression . LT mathExpression   (rule 80)
     compareExpression  ->  mathExpression . LE mathExpression   (rule 81)
     compareExpression  ->  mathExpression .   (rule 82)
+    mathExpression  ->  mathExpression . PLUS term   (rule 83)
+    mathExpression  ->  mathExpression . MINUS term   (rule 84)
 
     LT  	shift, and go to state 56
     GT  	shift, and go to state 57
@@ -654,6 +656,8 @@ state 30
     LE  	shift, and go to state 59
     GE  	shift, and go to state 60
     NE  	shift, and go to state 61
+    PLUS	shift, and go to state 62
+    MINUS	shift, and go to state 63
 
     $default	reduce using rule 82 (compareExpression)
 
@@ -661,12 +665,12 @@ state 30
 
 state 31
 
-    mathExpression  ->  term . PLUS mathExpression   (rule 83)
-    mathExpression  ->  term . MINUS mathExpression   (rule 84)
     mathExpression  ->  term .   (rule 85)
+    term  ->  term . STAR factor   (rule 86)
+    term  ->  term . SLASH factor   (rule 87)
 
-    PLUS	shift, and go to state 62
-    MINUS	shift, and go to state 63
+    STAR	shift, and go to state 64
+    SLASH	shift, and go to state 65
 
     $default	reduce using rule 85 (mathExpression)
 
@@ -674,12 +678,7 @@ state 31
 
 state 32
 
-    term  ->  factor . STAR term   (rule 86)
-    term  ->  factor . SLASH term   (rule 87)
     term  ->  factor .   (rule 88)
-
-    STAR	shift, and go to state 64
-    SLASH	shift, and go to state 65
 
     $default	reduce using rule 88 (term)
 
@@ -1046,7 +1045,7 @@ state 61
 
 state 62
 
-    mathExpression  ->  term PLUS . mathExpression   (rule 83)
+    mathExpression  ->  mathExpression PLUS . term   (rule 83)
 
     DECIMAL_LITERAL	shift, and go to state 20
     DECIMAL_FLOATING_POINT_LITERAL	shift, and go to state 21
@@ -1056,8 +1055,7 @@ state 62
     IDENTIFIER	shift, and go to state 26
     CHAR_LITERAL	shift, and go to state 27
 
-    mathExpression	go to state 97
-    term	go to state 31
+    term	go to state 97
     factor	go to state 32
     leftValue	go to state 33
 
@@ -1065,7 +1063,7 @@ state 62
 
 state 63
 
-    mathExpression  ->  term MINUS . mathExpression   (rule 84)
+    mathExpression  ->  mathExpression MINUS . term   (rule 84)
 
     DECIMAL_LITERAL	shift, and go to state 20
     DECIMAL_FLOATING_POINT_LITERAL	shift, and go to state 21
@@ -1075,8 +1073,7 @@ state 63
     IDENTIFIER	shift, and go to state 26
     CHAR_LITERAL	shift, and go to state 27
 
-    mathExpression	go to state 98
-    term	go to state 31
+    term	go to state 98
     factor	go to state 32
     leftValue	go to state 33
 
@@ -1084,7 +1081,7 @@ state 63
 
 state 64
 
-    term  ->  factor STAR . term   (rule 86)
+    term  ->  term STAR . factor   (rule 86)
 
     DECIMAL_LITERAL	shift, and go to state 20
     DECIMAL_FLOATING_POINT_LITERAL	shift, and go to state 21
@@ -1094,15 +1091,14 @@ state 64
     IDENTIFIER	shift, and go to state 26
     CHAR_LITERAL	shift, and go to state 27
 
-    term	go to state 99
-    factor	go to state 32
+    factor	go to state 99
     leftValue	go to state 33
 
 
 
 state 65
 
-    term  ->  factor SLASH . term   (rule 87)
+    term  ->  term SLASH . factor   (rule 87)
 
     DECIMAL_LITERAL	shift, and go to state 20
     DECIMAL_FLOATING_POINT_LITERAL	shift, and go to state 21
@@ -1112,8 +1108,7 @@ state 65
     IDENTIFIER	shift, and go to state 26
     CHAR_LITERAL	shift, and go to state 27
 
-    term	go to state 100
-    factor	go to state 32
+    factor	go to state 100
     leftValue	go to state 33
 
 
@@ -1393,6 +1388,11 @@ state 88
 state 89
 
     compareExpression  ->  mathExpression LT mathExpression .   (rule 80)
+    mathExpression  ->  mathExpression . PLUS term   (rule 83)
+    mathExpression  ->  mathExpression . MINUS term   (rule 84)
+
+    PLUS	shift, and go to state 62
+    MINUS	shift, and go to state 63
 
     $default	reduce using rule 80 (compareExpression)
 
@@ -1401,6 +1401,11 @@ state 89
 state 90
 
     compareExpression  ->  mathExpression GT mathExpression .   (rule 78)
+    mathExpression  ->  mathExpression . PLUS term   (rule 83)
+    mathExpression  ->  mathExpression . MINUS term   (rule 84)
+
+    PLUS	shift, and go to state 62
+    MINUS	shift, and go to state 63
 
     $default	reduce using rule 78 (compareExpression)
 
@@ -1417,6 +1422,11 @@ state 91
 state 92
 
     compareExpression  ->  mathExpression EQ mathExpression .   (rule 74)
+    mathExpression  ->  mathExpression . PLUS term   (rule 83)
+    mathExpression  ->  mathExpression . MINUS term   (rule 84)
+
+    PLUS	shift, and go to state 62
+    MINUS	shift, and go to state 63
 
     $default	reduce using rule 74 (compareExpression)
 
@@ -1425,6 +1435,11 @@ state 92
 state 93
 
     compareExpression  ->  mathExpression LE mathExpression .   (rule 81)
+    mathExpression  ->  mathExpression . PLUS term   (rule 83)
+    mathExpression  ->  mathExpression . MINUS term   (rule 84)
+
+    PLUS	shift, and go to state 62
+    MINUS	shift, and go to state 63
 
     $default	reduce using rule 81 (compareExpression)
 
@@ -1433,6 +1448,11 @@ state 93
 state 94
 
     compareExpression  ->  mathExpression GE mathExpression .   (rule 79)
+    mathExpression  ->  mathExpression . PLUS term   (rule 83)
+    mathExpression  ->  mathExpression . MINUS term   (rule 84)
+
+    PLUS	shift, and go to state 62
+    MINUS	shift, and go to state 63
 
     $default	reduce using rule 79 (compareExpression)
 
@@ -1449,6 +1469,11 @@ state 95
 state 96
 
     compareExpression  ->  mathExpression NE mathExpression .   (rule 76)
+    mathExpression  ->  mathExpression . PLUS term   (rule 83)
+    mathExpression  ->  mathExpression . MINUS term   (rule 84)
+
+    PLUS	shift, and go to state 62
+    MINUS	shift, and go to state 63
 
     $default	reduce using rule 76 (compareExpression)
 
@@ -1456,7 +1481,12 @@ state 96
 
 state 97
 
-    mathExpression  ->  term PLUS mathExpression .   (rule 83)
+    mathExpression  ->  mathExpression PLUS term .   (rule 83)
+    term  ->  term . STAR factor   (rule 86)
+    term  ->  term . SLASH factor   (rule 87)
+
+    STAR	shift, and go to state 64
+    SLASH	shift, and go to state 65
 
     $default	reduce using rule 83 (mathExpression)
 
@@ -1464,7 +1494,12 @@ state 97
 
 state 98
 
-    mathExpression  ->  term MINUS mathExpression .   (rule 84)
+    mathExpression  ->  mathExpression MINUS term .   (rule 84)
+    term  ->  term . STAR factor   (rule 86)
+    term  ->  term . SLASH factor   (rule 87)
+
+    STAR	shift, and go to state 64
+    SLASH	shift, and go to state 65
 
     $default	reduce using rule 84 (mathExpression)
 
@@ -1472,7 +1507,7 @@ state 98
 
 state 99
 
-    term  ->  factor STAR term .   (rule 86)
+    term  ->  term STAR factor .   (rule 86)
 
     $default	reduce using rule 86 (term)
 
@@ -1480,7 +1515,7 @@ state 99
 
 state 100
 
-    term  ->  factor SLASH term .   (rule 87)
+    term  ->  term SLASH factor .   (rule 87)
 
     $default	reduce using rule 87 (term)
 
