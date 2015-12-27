@@ -119,13 +119,13 @@ void g_parseTreeNode(std::string& result, TreeNode* seg) {
 	}
 }
 
-void g_parseVarDeclareNode(std::string& result, struct VarDeclareNode* seg) {
+void g_parseVarDeclareNode(std::string& result, struct VarDeclareNode* seg, bool check) {
 	if (seg == NULL) {
 		return;
 	}
 	//Modified by @Xie LW--------------------------------------
 	struct OaVar *temVar = new struct OaVar;
-	if (getVar("%" + reduceAt(std::string(seg->name))) != NULL) {
+	if (check && getVar("%" + reduceAt(std::string(seg->name))) != NULL) {
 		panic("Already Declared Identifier");
 		return;
 	}
@@ -188,7 +188,12 @@ void g_parseVarDeclareNode(std::string& result, struct VarDeclareNode* seg) {
 		globalVariables.push_back(tmpStr);
 	}
 	else if (classNameNow != "") {
-		result += temVar->type;
+		if (temVar->type[0] == '#') {
+			result += "%class." + temVar->type.substr(1) + '*';
+		}
+		else {
+			result += temVar->type;
+		}
 		result += ", ";
 		OaClassMember tmpMember;
 		tmpMember.isFunc = false;
@@ -204,13 +209,13 @@ void g_parseVarDeclareNode(std::string& result, struct VarDeclareNode* seg) {
 		addVar(temVar);
 		if (temVar->type[0] == '#') {
 			result += temVar->name + " ";
-			result += "= " + std::string("alloca %class." + temVar->type.substr(1) + ", ");
+			result += "= " + std::string("alloca %class." + temVar->type.substr(1) + "*, ");
 			result += std::string("align ") + myItoa(temVar->align) + endLine;
 			
 			//let initial array length be zero
 			std::string classType = std::string(temVar->type).substr(1);
 			std::string className = std::string(temVar->name);
-			zeroClassArrayLength(className, classType);
+			//zeroClassArrayLength(className, classType);
 		}
 		else {
 			result += temVar->name + " ";
@@ -220,7 +225,7 @@ void g_parseVarDeclareNode(std::string& result, struct VarDeclareNode* seg) {
 	}
 }
 
-void g_parseVarDefineNode(std::string& result, VarDefineNode* seg) {
+void g_parseVarDefineNode(std::string& result, VarDefineNode* seg, bool check) {
 	if (seg == NULL) {
 		return;
 	}
@@ -234,7 +239,7 @@ void g_parseVarDefineNode(std::string& result, VarDefineNode* seg) {
 	assNode.name = &lv;
 	assNode.exp = seg->exp;
 	assNode.expOfVar = NULL;
-	g_parseVarDeclareNode(result, &decNode);
+	g_parseVarDeclareNode(result, &decNode, check);
 	g_parseVarAssignNode(result, &assNode);
 }
 
@@ -257,6 +262,7 @@ void g_parseVarAssignNode(std::string& result, VarAssignNode* seg) {
 	
 	LeftValue *lv = seg->name;
 	OaClassMember *member = NULL;
+	bool inDeeperClass = false;
 	if (lv->next != NULL) {
 		//class
 		std::string classType = getVar('%' + std::string(lv->name).substr(1))->type.substr(1);
@@ -272,14 +278,17 @@ void g_parseVarAssignNode(std::string& result, VarAssignNode* seg) {
 				inParent = true;
 			}
 			if (member == NULL) { panic("in parseVarAssign: no member in class"); return; }
-			if (inParent) {
-				result += '%' + myItoa(temVarNo++) + " = getelementptr inbounds %class." + oaClass->name + ", %class." + oaClass->name + "* %" + myItoa(temVarNo - 2) + ", i32 0, i32 " + myItoa(member->pos) + "\n";
+			if (inParent || inDeeperClass) {
+				result += '%' + myItoa(temVarNo++) + " = load %class." + oaClass->name + "*, %class." + oaClass->name + "** %" + myItoa(temVarNo - 2) + ", align 4\n";
 			}
-			else {
-				result += '%' + myItoa(temVarNo++) + " = getelementptr inbounds %class." + oaClass->name + ", %class." + oaClass->name + "* %" + std::string(lv->name).substr(1) + ", i32 0, i32 " + myItoa(member->pos) + "\n";
+			else
+			{
+				result += '%' + myItoa(temVarNo++) + " = load %class." + oaClass->name + "*, %class." + oaClass->name + "** %" + std::string(lv->name).substr(1) + ", align 4\n";
 			}
+			result += '%' + myItoa(temVarNo++) + " = getelementptr inbounds %class." + oaClass->name + ", %class." + oaClass->name + "* %" + myItoa(temVarNo - 2) + ", i32 0, i32 " + myItoa(member->pos) + "\n";
 			classType = std::string(member->type).substr(1);
 			lv = lv->next;
+			inDeeperClass = true;
 		}
 		int index = temVarNo - 1;
 		OaVar *var = g_parseExpression(result, seg->exp);
@@ -491,6 +500,7 @@ void g_parseArrayAssignNode(std::string&result, ArrayAssignNode*seg) {
 	if (lv->next != NULL) {
 		//class
 		std::string classType = getVar('%' + std::string(lv->name).substr(1))->type.substr(1);
+		bool inDeeperClass = false;
 		while (lv->next != NULL) {
 			oaClass = &(oaClasses.find(classType)->second);
 			member = findMemberInClass('%' + std::string(lv->next->name).substr(1), oaClass);
@@ -503,14 +513,16 @@ void g_parseArrayAssignNode(std::string&result, ArrayAssignNode*seg) {
 				inParent = true;
 			}
 			if (member == NULL) { panic("in parseArrayAssign: no member in class"); return; }
-			if (inParent) {
-				result += '%' + myItoa(temVarNo++) + " = getelementptr inbounds %class." + oaClass->name + ", %class." + oaClass->name + "* %" + myItoa(temVarNo - 2) + ", i32 0, i32 " + myItoa(member->pos) + "\n";
+			if (inParent || inDeeperClass) {
+				result += '%' + myItoa(temVarNo++) + " = load %class." + oaClass->name + "*, %class." + oaClass->name + "** %" + myItoa(temVarNo - 2) + ", align 4\n";
 			}
 			else {
-				result += '%' + myItoa(temVarNo++) + " = getelementptr inbounds %class." + oaClass->name + ", %class." + oaClass->name + "* %" + std::string(lv->name).substr(1) + ", i32 0, i32 " + myItoa(member->pos) + "\n";
+				result += '%' + myItoa(temVarNo++) + " = load %class." + oaClass->name + "*, %class." + oaClass->name + "** %" + std::string(lv->name).substr(1) + ", align 4\n";
 			}
+			result += '%' + myItoa(temVarNo++) + " = getelementptr inbounds %class." + oaClass->name + ", %class." + oaClass->name + "* %" + myItoa(temVarNo - 2) + ", i32 0, i32 " + myItoa(member->pos) + "\n";
 			classType = std::string(member->type).substr(1);
 			lv = lv->next;
+			inDeeperClass = true;
 		}
 		//[WARNING] not check index maybe change, see below else
 		int index = temVarNo - 1;
@@ -524,11 +536,18 @@ void g_parseArrayAssignNode(std::string&result, ArrayAssignNode*seg) {
 			tmpName += '.' + std::string(lv->name).substr(1);
 			lv = lv->next;
 		}
+		if (seg->exp == NULL && member->type[0] == '#') {
+			result += "store %class." + member->type.substr(1) + "* null, %class." + member->type.substr(1) + "** " + member->name + ", align 4\n";
+			return;
+		}
 		tmpName += ".length";
 		OaVar *tmpVar = getVar(tmpName);
-		if(tmpVar == NULL){ panic("in parseArrayAssign: no such array in class"); return; }
 		if (tmpVar->size != 0) {
 			freeArray('%' + myItoa(index), member->type, member->align);
+		}
+		if (seg->exp == NULL) {
+			result += "store " + member->type + " null, " + member->type + "* " + member->name + ", align 4\n";
+			return;
 		}
 		OaVar *var = g_parseExpression(result, seg->exp);
 		std::string tmpType = "";
@@ -561,11 +580,19 @@ void g_parseArrayAssignNode(std::string&result, ArrayAssignNode*seg) {
 			lv = lv->next;
 		}
 		OaVar *nameVar = getVar(tmpName);
+		if (nameVar == NULL) { panic("in parseArrayAssign: no such array in class"); return; }
+		if (seg->exp == NULL && nameVar->type[0] == '#') {
+			result += "store %class." + nameVar->type.substr(1) + "* null, %class." + nameVar->type.substr(1) + "** " + nameVar->name + ", align 4\n";
+			return;
+		}
 		tmpName += ".length";
 		OaVar *tmpVar = getVar(tmpName);
-		if (tmpVar == NULL) { panic("in parseArrayAssign: no such array in class"); return; }
 		if (tmpVar->size != 0){
 			freeArray(nameVar->name.substr(1), nameVar->type, nameVar->align);
+		}
+		if (seg->exp == NULL) {
+			result += "store " + nameVar->type + " null, " + nameVar->type + "* " + nameVar->name + ", align 4\n";
+			return;
 		}
 		OaVar *var = g_parseExpression(result, seg->exp);
 		std::string tmpType = "";
@@ -607,6 +634,7 @@ void g_parseIfNode(std::string&result, IfNode*seg) {
 		nextLabel = std::string("if.end.") + ifIdx;
 	}
 	endLbStk.push_back(endLabel);
+	if (seg->exp->left == NULL) { panic("left of operator should not be null"); }
 	OaVar *p_midVar = g_parseExpression(result, seg->exp);
 	OaCmpIdx++;
 	OaIfIdx++;
@@ -988,13 +1016,18 @@ void g_parseClassDefineNode(std::string&result, struct ClassDefineNode *seg) {
 	}
 	result += "%class." + classNow.name + " = type { ";
 	if (seg->typeParent) {
-		result += "%class." + classNow.parent + ", ";
+		result += "%class." + classNow.parent + "*, ";
 	}
+	//[TODO] check class redifined
+	//insert first, case of class in class
+	oaClasses.insert(std::pair<std::string, OaClass>(classNow.name, classNow));
 	g_parseNodeList(result, seg->stmts, "stmts");
 	result.pop_back();
 	result.pop_back();
 	result += " }\n\n";
 
+	//remove and insert again
+	oaClasses.erase(oaClasses.find(classNow.name));
 	oaClasses.insert(std::pair<std::string, OaClass>(classNow.name, classNow));
 	classNow.members.clear();
 	classNow.name = "";
@@ -1417,12 +1450,27 @@ struct OaVar* g_parseExpression(std::string &result, Expression* seg) {
 		result += " == ";
 		parseExpression(result, seg->right);*/
 		struct OaVar*  leftVar = g_parseExpression(result, seg->left);
-		struct OaVar* rightVar = g_parseExpression(result, seg->right);
+		struct OaVar* rightVar;
+		if (seg->right == NULL) {
+			rightVar = new OaVar;
+			rightVar->align = 0;
+			rightVar->type = leftVar->type;
+			rightVar->name = "null";
+			rightVar->size = 0;
+		}
+		else {
+			rightVar = g_parseExpression(result, seg->right);
+		}
 		struct OaVar*   temVar = new struct OaVar;
 		temVar->name = "%" + myItoa(temVarNo++);
 		result += temVar->name + " = ";
 		result += "icmp eq ";
-		result += leftVar->type + " ";
+		if (leftVar->type[0] == '#') {
+			result += "%class." + leftVar->type.substr(1) + "* ";
+		}
+		else {
+			result += leftVar->type + " ";
+		}
 		result += leftVar->name + ", " + rightVar->name + endLine;
 
 		temVar->type = "i1";
@@ -1435,12 +1483,27 @@ struct OaVar* g_parseExpression(std::string &result, Expression* seg) {
 		result += " != ";
 		parseExpression(result, seg->right);*/
 		struct OaVar*  leftVar = g_parseExpression(result, seg->left);
-		struct OaVar* rightVar = g_parseExpression(result, seg->right);
+		struct OaVar* rightVar;
+		if (seg->right == NULL) {
+			rightVar = new OaVar;
+			rightVar->align = 0;
+			rightVar->type = leftVar->type;
+			rightVar->name = "null";
+			rightVar->size = 0;
+		}
+		else {
+			rightVar = g_parseExpression(result, seg->right);
+		}
 		struct OaVar*   temVar = new struct OaVar;
 		temVar->name = "%" + myItoa(temVarNo++);
 		result += temVar->name + " = ";
 		result += "icmp ne ";
-		result += leftVar->type + " ";
+		if (leftVar->type[0] == '#') {
+			result += "%class." + leftVar->type.substr(1) + "* ";
+		}
+		else {
+			result += leftVar->type + " ";
+		}
 		result += leftVar->name + ", " + rightVar->name + endLine;
 
 		temVar->type = "i1";
@@ -1611,6 +1674,7 @@ struct OaVar* g_parseLeftValue(std::string&result, LeftValue* seg) {
 		OaVar *tmpVar = getVar('%' + std::string(lv->name).substr(1));
 		if (tmpVar == NULL) return NULL;
 		std::string classType = tmpVar->type.substr(1);
+		bool inDeeperClass = false;
 		while (lv->next != NULL) {
 			OaClass *oaClass = &(oaClasses.find(classType)->second);
 			member = findMemberInClass('%' + std::string(lv->next->name).substr(1), oaClass);
@@ -1623,14 +1687,17 @@ struct OaVar* g_parseLeftValue(std::string&result, LeftValue* seg) {
 				inParent = true;
 			}
 			if (member == NULL) { panic("Error in parseLeftValue: no member in class"); return NULL; }
-			if (inParent) {
-				result += '%' + myItoa(temVarNo++) + " = getelementptr inbounds %class." + oaClass->name + ", %class." + oaClass->name + "* %" + myItoa(temVarNo - 2) + ", i32 0, i32 " + myItoa(member->pos) + "\n";
+			if (inParent || inDeeperClass) {
+				result += '%' + myItoa(temVarNo++) + " = load %class." + oaClass->name + "*, %class." + oaClass->name + "** %" + myItoa(temVarNo - 2) + ", align 4\n";
 			}
 			else {
-				result += '%' + myItoa(temVarNo++) + " = getelementptr inbounds %class." + oaClass->name + ", %class." + oaClass->name + "* %" + std::string(lv->name).substr(1) + ", i32 0, i32 " + myItoa(member->pos) + "\n";
+				result += '%' + myItoa(temVarNo++) + " = load %class." + oaClass->name + "*, %class." + oaClass->name + "** %" + std::string(lv->name).substr(1) + ", align 4\n";
 			}
+
+			result += '%' + myItoa(temVarNo++) + " = getelementptr inbounds %class." + oaClass->name + ", %class." + oaClass->name + "* %" + myItoa(temVarNo - 2) + ", i32 0, i32 " + myItoa(member->pos) + "\n";
 			classType = std::string(member->type).substr(1);
 			lv = lv->next;
+			inDeeperClass = true;
 		}
 		int index = temVarNo - 1;
 		result += '%' + myItoa(temVarNo++) + " = load " + member->type + ", " + member->type + "* %" + myItoa(index) + ", align " + myItoa(member->align) + '\n';
@@ -1651,8 +1718,9 @@ struct OaVar* g_parseLeftValue(std::string&result, LeftValue* seg) {
 			return NULL;
 		}
 		if (tmpVar->type[0] == '#') {
+			result += '%' + myItoa(temVarNo++) + " = load %class." + tmpVar->type.substr(1) + "*, %class." + tmpVar->type.substr(1) + "** " + tmpVar->name + ", align 4\n";
 			OaVar *retVar = new OaVar;
-			retVar->name = tmpVar->name;
+			retVar->name = '%' + myItoa(temVarNo - 1);
 			retVar->align = tmpVar->align;
 			retVar->type = tmpVar->type;
 			return retVar;
@@ -1806,6 +1874,7 @@ std::string g_parseFormParam(std::string&result, FormParam*seg) {
 		return "" ;
 	}
 	std::string retStr = "";
+	int cnt = 0;
 	while (seg != NULL) {
 		if (seg->type[0] == '#') {
 			result += "%class." + std::string(seg->type).substr(1) + '*';
@@ -1813,7 +1882,13 @@ std::string g_parseFormParam(std::string&result, FormParam*seg) {
 			std::map<std::string, OaClass>::iterator iter = oaClasses.find(std::string(seg->type).substr(1));
 			if (iter == oaClasses.end()) { panic("class method wrong: class type not found"); return ""; }
 			OaVar *var = new OaVar;
-			var->name = "%.this";
+			if (cnt == 0) {
+				var->name = "%.this";
+				cnt++;
+			}
+			else {
+				var->name = '%' + std::string(seg->name).substr(1);
+			}
 			var->type = seg->type;
 			var->align = iter->second.align;
 			addVar(var);
@@ -2018,7 +2093,40 @@ struct OaVar* getVar(std::string varName, int *isGlobal) {
 			return allVars[i];
 		}
 	}
-	return NULL;
+	//.length
+	//assume that class is exist(check by caller)
+	int pos = varName.find_last_of('.');
+	if (pos < 0 || varName.substr(pos) != array_length) {
+		return NULL;
+	}
+
+	std::string className = "";
+	pos = 1;
+	int posNew = 0;
+	//get className
+	posNew = varName.find('.');
+	className = getVar('%' + varName.substr(pos, posNew - pos))->type;
+	while (1) {
+		pos = posNew + 1;
+		posNew = varName.find_first_of('.', pos);
+		if (posNew == -1) {
+			break;
+		}
+		
+		OaClassMember *member;
+		while ((member = findMemberInClass('%' + varName.substr(pos, posNew - pos), &oaClasses.find(className.substr(1))->second)) == NULL) {
+			className = '#' + oaClasses.find(className.substr(1))->second.parent;
+		};
+		std::string tmpName = member->type;
+		if (tmpName[0] == '#') {
+			className = tmpName;
+		}
+	}
+	pos = varName.find_last_of('.');
+	pos = varName.find_last_of('.', pos - 1);
+	std::string arrayName = '%' + varName.substr(1, pos - 1);
+	zeroClassArrayLength(arrayName, className.substr(1));
+	return getVar('%' + varName.substr(1));
 }
 
 std::string reduceAt(std::string varName) {
@@ -2165,11 +2273,14 @@ void zeroClassArrayLength(const std::string &name, const std::string &classType)
 	if (classIter == oaClasses.end()) { panic("error in zeroClassArrayLength: class" + classType + "not found"); return; }
 	std::map<std::string, OaClassMember>::iterator iter;
 	for (iter = classIter->second.members.begin(); iter != classIter->second.members.end(); ++iter) {
+		/*
+		//[WARNING] this will cause infinite recursive
 		if (iter->second.type[0] == '#') {
 			std::string newName = name + iter->second.name;
 			zeroClassArrayLength(newName, std::string(iter->second.type).substr(1));
 		}
-		else if(iter->second.type[iter->second.type.size()-1] == '*'){
+		*/
+		if(iter->second.type[iter->second.type.size()-1] == '*'){
 			//[WARNINIG] using parseVarDefineNode function
 			//llvm statememnts
 			std::string newName = name + '.' + iter->second.name.substr(1) + ".length";
@@ -2193,14 +2304,16 @@ void zeroClassArrayLength(const std::string &name, const std::string &classType)
 			node.exp = &exp;
 			node.name = tmpCh;
 			node.type = "int";
-			g_parseVarDefineNode(result, &node);
+			g_parseVarDefineNode(result, &node, false);
 			delete[] tmpCh;
 		}
 	}
 
-	if (classIter->second.parent != "") {
+//zero on use
+/*	if (classIter->second.parent != "") {
 		zeroClassArrayLength(name, classIter->second.parent);
 	}
+*/
 }
 
 void panic(const std::string &wrongInfo) {
@@ -2223,11 +2336,13 @@ int g_getTreeRaw(const char* filename) {
 }
 
 int main(int argc, char** argv) {
-	if (argc < 3) {
+	/*if (argc < 3) {
 		std::cout << "oa_compiler.exe [input_name] [output_name]";
 		return 1;
 	}
 	g_getTreeRaw(argv[1]);
+	*/
+	g_getTreeRaw("test.oa");
 	//check function declared but not defined
 	std::map<std::string, OaFunction>::iterator iter;
 	for (iter = oaFunctions.begin(); iter != oaFunctions.end(); ++iter) {
@@ -2265,11 +2380,13 @@ int main(int argc, char** argv) {
 			ost << "declare void @free(i8*)\n";
 		}
 		ost.close();
-		std::string sysStr = "clang -o " + std::string(argv[2]) + " tmp.ll";
+		//std::string sysStr = "clang -o " + std::string(argv[2]) + " tmp.ll";
+		std::string sysStr = "clang tmp.ll";
 		system(sysStr.c_str());
 		std::cout << "code generate successfully!\n";
 	}
 	else {
 		std::cout << compileLog << std::endl;
 	}
+	std::cin.get();
 }

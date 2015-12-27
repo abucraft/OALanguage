@@ -6,7 +6,6 @@ Terminals which are not used:
    FALSE
    FOR
    IMPORT
-   MY_NULL
    THIS
    TRUE
    PART_LETTER
@@ -60,141 +59,144 @@ rule 36   varAssignStatement -> expression
 rule 37   arrayDeclareStatement -> arrayType IDENTIFIER
 rule 38   arrayDefineStatement -> arrayType IDENTIFIER ASSIGN type LBRACKET expression RBRACKET
 rule 39   arrayAssignStatement -> leftValue ASSIGN type LBRACKET expression RBRACKET
-rule 40   ifStatement -> IF LPAREN expression RPAREN LBRACE functionStatements RBRACE elifParts elsePart
-rule 41   elifParts ->		/* empty */
-rule 42   elifParts -> elifPart elifParts
-rule 43   elifPart -> ELIF LPAREN expression RPAREN LBRACE functionStatements RBRACE
-rule 44   elsePart ->		/* empty */
-rule 45   elsePart -> ELSE LBRACE functionStatements RBRACE
-rule 46   whileStatement -> WHILE LPAREN expression RPAREN LBRACE functionStatements RBRACE
-rule 47   foreachStatement -> FOREACH LPAREN IDENTIFIER IN leftValue RPAREN LBRACE functionStatements RBRACE
-rule 48   classDefineStatement -> CLASS CLASS_IDENTIFIER LBRACE classStatements RBRACE
-rule 49   classDefineStatement -> CLASS CLASS_IDENTIFIER EXTENDS CLASS_IDENTIFIER LBRACE classStatements RBRACE
-rule 50   functionDeclareStatement -> type IDENTIFIER LPAREN formParams RPAREN
-rule 51   functionDeclareStatement -> arrayType IDENTIFIER LPAREN formParams RPAREN
-rule 52   functionDeclareStatement -> VOID IDENTIFIER LPAREN formParams RPAREN
-rule 53   functionDefineStatement -> type IDENTIFIER LPAREN formParams RPAREN LBRACE functionStatements RBRACE
-rule 54   functionDefineStatement -> arrayType IDENTIFIER LPAREN formParams RPAREN LBRACE functionStatements RBRACE
-rule 55   functionDefineStatement -> VOID IDENTIFIER LPAREN formParams RPAREN LBRACE functionStatements RBRACE
-rule 56   classMethodDefineStatement -> type CLASS_IDENTIFIER NAME_SPACE IDENTIFIER LPAREN formParams RPAREN LBRACE functionStatements RBRACE
-rule 57   classMethodDefineStatement -> arrayType CLASS_IDENTIFIER NAME_SPACE IDENTIFIER LPAREN formParams RPAREN LBRACE functionStatements RBRACE
-rule 58   classMethodDefineStatement -> VOID CLASS_IDENTIFIER NAME_SPACE IDENTIFIER LPAREN formParams RPAREN LBRACE functionStatements RBRACE
-rule 59   breakStatement -> BREAK
-rule 60   continueStatement -> CONTINUE
-rule 61   returnStatement -> RETURN expression
-rule 62   returnStatement -> RETURN
-rule 63   formParams ->		/* empty */
-rule 64   formParams -> formParam formParamSet
-rule 65   formParamSet ->		/* empty */
-rule 66   formParamSet -> COMMA formParam formParamSet
-rule 67   formParam -> type IDENTIFIER
-rule 68   formParam -> arrayType IDENTIFIER
-rule 69   expression -> compareExpression SC_AND expression
-rule 70   expression -> compareExpression SC_OR expression
-rule 71   expression -> BANG expression
-rule 72   expression -> compareExpression
-rule 73   compareExpression -> mathExpression EQ mathExpression
-rule 74   compareExpression -> mathExpression NE mathExpression
-rule 75   compareExpression -> mathExpression GT mathExpression
-rule 76   compareExpression -> mathExpression GE mathExpression
-rule 77   compareExpression -> mathExpression LT mathExpression
-rule 78   compareExpression -> mathExpression LE mathExpression
-rule 79   compareExpression -> mathExpression
-rule 80   mathExpression -> term PLUS mathExpression
-rule 81   mathExpression -> term MINUS mathExpression
-rule 82   mathExpression -> term
-rule 83   term -> factor STAR term
-rule 84   term -> factor SLASH term
-rule 85   term -> factor
-rule 86   factor -> DECIMAL_LITERAL
-rule 87   factor -> DECIMAL_FLOATING_POINT_LITERAL
-rule 88   factor -> CHAR_LITERAL
-rule 89   factor -> STRING_LITERAL
-rule 90   factor -> leftValue
-rule 91   factor -> leftValue LBRACKET expression RBRACKET
-rule 92   factor -> leftValue LPAREN factParams RPAREN
-rule 93   factor -> LPAREN expression RPAREN
-rule 94   factor -> MINUS DECIMAL_LITERAL
-rule 95   factor -> MINUS DECIMAL_FLOATING_POINT_LITERAL
-rule 96   leftValue -> IDENTIFIER leftValueSet
-rule 97   leftValueSet ->		/* empty */
-rule 98   leftValueSet -> DOT IDENTIFIER leftValueSet
-rule 99   factParams ->		/* empty */
-rule 100  factParams -> factParam factParamSet
-rule 101  factParamSet ->		/* empty */
-rule 102  factParamSet -> COMMA factParam factParamSet
-rule 103  factParam -> expression
-rule 104  arrayType -> type LBRACKET RBRACKET
-rule 105  type -> INT
-rule 106  type -> DOUBLE
-rule 107  type -> CHAR
-rule 108  type -> CLASS_IDENTIFIER
+rule 40   arrayAssignStatement -> leftValue ASSIGN MY_NULL
+rule 41   ifStatement -> IF LPAREN expression RPAREN LBRACE functionStatements RBRACE elifParts elsePart
+rule 42   elifParts ->		/* empty */
+rule 43   elifParts -> elifPart elifParts
+rule 44   elifPart -> ELIF LPAREN expression RPAREN LBRACE functionStatements RBRACE
+rule 45   elsePart ->		/* empty */
+rule 46   elsePart -> ELSE LBRACE functionStatements RBRACE
+rule 47   whileStatement -> WHILE LPAREN expression RPAREN LBRACE functionStatements RBRACE
+rule 48   foreachStatement -> FOREACH LPAREN IDENTIFIER IN leftValue RPAREN LBRACE functionStatements RBRACE
+rule 49   classDefineStatement -> CLASS CLASS_IDENTIFIER LBRACE classStatements RBRACE
+rule 50   classDefineStatement -> CLASS CLASS_IDENTIFIER EXTENDS CLASS_IDENTIFIER LBRACE classStatements RBRACE
+rule 51   functionDeclareStatement -> type IDENTIFIER LPAREN formParams RPAREN
+rule 52   functionDeclareStatement -> arrayType IDENTIFIER LPAREN formParams RPAREN
+rule 53   functionDeclareStatement -> VOID IDENTIFIER LPAREN formParams RPAREN
+rule 54   functionDefineStatement -> type IDENTIFIER LPAREN formParams RPAREN LBRACE functionStatements RBRACE
+rule 55   functionDefineStatement -> arrayType IDENTIFIER LPAREN formParams RPAREN LBRACE functionStatements RBRACE
+rule 56   functionDefineStatement -> VOID IDENTIFIER LPAREN formParams RPAREN LBRACE functionStatements RBRACE
+rule 57   classMethodDefineStatement -> type CLASS_IDENTIFIER NAME_SPACE IDENTIFIER LPAREN formParams RPAREN LBRACE functionStatements RBRACE
+rule 58   classMethodDefineStatement -> arrayType CLASS_IDENTIFIER NAME_SPACE IDENTIFIER LPAREN formParams RPAREN LBRACE functionStatements RBRACE
+rule 59   classMethodDefineStatement -> VOID CLASS_IDENTIFIER NAME_SPACE IDENTIFIER LPAREN formParams RPAREN LBRACE functionStatements RBRACE
+rule 60   breakStatement -> BREAK
+rule 61   continueStatement -> CONTINUE
+rule 62   returnStatement -> RETURN expression
+rule 63   returnStatement -> RETURN
+rule 64   formParams ->		/* empty */
+rule 65   formParams -> formParam formParamSet
+rule 66   formParamSet ->		/* empty */
+rule 67   formParamSet -> COMMA formParam formParamSet
+rule 68   formParam -> type IDENTIFIER
+rule 69   formParam -> arrayType IDENTIFIER
+rule 70   expression -> compareExpression SC_AND expression
+rule 71   expression -> compareExpression SC_OR expression
+rule 72   expression -> BANG expression
+rule 73   expression -> compareExpression
+rule 74   compareExpression -> mathExpression EQ mathExpression
+rule 75   compareExpression -> mathExpression EQ MY_NULL
+rule 76   compareExpression -> mathExpression NE mathExpression
+rule 77   compareExpression -> mathExpression NE MY_NULL
+rule 78   compareExpression -> mathExpression GT mathExpression
+rule 79   compareExpression -> mathExpression GE mathExpression
+rule 80   compareExpression -> mathExpression LT mathExpression
+rule 81   compareExpression -> mathExpression LE mathExpression
+rule 82   compareExpression -> mathExpression
+rule 83   mathExpression -> term PLUS mathExpression
+rule 84   mathExpression -> term MINUS mathExpression
+rule 85   mathExpression -> term
+rule 86   term -> factor STAR term
+rule 87   term -> factor SLASH term
+rule 88   term -> factor
+rule 89   factor -> DECIMAL_LITERAL
+rule 90   factor -> DECIMAL_FLOATING_POINT_LITERAL
+rule 91   factor -> CHAR_LITERAL
+rule 92   factor -> STRING_LITERAL
+rule 93   factor -> leftValue
+rule 94   factor -> leftValue LBRACKET expression RBRACKET
+rule 95   factor -> leftValue LPAREN factParams RPAREN
+rule 96   factor -> LPAREN expression RPAREN
+rule 97   factor -> MINUS DECIMAL_LITERAL
+rule 98   factor -> MINUS DECIMAL_FLOATING_POINT_LITERAL
+rule 99   leftValue -> IDENTIFIER leftValueSet
+rule 100  leftValueSet ->		/* empty */
+rule 101  leftValueSet -> DOT IDENTIFIER leftValueSet
+rule 102  factParams ->		/* empty */
+rule 103  factParams -> factParam factParamSet
+rule 104  factParamSet ->		/* empty */
+rule 105  factParamSet -> COMMA factParam factParamSet
+rule 106  factParam -> expression
+rule 107  arrayType -> type LBRACKET RBRACKET
+rule 108  type -> INT
+rule 109  type -> DOUBLE
+rule 110  type -> CHAR
+rule 111  type -> CLASS_IDENTIFIER
 
 Terminals, with rules where they appear
 
 $ (-1)
 error (256)
 BOOLEAN (257)
-BREAK (258) 59
-CHAR (259) 107
-CLASS (260) 48 49
-CONTINUE (261) 60
-DOUBLE (262) 106
-ELIF (263) 43
-ELSE (264) 45
-EXTENDS (265) 49
+BREAK (258) 60
+CHAR (259) 110
+CLASS (260) 49 50
+CONTINUE (261) 61
+DOUBLE (262) 109
+ELIF (263) 44
+ELSE (264) 46
+EXTENDS (265) 50
 FALSE (266)
 FOR (267)
-FOREACH (268) 47
-IF (269) 40
+FOREACH (268) 48
+IF (269) 41
 IMPORT (270)
-IN (271) 47
-INT (272) 105
-MY_NULL (273)
-RETURN (274) 61 62
+IN (271) 48
+INT (272) 108
+MY_NULL (273) 40 75 77
+RETURN (274) 62 63
 THIS (275)
 TRUE (276)
-VOID (277) 52 55 58
-WHILE (278) 46
+VOID (277) 53 56 59
+WHILE (278) 47
 PART_LETTER (279)
-DECIMAL_LITERAL (280) 86 94
-DECIMAL_FLOATING_POINT_LITERAL (281) 87 95
+DECIMAL_LITERAL (280) 89 97
+DECIMAL_FLOATING_POINT_LITERAL (281) 90 98
 TYPE_CHAR (282)
 STRING (283)
-LPAREN (284) 40 43 46 47 50 51 52 53 54 55 56 57 58 92 93
-RPAREN (285) 40 43 46 47 50 51 52 53 54 55 56 57 58 92 93
-LBRACE (286) 40 43 45 46 47 48 49 53 54 55 56 57 58
-RBRACE (287) 40 43 45 46 47 48 49 53 54 55 56 57 58
-LBRACKET (288) 35 38 39 91 104
-RBRACKET (289) 35 38 39 91 104
+LPAREN (284) 41 44 47 48 51 52 53 54 55 56 57 58 59 95 96
+RPAREN (285) 41 44 47 48 51 52 53 54 55 56 57 58 59 95 96
+LBRACE (286) 41 44 46 47 48 49 50 54 55 56 57 58 59
+RBRACE (287) 41 44 46 47 48 49 50 54 55 56 57 58 59
+LBRACKET (288) 35 38 39 94 107
+RBRACKET (289) 35 38 39 94 107
 SEMICOLON (290) 3 4 6 9 10 13 14 15 16 17 18 22 23 24 25 28 29 30 31
-COMMA (291) 66 102
-DOT (292) 98
-ASSIGN (293) 33 34 35 38 39
-LT (294) 77
-GT (295) 75
-BANG (296) 71
+COMMA (291) 67 105
+DOT (292) 101
+ASSIGN (293) 33 34 35 38 39 40
+LT (294) 80
+GT (295) 78
+BANG (296) 72
 TILDE (297)
-EQ (298) 73
-LE (299) 78
-GE (300) 76
-NE (301) 74
-SC_OR (302) 70
-SC_AND (303) 69
-PLUS (304) 80
-MINUS (305) 81 94 95
-STAR (306) 83
-SLASH (307) 84
+EQ (298) 74 75
+LE (299) 81
+GE (300) 79
+NE (301) 76 77
+SC_OR (302) 71
+SC_AND (303) 70
+PLUS (304) 83
+MINUS (305) 84 97 98
+STAR (306) 86
+SLASH (307) 87
 BIT_AND (308)
 BIT_OR (309)
 XOR (310)
 REM (311)
-NAME_SPACE (312) 56 57 58
-CLASS_IDENTIFIER (313) 48 49 56 57 58 108
-STRING_LITERAL (314) 89
-IDENTIFIER (315) 32 33 37 38 47 50 51 52 53 54 55 56 57 58 67 68 96
-    98
-CHAR_LITERAL (316) 88
+NAME_SPACE (312) 57 58 59
+CLASS_IDENTIFIER (313) 49 50 57 58 59 111
+STRING_LITERAL (314) 92
+IDENTIFIER (315) 32 33 37 38 48 51 52 53 54 55 56 57 58 59 68 69 99
+    101
+CHAR_LITERAL (316) 91
 
 Nonterminals, with rules where they appear
 
@@ -203,12 +205,12 @@ outerStatements (63)
 outerStatement (64)
     on left: 3 4 5 6 7 8 9 10, on right: 2
 functionStatements (65)
-    on left: 11 12, on right: 12 40 43 45 46 47 53 54 55 56 57 58
+    on left: 11 12, on right: 12 41 44 46 47 48 54 55 56 57 58 59
 functionStatement (66)
     on left: 13 14 15 16 17 18 19 20 21 22 23 24 25,
     on right: 12
 classStatements (67)
-    on left: 26 27, on right: 27 48 49
+    on left: 26 27, on right: 27 49 50
 classStatement (68)
     on left: 28 29 30 31, on right: 27
 varDeclareStatement (69)
@@ -222,64 +224,64 @@ arrayDeclareStatement (72)
 arrayDefineStatement (73)
     on left: 38, on right: 17
 arrayAssignStatement (74)
-    on left: 39, on right: 18
+    on left: 39 40, on right: 18
 ifStatement (75)
-    on left: 40, on right: 19
+    on left: 41, on right: 19
 elifParts (76)
-    on left: 41 42, on right: 40 42
+    on left: 42 43, on right: 41 43
 elifPart (77)
-    on left: 43, on right: 42
+    on left: 44, on right: 43
 elsePart (78)
-    on left: 44 45, on right: 40
+    on left: 45 46, on right: 41
 whileStatement (79)
-    on left: 46, on right: 20
+    on left: 47, on right: 20
 foreachStatement (80)
-    on left: 47, on right: 21
+    on left: 48, on right: 21
 classDefineStatement (81)
-    on left: 48 49, on right: 5
+    on left: 49 50, on right: 5
 functionDeclareStatement (82)
-    on left: 50 51 52, on right: 6 30
+    on left: 51 52 53, on right: 6 30
 functionDefineStatement (83)
-    on left: 53 54 55, on right: 7
+    on left: 54 55 56, on right: 7
 classMethodDefineStatement (84)
-    on left: 56 57 58, on right: 8
+    on left: 57 58 59, on right: 8
 breakStatement (85)
-    on left: 59, on right: 22
+    on left: 60, on right: 22
 continueStatement (86)
-    on left: 60, on right: 23
+    on left: 61, on right: 23
 returnStatement (87)
-    on left: 61 62, on right: 9 24
+    on left: 62 63, on right: 9 24
 formParams (88)
-    on left: 63 64, on right: 50 51 52 53 54 55 56 57 58
+    on left: 64 65, on right: 51 52 53 54 55 56 57 58 59
 formParamSet (89)
-    on left: 65 66, on right: 64 66
+    on left: 66 67, on right: 65 67
 formParam (90)
-    on left: 67 68, on right: 64 66
+    on left: 68 69, on right: 65 67
 expression (91)
-    on left: 69 70 71 72, on right: 33 34 35 36 38 39 40 43 46 61 69
-    70 71 91 93 103
+    on left: 70 71 72 73, on right: 33 34 35 36 38 39 41 44 47 62 70
+    71 72 94 96 106
 compareExpression (92)
-    on left: 73 74 75 76 77 78 79, on right: 69 70 72
+    on left: 74 75 76 77 78 79 80 81 82, on right: 70 71 73
 mathExpression (93)
-    on left: 80 81 82, on right: 73 74 75 76 77 78 79 80 81
+    on left: 83 84 85, on right: 74 75 76 77 78 79 80 81 82 83 84
 term (94)
-    on left: 83 84 85, on right: 80 81 82 83 84
+    on left: 86 87 88, on right: 83 84 85 86 87
 factor (95)
-    on left: 86 87 88 89 90 91 92 93 94 95, on right: 83 84 85
+    on left: 89 90 91 92 93 94 95 96 97 98, on right: 86 87 88
 leftValue (96)
-    on left: 96, on right: 34 35 39 47 90 91 92
+    on left: 99, on right: 34 35 39 40 48 93 94 95
 leftValueSet (97)
-    on left: 97 98, on right: 96 98
+    on left: 100 101, on right: 99 101
 factParams (98)
-    on left: 99 100, on right: 92
+    on left: 102 103, on right: 95
 factParamSet (99)
-    on left: 101 102, on right: 100 102
+    on left: 104 105, on right: 103 105
 factParam (100)
-    on left: 103, on right: 100 102
+    on left: 106, on right: 103 105
 arrayType (101)
-    on left: 104, on right: 37 38 51 54 57 68
+    on left: 107, on right: 37 38 52 55 58 69
 type (102)
-    on left: 105 106 107 108, on right: 32 33 38 39 50 53 56 67 104
+    on left: 108 109 110 111, on right: 32 33 38 39 51 54 57 68 107
 
 
 state 0
@@ -295,7 +297,7 @@ state 0
 
     $default	reduce using rule 1 (outerStatements)
 
-    outerStatements	go to state 263
+    outerStatements	go to state 266
     outerStatement	go to state 9
     varDeclareStatement	go to state 10
     arrayDeclareStatement	go to state 11
@@ -311,16 +313,16 @@ state 0
 
 state 1
 
-    type  ->  CHAR .   (rule 107)
+    type  ->  CHAR .   (rule 110)
 
-    $default	reduce using rule 107 (type)
+    $default	reduce using rule 110 (type)
 
 
 
 state 2
 
-    classDefineStatement  ->  CLASS . CLASS_IDENTIFIER LBRACE classStatements RBRACE   (rule 48)
-    classDefineStatement  ->  CLASS . CLASS_IDENTIFIER EXTENDS CLASS_IDENTIFIER LBRACE classStatements RBRACE   (rule 49)
+    classDefineStatement  ->  CLASS . CLASS_IDENTIFIER LBRACE classStatements RBRACE   (rule 49)
+    classDefineStatement  ->  CLASS . CLASS_IDENTIFIER EXTENDS CLASS_IDENTIFIER LBRACE classStatements RBRACE   (rule 50)
 
     CLASS_IDENTIFIER	shift, and go to state 19
 
@@ -328,24 +330,24 @@ state 2
 
 state 3
 
-    type  ->  DOUBLE .   (rule 106)
+    type  ->  DOUBLE .   (rule 109)
 
-    $default	reduce using rule 106 (type)
+    $default	reduce using rule 109 (type)
 
 
 
 state 4
 
-    type  ->  INT .   (rule 105)
+    type  ->  INT .   (rule 108)
 
-    $default	reduce using rule 105 (type)
+    $default	reduce using rule 108 (type)
 
 
 
 state 5
 
-    returnStatement  ->  RETURN . expression   (rule 61)
-    returnStatement  ->  RETURN .   (rule 62)
+    returnStatement  ->  RETURN . expression   (rule 62)
+    returnStatement  ->  RETURN .   (rule 63)
 
     DECIMAL_LITERAL	shift, and go to state 20
     DECIMAL_FLOATING_POINT_LITERAL	shift, and go to state 21
@@ -356,7 +358,7 @@ state 5
     IDENTIFIER	shift, and go to state 26
     CHAR_LITERAL	shift, and go to state 27
 
-    $default	reduce using rule 62 (returnStatement)
+    $default	reduce using rule 63 (returnStatement)
 
     expression	go to state 28
     compareExpression	go to state 29
@@ -369,9 +371,9 @@ state 5
 
 state 6
 
-    functionDeclareStatement  ->  VOID . IDENTIFIER LPAREN formParams RPAREN   (rule 52)
-    functionDefineStatement  ->  VOID . IDENTIFIER LPAREN formParams RPAREN LBRACE functionStatements RBRACE   (rule 55)
-    classMethodDefineStatement  ->  VOID . CLASS_IDENTIFIER NAME_SPACE IDENTIFIER LPAREN formParams RPAREN LBRACE functionStatements RBRACE   (rule 58)
+    functionDeclareStatement  ->  VOID . IDENTIFIER LPAREN formParams RPAREN   (rule 53)
+    functionDefineStatement  ->  VOID . IDENTIFIER LPAREN formParams RPAREN LBRACE functionStatements RBRACE   (rule 56)
+    classMethodDefineStatement  ->  VOID . CLASS_IDENTIFIER NAME_SPACE IDENTIFIER LPAREN formParams RPAREN LBRACE functionStatements RBRACE   (rule 59)
 
     CLASS_IDENTIFIER	shift, and go to state 34
     IDENTIFIER	shift, and go to state 35
@@ -388,9 +390,9 @@ state 7
 
 state 8
 
-    type  ->  CLASS_IDENTIFIER .   (rule 108)
+    type  ->  CLASS_IDENTIFIER .   (rule 111)
 
-    $default	reduce using rule 108 (type)
+    $default	reduce using rule 111 (type)
 
 
 
@@ -482,9 +484,9 @@ state 16
 state 17
 
     arrayDeclareStatement  ->  arrayType . IDENTIFIER   (rule 37)
-    functionDeclareStatement  ->  arrayType . IDENTIFIER LPAREN formParams RPAREN   (rule 51)
-    functionDefineStatement  ->  arrayType . IDENTIFIER LPAREN formParams RPAREN LBRACE functionStatements RBRACE   (rule 54)
-    classMethodDefineStatement  ->  arrayType . CLASS_IDENTIFIER NAME_SPACE IDENTIFIER LPAREN formParams RPAREN LBRACE functionStatements RBRACE   (rule 57)
+    functionDeclareStatement  ->  arrayType . IDENTIFIER LPAREN formParams RPAREN   (rule 52)
+    functionDefineStatement  ->  arrayType . IDENTIFIER LPAREN formParams RPAREN LBRACE functionStatements RBRACE   (rule 55)
+    classMethodDefineStatement  ->  arrayType . CLASS_IDENTIFIER NAME_SPACE IDENTIFIER LPAREN formParams RPAREN LBRACE functionStatements RBRACE   (rule 58)
 
     CLASS_IDENTIFIER	shift, and go to state 41
     IDENTIFIER	shift, and go to state 42
@@ -494,10 +496,10 @@ state 17
 state 18
 
     varDeclareStatement  ->  type . IDENTIFIER   (rule 32)
-    functionDeclareStatement  ->  type . IDENTIFIER LPAREN formParams RPAREN   (rule 50)
-    functionDefineStatement  ->  type . IDENTIFIER LPAREN formParams RPAREN LBRACE functionStatements RBRACE   (rule 53)
-    classMethodDefineStatement  ->  type . CLASS_IDENTIFIER NAME_SPACE IDENTIFIER LPAREN formParams RPAREN LBRACE functionStatements RBRACE   (rule 56)
-    arrayType  ->  type . LBRACKET RBRACKET   (rule 104)
+    functionDeclareStatement  ->  type . IDENTIFIER LPAREN formParams RPAREN   (rule 51)
+    functionDefineStatement  ->  type . IDENTIFIER LPAREN formParams RPAREN LBRACE functionStatements RBRACE   (rule 54)
+    classMethodDefineStatement  ->  type . CLASS_IDENTIFIER NAME_SPACE IDENTIFIER LPAREN formParams RPAREN LBRACE functionStatements RBRACE   (rule 57)
+    arrayType  ->  type . LBRACKET RBRACKET   (rule 107)
 
     LBRACKET	shift, and go to state 43
     CLASS_IDENTIFIER	shift, and go to state 44
@@ -507,8 +509,8 @@ state 18
 
 state 19
 
-    classDefineStatement  ->  CLASS CLASS_IDENTIFIER . LBRACE classStatements RBRACE   (rule 48)
-    classDefineStatement  ->  CLASS CLASS_IDENTIFIER . EXTENDS CLASS_IDENTIFIER LBRACE classStatements RBRACE   (rule 49)
+    classDefineStatement  ->  CLASS CLASS_IDENTIFIER . LBRACE classStatements RBRACE   (rule 49)
+    classDefineStatement  ->  CLASS CLASS_IDENTIFIER . EXTENDS CLASS_IDENTIFIER LBRACE classStatements RBRACE   (rule 50)
 
     EXTENDS	shift, and go to state 46
     LBRACE	shift, and go to state 47
@@ -517,23 +519,23 @@ state 19
 
 state 20
 
-    factor  ->  DECIMAL_LITERAL .   (rule 86)
+    factor  ->  DECIMAL_LITERAL .   (rule 89)
 
-    $default	reduce using rule 86 (factor)
+    $default	reduce using rule 89 (factor)
 
 
 
 state 21
 
-    factor  ->  DECIMAL_FLOATING_POINT_LITERAL .   (rule 87)
+    factor  ->  DECIMAL_FLOATING_POINT_LITERAL .   (rule 90)
 
-    $default	reduce using rule 87 (factor)
+    $default	reduce using rule 90 (factor)
 
 
 
 state 22
 
-    factor  ->  LPAREN . expression RPAREN   (rule 93)
+    factor  ->  LPAREN . expression RPAREN   (rule 96)
 
     DECIMAL_LITERAL	shift, and go to state 20
     DECIMAL_FLOATING_POINT_LITERAL	shift, and go to state 21
@@ -555,7 +557,7 @@ state 22
 
 state 23
 
-    expression  ->  BANG . expression   (rule 71)
+    expression  ->  BANG . expression   (rule 72)
 
     DECIMAL_LITERAL	shift, and go to state 20
     DECIMAL_FLOATING_POINT_LITERAL	shift, and go to state 21
@@ -577,8 +579,8 @@ state 23
 
 state 24
 
-    factor  ->  MINUS . DECIMAL_LITERAL   (rule 94)
-    factor  ->  MINUS . DECIMAL_FLOATING_POINT_LITERAL   (rule 95)
+    factor  ->  MINUS . DECIMAL_LITERAL   (rule 97)
+    factor  ->  MINUS . DECIMAL_FLOATING_POINT_LITERAL   (rule 98)
 
     DECIMAL_LITERAL	shift, and go to state 50
     DECIMAL_FLOATING_POINT_LITERAL	shift, and go to state 51
@@ -587,19 +589,19 @@ state 24
 
 state 25
 
-    factor  ->  STRING_LITERAL .   (rule 89)
+    factor  ->  STRING_LITERAL .   (rule 92)
 
-    $default	reduce using rule 89 (factor)
+    $default	reduce using rule 92 (factor)
 
 
 
 state 26
 
-    leftValue  ->  IDENTIFIER . leftValueSet   (rule 96)
+    leftValue  ->  IDENTIFIER . leftValueSet   (rule 99)
 
     DOT 	shift, and go to state 52
 
-    $default	reduce using rule 97 (leftValueSet)
+    $default	reduce using rule 100 (leftValueSet)
 
     leftValueSet	go to state 53
 
@@ -607,42 +609,44 @@ state 26
 
 state 27
 
-    factor  ->  CHAR_LITERAL .   (rule 88)
+    factor  ->  CHAR_LITERAL .   (rule 91)
 
-    $default	reduce using rule 88 (factor)
+    $default	reduce using rule 91 (factor)
 
 
 
 state 28
 
-    returnStatement  ->  RETURN expression .   (rule 61)
+    returnStatement  ->  RETURN expression .   (rule 62)
 
-    $default	reduce using rule 61 (returnStatement)
+    $default	reduce using rule 62 (returnStatement)
 
 
 
 state 29
 
-    expression  ->  compareExpression . SC_AND expression   (rule 69)
-    expression  ->  compareExpression . SC_OR expression   (rule 70)
-    expression  ->  compareExpression .   (rule 72)
+    expression  ->  compareExpression . SC_AND expression   (rule 70)
+    expression  ->  compareExpression . SC_OR expression   (rule 71)
+    expression  ->  compareExpression .   (rule 73)
 
     SC_OR	shift, and go to state 54
     SC_AND	shift, and go to state 55
 
-    $default	reduce using rule 72 (expression)
+    $default	reduce using rule 73 (expression)
 
 
 
 state 30
 
-    compareExpression  ->  mathExpression . EQ mathExpression   (rule 73)
-    compareExpression  ->  mathExpression . NE mathExpression   (rule 74)
-    compareExpression  ->  mathExpression . GT mathExpression   (rule 75)
-    compareExpression  ->  mathExpression . GE mathExpression   (rule 76)
-    compareExpression  ->  mathExpression . LT mathExpression   (rule 77)
-    compareExpression  ->  mathExpression . LE mathExpression   (rule 78)
-    compareExpression  ->  mathExpression .   (rule 79)
+    compareExpression  ->  mathExpression . EQ mathExpression   (rule 74)
+    compareExpression  ->  mathExpression . EQ MY_NULL   (rule 75)
+    compareExpression  ->  mathExpression . NE mathExpression   (rule 76)
+    compareExpression  ->  mathExpression . NE MY_NULL   (rule 77)
+    compareExpression  ->  mathExpression . GT mathExpression   (rule 78)
+    compareExpression  ->  mathExpression . GE mathExpression   (rule 79)
+    compareExpression  ->  mathExpression . LT mathExpression   (rule 80)
+    compareExpression  ->  mathExpression . LE mathExpression   (rule 81)
+    compareExpression  ->  mathExpression .   (rule 82)
 
     LT  	shift, and go to state 56
     GT  	shift, and go to state 57
@@ -651,52 +655,52 @@ state 30
     GE  	shift, and go to state 60
     NE  	shift, and go to state 61
 
-    $default	reduce using rule 79 (compareExpression)
+    $default	reduce using rule 82 (compareExpression)
 
 
 
 state 31
 
-    mathExpression  ->  term . PLUS mathExpression   (rule 80)
-    mathExpression  ->  term . MINUS mathExpression   (rule 81)
-    mathExpression  ->  term .   (rule 82)
+    mathExpression  ->  term . PLUS mathExpression   (rule 83)
+    mathExpression  ->  term . MINUS mathExpression   (rule 84)
+    mathExpression  ->  term .   (rule 85)
 
     PLUS	shift, and go to state 62
     MINUS	shift, and go to state 63
 
-    $default	reduce using rule 82 (mathExpression)
+    $default	reduce using rule 85 (mathExpression)
 
 
 
 state 32
 
-    term  ->  factor . STAR term   (rule 83)
-    term  ->  factor . SLASH term   (rule 84)
-    term  ->  factor .   (rule 85)
+    term  ->  factor . STAR term   (rule 86)
+    term  ->  factor . SLASH term   (rule 87)
+    term  ->  factor .   (rule 88)
 
     STAR	shift, and go to state 64
     SLASH	shift, and go to state 65
 
-    $default	reduce using rule 85 (term)
+    $default	reduce using rule 88 (term)
 
 
 
 state 33
 
-    factor  ->  leftValue .   (rule 90)
-    factor  ->  leftValue . LBRACKET expression RBRACKET   (rule 91)
-    factor  ->  leftValue . LPAREN factParams RPAREN   (rule 92)
+    factor  ->  leftValue .   (rule 93)
+    factor  ->  leftValue . LBRACKET expression RBRACKET   (rule 94)
+    factor  ->  leftValue . LPAREN factParams RPAREN   (rule 95)
 
     LPAREN	shift, and go to state 66
     LBRACKET	shift, and go to state 67
 
-    $default	reduce using rule 90 (factor)
+    $default	reduce using rule 93 (factor)
 
 
 
 state 34
 
-    classMethodDefineStatement  ->  VOID CLASS_IDENTIFIER . NAME_SPACE IDENTIFIER LPAREN formParams RPAREN LBRACE functionStatements RBRACE   (rule 58)
+    classMethodDefineStatement  ->  VOID CLASS_IDENTIFIER . NAME_SPACE IDENTIFIER LPAREN formParams RPAREN LBRACE functionStatements RBRACE   (rule 59)
 
     NAME_SPACE	shift, and go to state 68
 
@@ -704,8 +708,8 @@ state 34
 
 state 35
 
-    functionDeclareStatement  ->  VOID IDENTIFIER . LPAREN formParams RPAREN   (rule 52)
-    functionDefineStatement  ->  VOID IDENTIFIER . LPAREN formParams RPAREN LBRACE functionStatements RBRACE   (rule 55)
+    functionDeclareStatement  ->  VOID IDENTIFIER . LPAREN formParams RPAREN   (rule 53)
+    functionDefineStatement  ->  VOID IDENTIFIER . LPAREN formParams RPAREN LBRACE functionStatements RBRACE   (rule 56)
 
     LPAREN	shift, and go to state 69
 
@@ -753,7 +757,7 @@ state 40
 
 state 41
 
-    classMethodDefineStatement  ->  arrayType CLASS_IDENTIFIER . NAME_SPACE IDENTIFIER LPAREN formParams RPAREN LBRACE functionStatements RBRACE   (rule 57)
+    classMethodDefineStatement  ->  arrayType CLASS_IDENTIFIER . NAME_SPACE IDENTIFIER LPAREN formParams RPAREN LBRACE functionStatements RBRACE   (rule 58)
 
     NAME_SPACE	shift, and go to state 70
 
@@ -762,8 +766,8 @@ state 41
 state 42
 
     arrayDeclareStatement  ->  arrayType IDENTIFIER .   (rule 37)
-    functionDeclareStatement  ->  arrayType IDENTIFIER . LPAREN formParams RPAREN   (rule 51)
-    functionDefineStatement  ->  arrayType IDENTIFIER . LPAREN formParams RPAREN LBRACE functionStatements RBRACE   (rule 54)
+    functionDeclareStatement  ->  arrayType IDENTIFIER . LPAREN formParams RPAREN   (rule 52)
+    functionDefineStatement  ->  arrayType IDENTIFIER . LPAREN formParams RPAREN LBRACE functionStatements RBRACE   (rule 55)
 
     LPAREN	shift, and go to state 71
 
@@ -773,7 +777,7 @@ state 42
 
 state 43
 
-    arrayType  ->  type LBRACKET . RBRACKET   (rule 104)
+    arrayType  ->  type LBRACKET . RBRACKET   (rule 107)
 
     RBRACKET	shift, and go to state 72
 
@@ -781,7 +785,7 @@ state 43
 
 state 44
 
-    classMethodDefineStatement  ->  type CLASS_IDENTIFIER . NAME_SPACE IDENTIFIER LPAREN formParams RPAREN LBRACE functionStatements RBRACE   (rule 56)
+    classMethodDefineStatement  ->  type CLASS_IDENTIFIER . NAME_SPACE IDENTIFIER LPAREN formParams RPAREN LBRACE functionStatements RBRACE   (rule 57)
 
     NAME_SPACE	shift, and go to state 73
 
@@ -790,8 +794,8 @@ state 44
 state 45
 
     varDeclareStatement  ->  type IDENTIFIER .   (rule 32)
-    functionDeclareStatement  ->  type IDENTIFIER . LPAREN formParams RPAREN   (rule 50)
-    functionDefineStatement  ->  type IDENTIFIER . LPAREN formParams RPAREN LBRACE functionStatements RBRACE   (rule 53)
+    functionDeclareStatement  ->  type IDENTIFIER . LPAREN formParams RPAREN   (rule 51)
+    functionDefineStatement  ->  type IDENTIFIER . LPAREN formParams RPAREN LBRACE functionStatements RBRACE   (rule 54)
 
     LPAREN	shift, and go to state 74
 
@@ -801,7 +805,7 @@ state 45
 
 state 46
 
-    classDefineStatement  ->  CLASS CLASS_IDENTIFIER EXTENDS . CLASS_IDENTIFIER LBRACE classStatements RBRACE   (rule 49)
+    classDefineStatement  ->  CLASS CLASS_IDENTIFIER EXTENDS . CLASS_IDENTIFIER LBRACE classStatements RBRACE   (rule 50)
 
     CLASS_IDENTIFIER	shift, and go to state 75
 
@@ -809,7 +813,7 @@ state 46
 
 state 47
 
-    classDefineStatement  ->  CLASS CLASS_IDENTIFIER LBRACE . classStatements RBRACE   (rule 48)
+    classDefineStatement  ->  CLASS CLASS_IDENTIFIER LBRACE . classStatements RBRACE   (rule 49)
 
     CHAR	shift, and go to state 1
     DOUBLE	shift, and go to state 3
@@ -832,7 +836,7 @@ state 47
 
 state 48
 
-    factor  ->  LPAREN expression . RPAREN   (rule 93)
+    factor  ->  LPAREN expression . RPAREN   (rule 96)
 
     RPAREN	shift, and go to state 85
 
@@ -840,31 +844,31 @@ state 48
 
 state 49
 
-    expression  ->  BANG expression .   (rule 71)
+    expression  ->  BANG expression .   (rule 72)
 
-    $default	reduce using rule 71 (expression)
+    $default	reduce using rule 72 (expression)
 
 
 
 state 50
 
-    factor  ->  MINUS DECIMAL_LITERAL .   (rule 94)
+    factor  ->  MINUS DECIMAL_LITERAL .   (rule 97)
 
-    $default	reduce using rule 94 (factor)
+    $default	reduce using rule 97 (factor)
 
 
 
 state 51
 
-    factor  ->  MINUS DECIMAL_FLOATING_POINT_LITERAL .   (rule 95)
+    factor  ->  MINUS DECIMAL_FLOATING_POINT_LITERAL .   (rule 98)
 
-    $default	reduce using rule 95 (factor)
+    $default	reduce using rule 98 (factor)
 
 
 
 state 52
 
-    leftValueSet  ->  DOT . IDENTIFIER leftValueSet   (rule 98)
+    leftValueSet  ->  DOT . IDENTIFIER leftValueSet   (rule 101)
 
     IDENTIFIER	shift, and go to state 86
 
@@ -872,15 +876,15 @@ state 52
 
 state 53
 
-    leftValue  ->  IDENTIFIER leftValueSet .   (rule 96)
+    leftValue  ->  IDENTIFIER leftValueSet .   (rule 99)
 
-    $default	reduce using rule 96 (leftValue)
+    $default	reduce using rule 99 (leftValue)
 
 
 
 state 54
 
-    expression  ->  compareExpression SC_OR . expression   (rule 70)
+    expression  ->  compareExpression SC_OR . expression   (rule 71)
 
     DECIMAL_LITERAL	shift, and go to state 20
     DECIMAL_FLOATING_POINT_LITERAL	shift, and go to state 21
@@ -902,7 +906,7 @@ state 54
 
 state 55
 
-    expression  ->  compareExpression SC_AND . expression   (rule 69)
+    expression  ->  compareExpression SC_AND . expression   (rule 70)
 
     DECIMAL_LITERAL	shift, and go to state 20
     DECIMAL_FLOATING_POINT_LITERAL	shift, and go to state 21
@@ -924,7 +928,7 @@ state 55
 
 state 56
 
-    compareExpression  ->  mathExpression LT . mathExpression   (rule 77)
+    compareExpression  ->  mathExpression LT . mathExpression   (rule 80)
 
     DECIMAL_LITERAL	shift, and go to state 20
     DECIMAL_FLOATING_POINT_LITERAL	shift, and go to state 21
@@ -943,7 +947,7 @@ state 56
 
 state 57
 
-    compareExpression  ->  mathExpression GT . mathExpression   (rule 75)
+    compareExpression  ->  mathExpression GT . mathExpression   (rule 78)
 
     DECIMAL_LITERAL	shift, and go to state 20
     DECIMAL_FLOATING_POINT_LITERAL	shift, and go to state 21
@@ -962,27 +966,10 @@ state 57
 
 state 58
 
-    compareExpression  ->  mathExpression EQ . mathExpression   (rule 73)
+    compareExpression  ->  mathExpression EQ . mathExpression   (rule 74)
+    compareExpression  ->  mathExpression EQ . MY_NULL   (rule 75)
 
-    DECIMAL_LITERAL	shift, and go to state 20
-    DECIMAL_FLOATING_POINT_LITERAL	shift, and go to state 21
-    LPAREN	shift, and go to state 22
-    MINUS	shift, and go to state 24
-    STRING_LITERAL	shift, and go to state 25
-    IDENTIFIER	shift, and go to state 26
-    CHAR_LITERAL	shift, and go to state 27
-
-    mathExpression	go to state 91
-    term	go to state 31
-    factor	go to state 32
-    leftValue	go to state 33
-
-
-
-state 59
-
-    compareExpression  ->  mathExpression LE . mathExpression   (rule 78)
-
+    MY_NULL	shift, and go to state 91
     DECIMAL_LITERAL	shift, and go to state 20
     DECIMAL_FLOATING_POINT_LITERAL	shift, and go to state 21
     LPAREN	shift, and go to state 22
@@ -998,9 +985,9 @@ state 59
 
 
 
-state 60
+state 59
 
-    compareExpression  ->  mathExpression GE . mathExpression   (rule 76)
+    compareExpression  ->  mathExpression LE . mathExpression   (rule 81)
 
     DECIMAL_LITERAL	shift, and go to state 20
     DECIMAL_FLOATING_POINT_LITERAL	shift, and go to state 21
@@ -1017,9 +1004,9 @@ state 60
 
 
 
-state 61
+state 60
 
-    compareExpression  ->  mathExpression NE . mathExpression   (rule 74)
+    compareExpression  ->  mathExpression GE . mathExpression   (rule 79)
 
     DECIMAL_LITERAL	shift, and go to state 20
     DECIMAL_FLOATING_POINT_LITERAL	shift, and go to state 21
@@ -1036,29 +1023,12 @@ state 61
 
 
 
-state 62
+state 61
 
-    mathExpression  ->  term PLUS . mathExpression   (rule 80)
+    compareExpression  ->  mathExpression NE . mathExpression   (rule 76)
+    compareExpression  ->  mathExpression NE . MY_NULL   (rule 77)
 
-    DECIMAL_LITERAL	shift, and go to state 20
-    DECIMAL_FLOATING_POINT_LITERAL	shift, and go to state 21
-    LPAREN	shift, and go to state 22
-    MINUS	shift, and go to state 24
-    STRING_LITERAL	shift, and go to state 25
-    IDENTIFIER	shift, and go to state 26
-    CHAR_LITERAL	shift, and go to state 27
-
-    mathExpression	go to state 95
-    term	go to state 31
-    factor	go to state 32
-    leftValue	go to state 33
-
-
-
-state 63
-
-    mathExpression  ->  term MINUS . mathExpression   (rule 81)
-
+    MY_NULL	shift, and go to state 95
     DECIMAL_LITERAL	shift, and go to state 20
     DECIMAL_FLOATING_POINT_LITERAL	shift, and go to state 21
     LPAREN	shift, and go to state 22
@@ -1074,9 +1044,9 @@ state 63
 
 
 
-state 64
+state 62
 
-    term  ->  factor STAR . term   (rule 83)
+    mathExpression  ->  term PLUS . mathExpression   (rule 83)
 
     DECIMAL_LITERAL	shift, and go to state 20
     DECIMAL_FLOATING_POINT_LITERAL	shift, and go to state 21
@@ -1086,7 +1056,45 @@ state 64
     IDENTIFIER	shift, and go to state 26
     CHAR_LITERAL	shift, and go to state 27
 
-    term	go to state 97
+    mathExpression	go to state 97
+    term	go to state 31
+    factor	go to state 32
+    leftValue	go to state 33
+
+
+
+state 63
+
+    mathExpression  ->  term MINUS . mathExpression   (rule 84)
+
+    DECIMAL_LITERAL	shift, and go to state 20
+    DECIMAL_FLOATING_POINT_LITERAL	shift, and go to state 21
+    LPAREN	shift, and go to state 22
+    MINUS	shift, and go to state 24
+    STRING_LITERAL	shift, and go to state 25
+    IDENTIFIER	shift, and go to state 26
+    CHAR_LITERAL	shift, and go to state 27
+
+    mathExpression	go to state 98
+    term	go to state 31
+    factor	go to state 32
+    leftValue	go to state 33
+
+
+
+state 64
+
+    term  ->  factor STAR . term   (rule 86)
+
+    DECIMAL_LITERAL	shift, and go to state 20
+    DECIMAL_FLOATING_POINT_LITERAL	shift, and go to state 21
+    LPAREN	shift, and go to state 22
+    MINUS	shift, and go to state 24
+    STRING_LITERAL	shift, and go to state 25
+    IDENTIFIER	shift, and go to state 26
+    CHAR_LITERAL	shift, and go to state 27
+
+    term	go to state 99
     factor	go to state 32
     leftValue	go to state 33
 
@@ -1094,7 +1102,7 @@ state 64
 
 state 65
 
-    term  ->  factor SLASH . term   (rule 84)
+    term  ->  factor SLASH . term   (rule 87)
 
     DECIMAL_LITERAL	shift, and go to state 20
     DECIMAL_FLOATING_POINT_LITERAL	shift, and go to state 21
@@ -1104,7 +1112,7 @@ state 65
     IDENTIFIER	shift, and go to state 26
     CHAR_LITERAL	shift, and go to state 27
 
-    term	go to state 98
+    term	go to state 100
     factor	go to state 32
     leftValue	go to state 33
 
@@ -1112,7 +1120,7 @@ state 65
 
 state 66
 
-    factor  ->  leftValue LPAREN . factParams RPAREN   (rule 92)
+    factor  ->  leftValue LPAREN . factParams RPAREN   (rule 95)
 
     DECIMAL_LITERAL	shift, and go to state 20
     DECIMAL_FLOATING_POINT_LITERAL	shift, and go to state 21
@@ -1123,22 +1131,22 @@ state 66
     IDENTIFIER	shift, and go to state 26
     CHAR_LITERAL	shift, and go to state 27
 
-    $default	reduce using rule 99 (factParams)
+    $default	reduce using rule 102 (factParams)
 
-    expression	go to state 99
+    expression	go to state 101
     compareExpression	go to state 29
     mathExpression	go to state 30
     term	go to state 31
     factor	go to state 32
     leftValue	go to state 33
-    factParams	go to state 100
-    factParam	go to state 101
+    factParams	go to state 102
+    factParam	go to state 103
 
 
 
 state 67
 
-    factor  ->  leftValue LBRACKET . expression RBRACKET   (rule 91)
+    factor  ->  leftValue LBRACKET . expression RBRACKET   (rule 94)
 
     DECIMAL_LITERAL	shift, and go to state 20
     DECIMAL_FLOATING_POINT_LITERAL	shift, and go to state 21
@@ -1149,7 +1157,7 @@ state 67
     IDENTIFIER	shift, and go to state 26
     CHAR_LITERAL	shift, and go to state 27
 
-    expression	go to state 102
+    expression	go to state 104
     compareExpression	go to state 29
     mathExpression	go to state 30
     term	go to state 31
@@ -1160,106 +1168,106 @@ state 67
 
 state 68
 
-    classMethodDefineStatement  ->  VOID CLASS_IDENTIFIER NAME_SPACE . IDENTIFIER LPAREN formParams RPAREN LBRACE functionStatements RBRACE   (rule 58)
+    classMethodDefineStatement  ->  VOID CLASS_IDENTIFIER NAME_SPACE . IDENTIFIER LPAREN formParams RPAREN LBRACE functionStatements RBRACE   (rule 59)
 
-    IDENTIFIER	shift, and go to state 103
+    IDENTIFIER	shift, and go to state 105
 
 
 
 state 69
 
-    functionDeclareStatement  ->  VOID IDENTIFIER LPAREN . formParams RPAREN   (rule 52)
-    functionDefineStatement  ->  VOID IDENTIFIER LPAREN . formParams RPAREN LBRACE functionStatements RBRACE   (rule 55)
+    functionDeclareStatement  ->  VOID IDENTIFIER LPAREN . formParams RPAREN   (rule 53)
+    functionDefineStatement  ->  VOID IDENTIFIER LPAREN . formParams RPAREN LBRACE functionStatements RBRACE   (rule 56)
 
     CHAR	shift, and go to state 1
     DOUBLE	shift, and go to state 3
     INT 	shift, and go to state 4
     CLASS_IDENTIFIER	shift, and go to state 8
 
-    $default	reduce using rule 63 (formParams)
+    $default	reduce using rule 64 (formParams)
 
-    formParams	go to state 104
-    formParam	go to state 105
-    arrayType	go to state 106
-    type	go to state 107
+    formParams	go to state 106
+    formParam	go to state 107
+    arrayType	go to state 108
+    type	go to state 109
 
 
 
 state 70
 
-    classMethodDefineStatement  ->  arrayType CLASS_IDENTIFIER NAME_SPACE . IDENTIFIER LPAREN formParams RPAREN LBRACE functionStatements RBRACE   (rule 57)
-
-    IDENTIFIER	shift, and go to state 108
-
-
-
-state 71
-
-    functionDeclareStatement  ->  arrayType IDENTIFIER LPAREN . formParams RPAREN   (rule 51)
-    functionDefineStatement  ->  arrayType IDENTIFIER LPAREN . formParams RPAREN LBRACE functionStatements RBRACE   (rule 54)
-
-    CHAR	shift, and go to state 1
-    DOUBLE	shift, and go to state 3
-    INT 	shift, and go to state 4
-    CLASS_IDENTIFIER	shift, and go to state 8
-
-    $default	reduce using rule 63 (formParams)
-
-    formParams	go to state 109
-    formParam	go to state 105
-    arrayType	go to state 106
-    type	go to state 107
-
-
-
-state 72
-
-    arrayType  ->  type LBRACKET RBRACKET .   (rule 104)
-
-    $default	reduce using rule 104 (arrayType)
-
-
-
-state 73
-
-    classMethodDefineStatement  ->  type CLASS_IDENTIFIER NAME_SPACE . IDENTIFIER LPAREN formParams RPAREN LBRACE functionStatements RBRACE   (rule 56)
+    classMethodDefineStatement  ->  arrayType CLASS_IDENTIFIER NAME_SPACE . IDENTIFIER LPAREN formParams RPAREN LBRACE functionStatements RBRACE   (rule 58)
 
     IDENTIFIER	shift, and go to state 110
 
 
 
-state 74
+state 71
 
-    functionDeclareStatement  ->  type IDENTIFIER LPAREN . formParams RPAREN   (rule 50)
-    functionDefineStatement  ->  type IDENTIFIER LPAREN . formParams RPAREN LBRACE functionStatements RBRACE   (rule 53)
+    functionDeclareStatement  ->  arrayType IDENTIFIER LPAREN . formParams RPAREN   (rule 52)
+    functionDefineStatement  ->  arrayType IDENTIFIER LPAREN . formParams RPAREN LBRACE functionStatements RBRACE   (rule 55)
 
     CHAR	shift, and go to state 1
     DOUBLE	shift, and go to state 3
     INT 	shift, and go to state 4
     CLASS_IDENTIFIER	shift, and go to state 8
 
-    $default	reduce using rule 63 (formParams)
+    $default	reduce using rule 64 (formParams)
 
     formParams	go to state 111
-    formParam	go to state 105
-    arrayType	go to state 106
-    type	go to state 107
+    formParam	go to state 107
+    arrayType	go to state 108
+    type	go to state 109
+
+
+
+state 72
+
+    arrayType  ->  type LBRACKET RBRACKET .   (rule 107)
+
+    $default	reduce using rule 107 (arrayType)
+
+
+
+state 73
+
+    classMethodDefineStatement  ->  type CLASS_IDENTIFIER NAME_SPACE . IDENTIFIER LPAREN formParams RPAREN LBRACE functionStatements RBRACE   (rule 57)
+
+    IDENTIFIER	shift, and go to state 112
+
+
+
+state 74
+
+    functionDeclareStatement  ->  type IDENTIFIER LPAREN . formParams RPAREN   (rule 51)
+    functionDefineStatement  ->  type IDENTIFIER LPAREN . formParams RPAREN LBRACE functionStatements RBRACE   (rule 54)
+
+    CHAR	shift, and go to state 1
+    DOUBLE	shift, and go to state 3
+    INT 	shift, and go to state 4
+    CLASS_IDENTIFIER	shift, and go to state 8
+
+    $default	reduce using rule 64 (formParams)
+
+    formParams	go to state 113
+    formParam	go to state 107
+    arrayType	go to state 108
+    type	go to state 109
 
 
 
 state 75
 
-    classDefineStatement  ->  CLASS CLASS_IDENTIFIER EXTENDS CLASS_IDENTIFIER . LBRACE classStatements RBRACE   (rule 49)
+    classDefineStatement  ->  CLASS CLASS_IDENTIFIER EXTENDS CLASS_IDENTIFIER . LBRACE classStatements RBRACE   (rule 50)
 
-    LBRACE	shift, and go to state 112
+    LBRACE	shift, and go to state 114
 
 
 
 state 76
 
-    functionDeclareStatement  ->  VOID . IDENTIFIER LPAREN formParams RPAREN   (rule 52)
+    functionDeclareStatement  ->  VOID . IDENTIFIER LPAREN formParams RPAREN   (rule 53)
 
-    IDENTIFIER	shift, and go to state 113
+    IDENTIFIER	shift, and go to state 115
 
 
 
@@ -1273,9 +1281,9 @@ state 77
 
 state 78
 
-    classDefineStatement  ->  CLASS CLASS_IDENTIFIER LBRACE classStatements . RBRACE   (rule 48)
+    classDefineStatement  ->  CLASS CLASS_IDENTIFIER LBRACE classStatements . RBRACE   (rule 49)
 
-    RBRACE	shift, and go to state 114
+    RBRACE	shift, and go to state 116
 
 
 
@@ -1292,7 +1300,7 @@ state 79
 
     $default	reduce using rule 26 (classStatements)
 
-    classStatements	go to state 115
+    classStatements	go to state 117
     classStatement	go to state 79
     varDeclareStatement	go to state 80
     arrayDeclareStatement	go to state 81
@@ -1306,7 +1314,7 @@ state 80
 
     classStatement  ->  varDeclareStatement . SEMICOLON   (rule 28)
 
-    SEMICOLON	shift, and go to state 116
+    SEMICOLON	shift, and go to state 118
 
 
 
@@ -1314,7 +1322,7 @@ state 81
 
     classStatement  ->  arrayDeclareStatement . SEMICOLON   (rule 29)
 
-    SEMICOLON	shift, and go to state 117
+    SEMICOLON	shift, and go to state 119
 
 
 
@@ -1322,249 +1330,248 @@ state 82
 
     classStatement  ->  functionDeclareStatement . SEMICOLON   (rule 30)
 
-    SEMICOLON	shift, and go to state 118
+    SEMICOLON	shift, and go to state 120
 
 
 
 state 83
 
     arrayDeclareStatement  ->  arrayType . IDENTIFIER   (rule 37)
-    functionDeclareStatement  ->  arrayType . IDENTIFIER LPAREN formParams RPAREN   (rule 51)
+    functionDeclareStatement  ->  arrayType . IDENTIFIER LPAREN formParams RPAREN   (rule 52)
 
-    IDENTIFIER	shift, and go to state 119
+    IDENTIFIER	shift, and go to state 121
 
 
 
 state 84
 
     varDeclareStatement  ->  type . IDENTIFIER   (rule 32)
-    functionDeclareStatement  ->  type . IDENTIFIER LPAREN formParams RPAREN   (rule 50)
-    arrayType  ->  type . LBRACKET RBRACKET   (rule 104)
+    functionDeclareStatement  ->  type . IDENTIFIER LPAREN formParams RPAREN   (rule 51)
+    arrayType  ->  type . LBRACKET RBRACKET   (rule 107)
 
     LBRACKET	shift, and go to state 43
-    IDENTIFIER	shift, and go to state 120
+    IDENTIFIER	shift, and go to state 122
 
 
 
 state 85
 
-    factor  ->  LPAREN expression RPAREN .   (rule 93)
+    factor  ->  LPAREN expression RPAREN .   (rule 96)
 
-    $default	reduce using rule 93 (factor)
+    $default	reduce using rule 96 (factor)
 
 
 
 state 86
 
-    leftValueSet  ->  DOT IDENTIFIER . leftValueSet   (rule 98)
+    leftValueSet  ->  DOT IDENTIFIER . leftValueSet   (rule 101)
 
     DOT 	shift, and go to state 52
 
-    $default	reduce using rule 97 (leftValueSet)
+    $default	reduce using rule 100 (leftValueSet)
 
-    leftValueSet	go to state 121
+    leftValueSet	go to state 123
 
 
 
 state 87
 
-    expression  ->  compareExpression SC_OR expression .   (rule 70)
+    expression  ->  compareExpression SC_OR expression .   (rule 71)
 
-    $default	reduce using rule 70 (expression)
+    $default	reduce using rule 71 (expression)
 
 
 
 state 88
 
-    expression  ->  compareExpression SC_AND expression .   (rule 69)
+    expression  ->  compareExpression SC_AND expression .   (rule 70)
 
-    $default	reduce using rule 69 (expression)
+    $default	reduce using rule 70 (expression)
 
 
 
 state 89
 
-    compareExpression  ->  mathExpression LT mathExpression .   (rule 77)
+    compareExpression  ->  mathExpression LT mathExpression .   (rule 80)
 
-    $default	reduce using rule 77 (compareExpression)
+    $default	reduce using rule 80 (compareExpression)
 
 
 
 state 90
 
-    compareExpression  ->  mathExpression GT mathExpression .   (rule 75)
-
-    $default	reduce using rule 75 (compareExpression)
-
-
-
-state 91
-
-    compareExpression  ->  mathExpression EQ mathExpression .   (rule 73)
-
-    $default	reduce using rule 73 (compareExpression)
-
-
-
-state 92
-
-    compareExpression  ->  mathExpression LE mathExpression .   (rule 78)
+    compareExpression  ->  mathExpression GT mathExpression .   (rule 78)
 
     $default	reduce using rule 78 (compareExpression)
 
 
 
-state 93
+state 91
 
-    compareExpression  ->  mathExpression GE mathExpression .   (rule 76)
+    compareExpression  ->  mathExpression EQ MY_NULL .   (rule 75)
 
-    $default	reduce using rule 76 (compareExpression)
+    $default	reduce using rule 75 (compareExpression)
 
 
 
-state 94
+state 92
 
-    compareExpression  ->  mathExpression NE mathExpression .   (rule 74)
+    compareExpression  ->  mathExpression EQ mathExpression .   (rule 74)
 
     $default	reduce using rule 74 (compareExpression)
 
 
 
+state 93
+
+    compareExpression  ->  mathExpression LE mathExpression .   (rule 81)
+
+    $default	reduce using rule 81 (compareExpression)
+
+
+
+state 94
+
+    compareExpression  ->  mathExpression GE mathExpression .   (rule 79)
+
+    $default	reduce using rule 79 (compareExpression)
+
+
+
 state 95
 
-    mathExpression  ->  term PLUS mathExpression .   (rule 80)
+    compareExpression  ->  mathExpression NE MY_NULL .   (rule 77)
 
-    $default	reduce using rule 80 (mathExpression)
+    $default	reduce using rule 77 (compareExpression)
 
 
 
 state 96
 
-    mathExpression  ->  term MINUS mathExpression .   (rule 81)
+    compareExpression  ->  mathExpression NE mathExpression .   (rule 76)
 
-    $default	reduce using rule 81 (mathExpression)
+    $default	reduce using rule 76 (compareExpression)
 
 
 
 state 97
 
-    term  ->  factor STAR term .   (rule 83)
+    mathExpression  ->  term PLUS mathExpression .   (rule 83)
 
-    $default	reduce using rule 83 (term)
+    $default	reduce using rule 83 (mathExpression)
 
 
 
 state 98
 
-    term  ->  factor SLASH term .   (rule 84)
+    mathExpression  ->  term MINUS mathExpression .   (rule 84)
 
-    $default	reduce using rule 84 (term)
+    $default	reduce using rule 84 (mathExpression)
 
 
 
 state 99
 
-    factParam  ->  expression .   (rule 103)
+    term  ->  factor STAR term .   (rule 86)
 
-    $default	reduce using rule 103 (factParam)
+    $default	reduce using rule 86 (term)
 
 
 
 state 100
 
-    factor  ->  leftValue LPAREN factParams . RPAREN   (rule 92)
+    term  ->  factor SLASH term .   (rule 87)
 
-    RPAREN	shift, and go to state 122
+    $default	reduce using rule 87 (term)
 
 
 
 state 101
 
-    factParams  ->  factParam . factParamSet   (rule 100)
+    factParam  ->  expression .   (rule 106)
 
-    COMMA	shift, and go to state 123
-
-    $default	reduce using rule 101 (factParamSet)
-
-    factParamSet	go to state 124
+    $default	reduce using rule 106 (factParam)
 
 
 
 state 102
 
-    factor  ->  leftValue LBRACKET expression . RBRACKET   (rule 91)
+    factor  ->  leftValue LPAREN factParams . RPAREN   (rule 95)
 
-    RBRACKET	shift, and go to state 125
+    RPAREN	shift, and go to state 124
 
 
 
 state 103
 
-    classMethodDefineStatement  ->  VOID CLASS_IDENTIFIER NAME_SPACE IDENTIFIER . LPAREN formParams RPAREN LBRACE functionStatements RBRACE   (rule 58)
+    factParams  ->  factParam . factParamSet   (rule 103)
 
-    LPAREN	shift, and go to state 126
+    COMMA	shift, and go to state 125
+
+    $default	reduce using rule 104 (factParamSet)
+
+    factParamSet	go to state 126
 
 
 
 state 104
 
-    functionDeclareStatement  ->  VOID IDENTIFIER LPAREN formParams . RPAREN   (rule 52)
-    functionDefineStatement  ->  VOID IDENTIFIER LPAREN formParams . RPAREN LBRACE functionStatements RBRACE   (rule 55)
+    factor  ->  leftValue LBRACKET expression . RBRACKET   (rule 94)
 
-    RPAREN	shift, and go to state 127
+    RBRACKET	shift, and go to state 127
 
 
 
 state 105
 
-    formParams  ->  formParam . formParamSet   (rule 64)
+    classMethodDefineStatement  ->  VOID CLASS_IDENTIFIER NAME_SPACE IDENTIFIER . LPAREN formParams RPAREN LBRACE functionStatements RBRACE   (rule 59)
 
-    COMMA	shift, and go to state 128
-
-    $default	reduce using rule 65 (formParamSet)
-
-    formParamSet	go to state 129
+    LPAREN	shift, and go to state 128
 
 
 
 state 106
 
-    formParam  ->  arrayType . IDENTIFIER   (rule 68)
+    functionDeclareStatement  ->  VOID IDENTIFIER LPAREN formParams . RPAREN   (rule 53)
+    functionDefineStatement  ->  VOID IDENTIFIER LPAREN formParams . RPAREN LBRACE functionStatements RBRACE   (rule 56)
 
-    IDENTIFIER	shift, and go to state 130
+    RPAREN	shift, and go to state 129
 
 
 
 state 107
 
-    formParam  ->  type . IDENTIFIER   (rule 67)
-    arrayType  ->  type . LBRACKET RBRACKET   (rule 104)
+    formParams  ->  formParam . formParamSet   (rule 65)
 
-    LBRACKET	shift, and go to state 43
-    IDENTIFIER	shift, and go to state 131
+    COMMA	shift, and go to state 130
+
+    $default	reduce using rule 66 (formParamSet)
+
+    formParamSet	go to state 131
 
 
 
 state 108
 
-    classMethodDefineStatement  ->  arrayType CLASS_IDENTIFIER NAME_SPACE IDENTIFIER . LPAREN formParams RPAREN LBRACE functionStatements RBRACE   (rule 57)
+    formParam  ->  arrayType . IDENTIFIER   (rule 69)
 
-    LPAREN	shift, and go to state 132
+    IDENTIFIER	shift, and go to state 132
 
 
 
 state 109
 
-    functionDeclareStatement  ->  arrayType IDENTIFIER LPAREN formParams . RPAREN   (rule 51)
-    functionDefineStatement  ->  arrayType IDENTIFIER LPAREN formParams . RPAREN LBRACE functionStatements RBRACE   (rule 54)
+    formParam  ->  type . IDENTIFIER   (rule 68)
+    arrayType  ->  type . LBRACKET RBRACKET   (rule 107)
 
-    RPAREN	shift, and go to state 133
+    LBRACKET	shift, and go to state 43
+    IDENTIFIER	shift, and go to state 133
 
 
 
 state 110
 
-    classMethodDefineStatement  ->  type CLASS_IDENTIFIER NAME_SPACE IDENTIFIER . LPAREN formParams RPAREN LBRACE functionStatements RBRACE   (rule 56)
+    classMethodDefineStatement  ->  arrayType CLASS_IDENTIFIER NAME_SPACE IDENTIFIER . LPAREN formParams RPAREN LBRACE functionStatements RBRACE   (rule 58)
 
     LPAREN	shift, and go to state 134
 
@@ -1572,8 +1579,8 @@ state 110
 
 state 111
 
-    functionDeclareStatement  ->  type IDENTIFIER LPAREN formParams . RPAREN   (rule 50)
-    functionDefineStatement  ->  type IDENTIFIER LPAREN formParams . RPAREN LBRACE functionStatements RBRACE   (rule 53)
+    functionDeclareStatement  ->  arrayType IDENTIFIER LPAREN formParams . RPAREN   (rule 52)
+    functionDefineStatement  ->  arrayType IDENTIFIER LPAREN formParams . RPAREN LBRACE functionStatements RBRACE   (rule 55)
 
     RPAREN	shift, and go to state 135
 
@@ -1581,7 +1588,24 @@ state 111
 
 state 112
 
-    classDefineStatement  ->  CLASS CLASS_IDENTIFIER EXTENDS CLASS_IDENTIFIER LBRACE . classStatements RBRACE   (rule 49)
+    classMethodDefineStatement  ->  type CLASS_IDENTIFIER NAME_SPACE IDENTIFIER . LPAREN formParams RPAREN LBRACE functionStatements RBRACE   (rule 57)
+
+    LPAREN	shift, and go to state 136
+
+
+
+state 113
+
+    functionDeclareStatement  ->  type IDENTIFIER LPAREN formParams . RPAREN   (rule 51)
+    functionDefineStatement  ->  type IDENTIFIER LPAREN formParams . RPAREN LBRACE functionStatements RBRACE   (rule 54)
+
+    RPAREN	shift, and go to state 137
+
+
+
+state 114
+
+    classDefineStatement  ->  CLASS CLASS_IDENTIFIER EXTENDS CLASS_IDENTIFIER LBRACE . classStatements RBRACE   (rule 50)
 
     CHAR	shift, and go to state 1
     DOUBLE	shift, and go to state 3
@@ -1592,7 +1616,7 @@ state 112
 
     $default	reduce using rule 26 (classStatements)
 
-    classStatements	go to state 136
+    classStatements	go to state 138
     classStatement	go to state 79
     varDeclareStatement	go to state 80
     arrayDeclareStatement	go to state 81
@@ -1602,23 +1626,23 @@ state 112
 
 
 
-state 113
-
-    functionDeclareStatement  ->  VOID IDENTIFIER . LPAREN formParams RPAREN   (rule 52)
-
-    LPAREN	shift, and go to state 137
-
-
-
-state 114
-
-    classDefineStatement  ->  CLASS CLASS_IDENTIFIER LBRACE classStatements RBRACE .   (rule 48)
-
-    $default	reduce using rule 48 (classDefineStatement)
-
-
-
 state 115
+
+    functionDeclareStatement  ->  VOID IDENTIFIER . LPAREN formParams RPAREN   (rule 53)
+
+    LPAREN	shift, and go to state 139
+
+
+
+state 116
+
+    classDefineStatement  ->  CLASS CLASS_IDENTIFIER LBRACE classStatements RBRACE .   (rule 49)
+
+    $default	reduce using rule 49 (classDefineStatement)
+
+
+
+state 117
 
     classStatements  ->  classStatement classStatements .   (rule 27)
 
@@ -1626,7 +1650,7 @@ state 115
 
 
 
-state 116
+state 118
 
     classStatement  ->  varDeclareStatement SEMICOLON .   (rule 28)
 
@@ -1634,7 +1658,7 @@ state 116
 
 
 
-state 117
+state 119
 
     classStatement  ->  arrayDeclareStatement SEMICOLON .   (rule 29)
 
@@ -1642,7 +1666,7 @@ state 117
 
 
 
-state 118
+state 120
 
     classStatement  ->  functionDeclareStatement SEMICOLON .   (rule 30)
 
@@ -1650,379 +1674,308 @@ state 118
 
 
 
-state 119
+state 121
 
     arrayDeclareStatement  ->  arrayType IDENTIFIER .   (rule 37)
-    functionDeclareStatement  ->  arrayType IDENTIFIER . LPAREN formParams RPAREN   (rule 51)
+    functionDeclareStatement  ->  arrayType IDENTIFIER . LPAREN formParams RPAREN   (rule 52)
 
-    LPAREN	shift, and go to state 138
+    LPAREN	shift, and go to state 140
 
     $default	reduce using rule 37 (arrayDeclareStatement)
 
 
 
-state 120
+state 122
 
     varDeclareStatement  ->  type IDENTIFIER .   (rule 32)
-    functionDeclareStatement  ->  type IDENTIFIER . LPAREN formParams RPAREN   (rule 50)
+    functionDeclareStatement  ->  type IDENTIFIER . LPAREN formParams RPAREN   (rule 51)
 
-    LPAREN	shift, and go to state 139
+    LPAREN	shift, and go to state 141
 
     $default	reduce using rule 32 (varDeclareStatement)
 
 
 
-state 121
-
-    leftValueSet  ->  DOT IDENTIFIER leftValueSet .   (rule 98)
-
-    $default	reduce using rule 98 (leftValueSet)
-
-
-
-state 122
-
-    factor  ->  leftValue LPAREN factParams RPAREN .   (rule 92)
-
-    $default	reduce using rule 92 (factor)
-
-
-
 state 123
 
-    factParamSet  ->  COMMA . factParam factParamSet   (rule 102)
+    leftValueSet  ->  DOT IDENTIFIER leftValueSet .   (rule 101)
 
-    DECIMAL_LITERAL	shift, and go to state 20
-    DECIMAL_FLOATING_POINT_LITERAL	shift, and go to state 21
-    LPAREN	shift, and go to state 22
-    BANG	shift, and go to state 23
-    MINUS	shift, and go to state 24
-    STRING_LITERAL	shift, and go to state 25
-    IDENTIFIER	shift, and go to state 26
-    CHAR_LITERAL	shift, and go to state 27
-
-    expression	go to state 99
-    compareExpression	go to state 29
-    mathExpression	go to state 30
-    term	go to state 31
-    factor	go to state 32
-    leftValue	go to state 33
-    factParam	go to state 140
+    $default	reduce using rule 101 (leftValueSet)
 
 
 
 state 124
 
-    factParams  ->  factParam factParamSet .   (rule 100)
+    factor  ->  leftValue LPAREN factParams RPAREN .   (rule 95)
 
-    $default	reduce using rule 100 (factParams)
+    $default	reduce using rule 95 (factor)
 
 
 
 state 125
 
-    factor  ->  leftValue LBRACKET expression RBRACKET .   (rule 91)
+    factParamSet  ->  COMMA . factParam factParamSet   (rule 105)
 
-    $default	reduce using rule 91 (factor)
+    DECIMAL_LITERAL	shift, and go to state 20
+    DECIMAL_FLOATING_POINT_LITERAL	shift, and go to state 21
+    LPAREN	shift, and go to state 22
+    BANG	shift, and go to state 23
+    MINUS	shift, and go to state 24
+    STRING_LITERAL	shift, and go to state 25
+    IDENTIFIER	shift, and go to state 26
+    CHAR_LITERAL	shift, and go to state 27
+
+    expression	go to state 101
+    compareExpression	go to state 29
+    mathExpression	go to state 30
+    term	go to state 31
+    factor	go to state 32
+    leftValue	go to state 33
+    factParam	go to state 142
 
 
 
 state 126
 
-    classMethodDefineStatement  ->  VOID CLASS_IDENTIFIER NAME_SPACE IDENTIFIER LPAREN . formParams RPAREN LBRACE functionStatements RBRACE   (rule 58)
+    factParams  ->  factParam factParamSet .   (rule 103)
 
-    CHAR	shift, and go to state 1
-    DOUBLE	shift, and go to state 3
-    INT 	shift, and go to state 4
-    CLASS_IDENTIFIER	shift, and go to state 8
-
-    $default	reduce using rule 63 (formParams)
-
-    formParams	go to state 141
-    formParam	go to state 105
-    arrayType	go to state 106
-    type	go to state 107
+    $default	reduce using rule 103 (factParams)
 
 
 
 state 127
 
-    functionDeclareStatement  ->  VOID IDENTIFIER LPAREN formParams RPAREN .   (rule 52)
-    functionDefineStatement  ->  VOID IDENTIFIER LPAREN formParams RPAREN . LBRACE functionStatements RBRACE   (rule 55)
+    factor  ->  leftValue LBRACKET expression RBRACKET .   (rule 94)
 
-    LBRACE	shift, and go to state 142
-
-    $default	reduce using rule 52 (functionDeclareStatement)
+    $default	reduce using rule 94 (factor)
 
 
 
 state 128
 
-    formParamSet  ->  COMMA . formParam formParamSet   (rule 66)
+    classMethodDefineStatement  ->  VOID CLASS_IDENTIFIER NAME_SPACE IDENTIFIER LPAREN . formParams RPAREN LBRACE functionStatements RBRACE   (rule 59)
 
     CHAR	shift, and go to state 1
     DOUBLE	shift, and go to state 3
     INT 	shift, and go to state 4
     CLASS_IDENTIFIER	shift, and go to state 8
 
-    formParam	go to state 143
-    arrayType	go to state 106
-    type	go to state 107
+    $default	reduce using rule 64 (formParams)
+
+    formParams	go to state 143
+    formParam	go to state 107
+    arrayType	go to state 108
+    type	go to state 109
 
 
 
 state 129
 
-    formParams  ->  formParam formParamSet .   (rule 64)
+    functionDeclareStatement  ->  VOID IDENTIFIER LPAREN formParams RPAREN .   (rule 53)
+    functionDefineStatement  ->  VOID IDENTIFIER LPAREN formParams RPAREN . LBRACE functionStatements RBRACE   (rule 56)
 
-    $default	reduce using rule 64 (formParams)
+    LBRACE	shift, and go to state 144
+
+    $default	reduce using rule 53 (functionDeclareStatement)
 
 
 
 state 130
 
-    formParam  ->  arrayType IDENTIFIER .   (rule 68)
+    formParamSet  ->  COMMA . formParam formParamSet   (rule 67)
 
-    $default	reduce using rule 68 (formParam)
+    CHAR	shift, and go to state 1
+    DOUBLE	shift, and go to state 3
+    INT 	shift, and go to state 4
+    CLASS_IDENTIFIER	shift, and go to state 8
+
+    formParam	go to state 145
+    arrayType	go to state 108
+    type	go to state 109
 
 
 
 state 131
 
-    formParam  ->  type IDENTIFIER .   (rule 67)
+    formParams  ->  formParam formParamSet .   (rule 65)
 
-    $default	reduce using rule 67 (formParam)
+    $default	reduce using rule 65 (formParams)
 
 
 
 state 132
 
-    classMethodDefineStatement  ->  arrayType CLASS_IDENTIFIER NAME_SPACE IDENTIFIER LPAREN . formParams RPAREN LBRACE functionStatements RBRACE   (rule 57)
+    formParam  ->  arrayType IDENTIFIER .   (rule 69)
 
-    CHAR	shift, and go to state 1
-    DOUBLE	shift, and go to state 3
-    INT 	shift, and go to state 4
-    CLASS_IDENTIFIER	shift, and go to state 8
-
-    $default	reduce using rule 63 (formParams)
-
-    formParams	go to state 144
-    formParam	go to state 105
-    arrayType	go to state 106
-    type	go to state 107
+    $default	reduce using rule 69 (formParam)
 
 
 
 state 133
 
-    functionDeclareStatement  ->  arrayType IDENTIFIER LPAREN formParams RPAREN .   (rule 51)
-    functionDefineStatement  ->  arrayType IDENTIFIER LPAREN formParams RPAREN . LBRACE functionStatements RBRACE   (rule 54)
+    formParam  ->  type IDENTIFIER .   (rule 68)
 
-    LBRACE	shift, and go to state 145
-
-    $default	reduce using rule 51 (functionDeclareStatement)
+    $default	reduce using rule 68 (formParam)
 
 
 
 state 134
 
-    classMethodDefineStatement  ->  type CLASS_IDENTIFIER NAME_SPACE IDENTIFIER LPAREN . formParams RPAREN LBRACE functionStatements RBRACE   (rule 56)
+    classMethodDefineStatement  ->  arrayType CLASS_IDENTIFIER NAME_SPACE IDENTIFIER LPAREN . formParams RPAREN LBRACE functionStatements RBRACE   (rule 58)
 
     CHAR	shift, and go to state 1
     DOUBLE	shift, and go to state 3
     INT 	shift, and go to state 4
     CLASS_IDENTIFIER	shift, and go to state 8
 
-    $default	reduce using rule 63 (formParams)
+    $default	reduce using rule 64 (formParams)
 
     formParams	go to state 146
-    formParam	go to state 105
-    arrayType	go to state 106
-    type	go to state 107
+    formParam	go to state 107
+    arrayType	go to state 108
+    type	go to state 109
 
 
 
 state 135
 
-    functionDeclareStatement  ->  type IDENTIFIER LPAREN formParams RPAREN .   (rule 50)
-    functionDefineStatement  ->  type IDENTIFIER LPAREN formParams RPAREN . LBRACE functionStatements RBRACE   (rule 53)
+    functionDeclareStatement  ->  arrayType IDENTIFIER LPAREN formParams RPAREN .   (rule 52)
+    functionDefineStatement  ->  arrayType IDENTIFIER LPAREN formParams RPAREN . LBRACE functionStatements RBRACE   (rule 55)
 
     LBRACE	shift, and go to state 147
 
-    $default	reduce using rule 50 (functionDeclareStatement)
+    $default	reduce using rule 52 (functionDeclareStatement)
 
 
 
 state 136
 
-    classDefineStatement  ->  CLASS CLASS_IDENTIFIER EXTENDS CLASS_IDENTIFIER LBRACE classStatements . RBRACE   (rule 49)
+    classMethodDefineStatement  ->  type CLASS_IDENTIFIER NAME_SPACE IDENTIFIER LPAREN . formParams RPAREN LBRACE functionStatements RBRACE   (rule 57)
 
-    RBRACE	shift, and go to state 148
+    CHAR	shift, and go to state 1
+    DOUBLE	shift, and go to state 3
+    INT 	shift, and go to state 4
+    CLASS_IDENTIFIER	shift, and go to state 8
+
+    $default	reduce using rule 64 (formParams)
+
+    formParams	go to state 148
+    formParam	go to state 107
+    arrayType	go to state 108
+    type	go to state 109
 
 
 
 state 137
 
-    functionDeclareStatement  ->  VOID IDENTIFIER LPAREN . formParams RPAREN   (rule 52)
+    functionDeclareStatement  ->  type IDENTIFIER LPAREN formParams RPAREN .   (rule 51)
+    functionDefineStatement  ->  type IDENTIFIER LPAREN formParams RPAREN . LBRACE functionStatements RBRACE   (rule 54)
 
-    CHAR	shift, and go to state 1
-    DOUBLE	shift, and go to state 3
-    INT 	shift, and go to state 4
-    CLASS_IDENTIFIER	shift, and go to state 8
+    LBRACE	shift, and go to state 149
 
-    $default	reduce using rule 63 (formParams)
-
-    formParams	go to state 149
-    formParam	go to state 105
-    arrayType	go to state 106
-    type	go to state 107
+    $default	reduce using rule 51 (functionDeclareStatement)
 
 
 
 state 138
 
-    functionDeclareStatement  ->  arrayType IDENTIFIER LPAREN . formParams RPAREN   (rule 51)
+    classDefineStatement  ->  CLASS CLASS_IDENTIFIER EXTENDS CLASS_IDENTIFIER LBRACE classStatements . RBRACE   (rule 50)
 
-    CHAR	shift, and go to state 1
-    DOUBLE	shift, and go to state 3
-    INT 	shift, and go to state 4
-    CLASS_IDENTIFIER	shift, and go to state 8
-
-    $default	reduce using rule 63 (formParams)
-
-    formParams	go to state 150
-    formParam	go to state 105
-    arrayType	go to state 106
-    type	go to state 107
+    RBRACE	shift, and go to state 150
 
 
 
 state 139
 
-    functionDeclareStatement  ->  type IDENTIFIER LPAREN . formParams RPAREN   (rule 50)
+    functionDeclareStatement  ->  VOID IDENTIFIER LPAREN . formParams RPAREN   (rule 53)
 
     CHAR	shift, and go to state 1
     DOUBLE	shift, and go to state 3
     INT 	shift, and go to state 4
     CLASS_IDENTIFIER	shift, and go to state 8
 
-    $default	reduce using rule 63 (formParams)
+    $default	reduce using rule 64 (formParams)
 
     formParams	go to state 151
-    formParam	go to state 105
-    arrayType	go to state 106
-    type	go to state 107
+    formParam	go to state 107
+    arrayType	go to state 108
+    type	go to state 109
 
 
 
 state 140
 
-    factParamSet  ->  COMMA factParam . factParamSet   (rule 102)
+    functionDeclareStatement  ->  arrayType IDENTIFIER LPAREN . formParams RPAREN   (rule 52)
 
-    COMMA	shift, and go to state 123
+    CHAR	shift, and go to state 1
+    DOUBLE	shift, and go to state 3
+    INT 	shift, and go to state 4
+    CLASS_IDENTIFIER	shift, and go to state 8
 
-    $default	reduce using rule 101 (factParamSet)
+    $default	reduce using rule 64 (formParams)
 
-    factParamSet	go to state 152
+    formParams	go to state 152
+    formParam	go to state 107
+    arrayType	go to state 108
+    type	go to state 109
 
 
 
 state 141
 
-    classMethodDefineStatement  ->  VOID CLASS_IDENTIFIER NAME_SPACE IDENTIFIER LPAREN formParams . RPAREN LBRACE functionStatements RBRACE   (rule 58)
+    functionDeclareStatement  ->  type IDENTIFIER LPAREN . formParams RPAREN   (rule 51)
 
-    RPAREN	shift, and go to state 153
+    CHAR	shift, and go to state 1
+    DOUBLE	shift, and go to state 3
+    INT 	shift, and go to state 4
+    CLASS_IDENTIFIER	shift, and go to state 8
+
+    $default	reduce using rule 64 (formParams)
+
+    formParams	go to state 153
+    formParam	go to state 107
+    arrayType	go to state 108
+    type	go to state 109
 
 
 
 state 142
 
-    functionDefineStatement  ->  VOID IDENTIFIER LPAREN formParams RPAREN LBRACE . functionStatements RBRACE   (rule 55)
+    factParamSet  ->  COMMA factParam . factParamSet   (rule 105)
 
-    BREAK	shift, and go to state 154
-    CHAR	shift, and go to state 1
-    CONTINUE	shift, and go to state 155
-    DOUBLE	shift, and go to state 3
-    FOREACH	shift, and go to state 156
-    IF  	shift, and go to state 157
-    INT 	shift, and go to state 4
-    RETURN	shift, and go to state 5
-    WHILE	shift, and go to state 158
-    DECIMAL_LITERAL	shift, and go to state 20
-    DECIMAL_FLOATING_POINT_LITERAL	shift, and go to state 21
-    LPAREN	shift, and go to state 22
-    SEMICOLON	shift, and go to state 159
-    BANG	shift, and go to state 23
-    MINUS	shift, and go to state 24
-    CLASS_IDENTIFIER	shift, and go to state 8
-    STRING_LITERAL	shift, and go to state 25
-    IDENTIFIER	shift, and go to state 26
-    CHAR_LITERAL	shift, and go to state 27
+    COMMA	shift, and go to state 125
 
-    $default	reduce using rule 11 (functionStatements)
+    $default	reduce using rule 104 (factParamSet)
 
-    functionStatements	go to state 160
-    functionStatement	go to state 161
-    varDeclareStatement	go to state 162
-    varDefineStatement	go to state 163
-    varAssignStatement	go to state 164
-    arrayDeclareStatement	go to state 165
-    arrayDefineStatement	go to state 166
-    arrayAssignStatement	go to state 167
-    ifStatement	go to state 168
-    whileStatement	go to state 169
-    foreachStatement	go to state 170
-    breakStatement	go to state 171
-    continueStatement	go to state 172
-    returnStatement	go to state 173
-    expression	go to state 174
-    compareExpression	go to state 29
-    mathExpression	go to state 30
-    term	go to state 31
-    factor	go to state 32
-    leftValue	go to state 175
-    arrayType	go to state 176
-    type	go to state 177
+    factParamSet	go to state 154
 
 
 
 state 143
 
-    formParamSet  ->  COMMA formParam . formParamSet   (rule 66)
+    classMethodDefineStatement  ->  VOID CLASS_IDENTIFIER NAME_SPACE IDENTIFIER LPAREN formParams . RPAREN LBRACE functionStatements RBRACE   (rule 59)
 
-    COMMA	shift, and go to state 128
-
-    $default	reduce using rule 65 (formParamSet)
-
-    formParamSet	go to state 178
+    RPAREN	shift, and go to state 155
 
 
 
 state 144
 
-    classMethodDefineStatement  ->  arrayType CLASS_IDENTIFIER NAME_SPACE IDENTIFIER LPAREN formParams . RPAREN LBRACE functionStatements RBRACE   (rule 57)
+    functionDefineStatement  ->  VOID IDENTIFIER LPAREN formParams RPAREN LBRACE . functionStatements RBRACE   (rule 56)
 
-    RPAREN	shift, and go to state 179
-
-
-
-state 145
-
-    functionDefineStatement  ->  arrayType IDENTIFIER LPAREN formParams RPAREN LBRACE . functionStatements RBRACE   (rule 54)
-
-    BREAK	shift, and go to state 154
+    BREAK	shift, and go to state 156
     CHAR	shift, and go to state 1
-    CONTINUE	shift, and go to state 155
+    CONTINUE	shift, and go to state 157
     DOUBLE	shift, and go to state 3
-    FOREACH	shift, and go to state 156
-    IF  	shift, and go to state 157
+    FOREACH	shift, and go to state 158
+    IF  	shift, and go to state 159
     INT 	shift, and go to state 4
     RETURN	shift, and go to state 5
-    WHILE	shift, and go to state 158
+    WHILE	shift, and go to state 160
     DECIMAL_LITERAL	shift, and go to state 20
     DECIMAL_FLOATING_POINT_LITERAL	shift, and go to state 21
     LPAREN	shift, and go to state 22
-    SEMICOLON	shift, and go to state 159
+    SEMICOLON	shift, and go to state 161
     BANG	shift, and go to state 23
     MINUS	shift, and go to state 24
     CLASS_IDENTIFIER	shift, and go to state 8
@@ -2032,34 +1985,46 @@ state 145
 
     $default	reduce using rule 11 (functionStatements)
 
-    functionStatements	go to state 180
-    functionStatement	go to state 161
-    varDeclareStatement	go to state 162
-    varDefineStatement	go to state 163
-    varAssignStatement	go to state 164
-    arrayDeclareStatement	go to state 165
-    arrayDefineStatement	go to state 166
-    arrayAssignStatement	go to state 167
-    ifStatement	go to state 168
-    whileStatement	go to state 169
-    foreachStatement	go to state 170
-    breakStatement	go to state 171
-    continueStatement	go to state 172
-    returnStatement	go to state 173
-    expression	go to state 174
+    functionStatements	go to state 162
+    functionStatement	go to state 163
+    varDeclareStatement	go to state 164
+    varDefineStatement	go to state 165
+    varAssignStatement	go to state 166
+    arrayDeclareStatement	go to state 167
+    arrayDefineStatement	go to state 168
+    arrayAssignStatement	go to state 169
+    ifStatement	go to state 170
+    whileStatement	go to state 171
+    foreachStatement	go to state 172
+    breakStatement	go to state 173
+    continueStatement	go to state 174
+    returnStatement	go to state 175
+    expression	go to state 176
     compareExpression	go to state 29
     mathExpression	go to state 30
     term	go to state 31
     factor	go to state 32
-    leftValue	go to state 175
-    arrayType	go to state 176
-    type	go to state 177
+    leftValue	go to state 177
+    arrayType	go to state 178
+    type	go to state 179
+
+
+
+state 145
+
+    formParamSet  ->  COMMA formParam . formParamSet   (rule 67)
+
+    COMMA	shift, and go to state 130
+
+    $default	reduce using rule 66 (formParamSet)
+
+    formParamSet	go to state 180
 
 
 
 state 146
 
-    classMethodDefineStatement  ->  type CLASS_IDENTIFIER NAME_SPACE IDENTIFIER LPAREN formParams . RPAREN LBRACE functionStatements RBRACE   (rule 56)
+    classMethodDefineStatement  ->  arrayType CLASS_IDENTIFIER NAME_SPACE IDENTIFIER LPAREN formParams . RPAREN LBRACE functionStatements RBRACE   (rule 58)
 
     RPAREN	shift, and go to state 181
 
@@ -2067,21 +2032,21 @@ state 146
 
 state 147
 
-    functionDefineStatement  ->  type IDENTIFIER LPAREN formParams RPAREN LBRACE . functionStatements RBRACE   (rule 53)
+    functionDefineStatement  ->  arrayType IDENTIFIER LPAREN formParams RPAREN LBRACE . functionStatements RBRACE   (rule 55)
 
-    BREAK	shift, and go to state 154
+    BREAK	shift, and go to state 156
     CHAR	shift, and go to state 1
-    CONTINUE	shift, and go to state 155
+    CONTINUE	shift, and go to state 157
     DOUBLE	shift, and go to state 3
-    FOREACH	shift, and go to state 156
-    IF  	shift, and go to state 157
+    FOREACH	shift, and go to state 158
+    IF  	shift, and go to state 159
     INT 	shift, and go to state 4
     RETURN	shift, and go to state 5
-    WHILE	shift, and go to state 158
+    WHILE	shift, and go to state 160
     DECIMAL_LITERAL	shift, and go to state 20
     DECIMAL_FLOATING_POINT_LITERAL	shift, and go to state 21
     LPAREN	shift, and go to state 22
-    SEMICOLON	shift, and go to state 159
+    SEMICOLON	shift, and go to state 161
     BANG	shift, and go to state 23
     MINUS	shift, and go to state 24
     CLASS_IDENTIFIER	shift, and go to state 8
@@ -2092,57 +2057,100 @@ state 147
     $default	reduce using rule 11 (functionStatements)
 
     functionStatements	go to state 182
-    functionStatement	go to state 161
-    varDeclareStatement	go to state 162
-    varDefineStatement	go to state 163
-    varAssignStatement	go to state 164
-    arrayDeclareStatement	go to state 165
-    arrayDefineStatement	go to state 166
-    arrayAssignStatement	go to state 167
-    ifStatement	go to state 168
-    whileStatement	go to state 169
-    foreachStatement	go to state 170
-    breakStatement	go to state 171
-    continueStatement	go to state 172
-    returnStatement	go to state 173
-    expression	go to state 174
+    functionStatement	go to state 163
+    varDeclareStatement	go to state 164
+    varDefineStatement	go to state 165
+    varAssignStatement	go to state 166
+    arrayDeclareStatement	go to state 167
+    arrayDefineStatement	go to state 168
+    arrayAssignStatement	go to state 169
+    ifStatement	go to state 170
+    whileStatement	go to state 171
+    foreachStatement	go to state 172
+    breakStatement	go to state 173
+    continueStatement	go to state 174
+    returnStatement	go to state 175
+    expression	go to state 176
     compareExpression	go to state 29
     mathExpression	go to state 30
     term	go to state 31
     factor	go to state 32
-    leftValue	go to state 175
-    arrayType	go to state 176
-    type	go to state 177
+    leftValue	go to state 177
+    arrayType	go to state 178
+    type	go to state 179
 
 
 
 state 148
 
-    classDefineStatement  ->  CLASS CLASS_IDENTIFIER EXTENDS CLASS_IDENTIFIER LBRACE classStatements RBRACE .   (rule 49)
-
-    $default	reduce using rule 49 (classDefineStatement)
-
-
-
-state 149
-
-    functionDeclareStatement  ->  VOID IDENTIFIER LPAREN formParams . RPAREN   (rule 52)
+    classMethodDefineStatement  ->  type CLASS_IDENTIFIER NAME_SPACE IDENTIFIER LPAREN formParams . RPAREN LBRACE functionStatements RBRACE   (rule 57)
 
     RPAREN	shift, and go to state 183
 
 
 
+state 149
+
+    functionDefineStatement  ->  type IDENTIFIER LPAREN formParams RPAREN LBRACE . functionStatements RBRACE   (rule 54)
+
+    BREAK	shift, and go to state 156
+    CHAR	shift, and go to state 1
+    CONTINUE	shift, and go to state 157
+    DOUBLE	shift, and go to state 3
+    FOREACH	shift, and go to state 158
+    IF  	shift, and go to state 159
+    INT 	shift, and go to state 4
+    RETURN	shift, and go to state 5
+    WHILE	shift, and go to state 160
+    DECIMAL_LITERAL	shift, and go to state 20
+    DECIMAL_FLOATING_POINT_LITERAL	shift, and go to state 21
+    LPAREN	shift, and go to state 22
+    SEMICOLON	shift, and go to state 161
+    BANG	shift, and go to state 23
+    MINUS	shift, and go to state 24
+    CLASS_IDENTIFIER	shift, and go to state 8
+    STRING_LITERAL	shift, and go to state 25
+    IDENTIFIER	shift, and go to state 26
+    CHAR_LITERAL	shift, and go to state 27
+
+    $default	reduce using rule 11 (functionStatements)
+
+    functionStatements	go to state 184
+    functionStatement	go to state 163
+    varDeclareStatement	go to state 164
+    varDefineStatement	go to state 165
+    varAssignStatement	go to state 166
+    arrayDeclareStatement	go to state 167
+    arrayDefineStatement	go to state 168
+    arrayAssignStatement	go to state 169
+    ifStatement	go to state 170
+    whileStatement	go to state 171
+    foreachStatement	go to state 172
+    breakStatement	go to state 173
+    continueStatement	go to state 174
+    returnStatement	go to state 175
+    expression	go to state 176
+    compareExpression	go to state 29
+    mathExpression	go to state 30
+    term	go to state 31
+    factor	go to state 32
+    leftValue	go to state 177
+    arrayType	go to state 178
+    type	go to state 179
+
+
+
 state 150
 
-    functionDeclareStatement  ->  arrayType IDENTIFIER LPAREN formParams . RPAREN   (rule 51)
+    classDefineStatement  ->  CLASS CLASS_IDENTIFIER EXTENDS CLASS_IDENTIFIER LBRACE classStatements RBRACE .   (rule 50)
 
-    RPAREN	shift, and go to state 184
+    $default	reduce using rule 50 (classDefineStatement)
 
 
 
 state 151
 
-    functionDeclareStatement  ->  type IDENTIFIER LPAREN formParams . RPAREN   (rule 50)
+    functionDeclareStatement  ->  VOID IDENTIFIER LPAREN formParams . RPAREN   (rule 53)
 
     RPAREN	shift, and go to state 185
 
@@ -2150,55 +2158,55 @@ state 151
 
 state 152
 
-    factParamSet  ->  COMMA factParam factParamSet .   (rule 102)
+    functionDeclareStatement  ->  arrayType IDENTIFIER LPAREN formParams . RPAREN   (rule 52)
 
-    $default	reduce using rule 102 (factParamSet)
+    RPAREN	shift, and go to state 186
 
 
 
 state 153
 
-    classMethodDefineStatement  ->  VOID CLASS_IDENTIFIER NAME_SPACE IDENTIFIER LPAREN formParams RPAREN . LBRACE functionStatements RBRACE   (rule 58)
+    functionDeclareStatement  ->  type IDENTIFIER LPAREN formParams . RPAREN   (rule 51)
 
-    LBRACE	shift, and go to state 186
+    RPAREN	shift, and go to state 187
 
 
 
 state 154
 
-    breakStatement  ->  BREAK .   (rule 59)
+    factParamSet  ->  COMMA factParam factParamSet .   (rule 105)
 
-    $default	reduce using rule 59 (breakStatement)
+    $default	reduce using rule 105 (factParamSet)
 
 
 
 state 155
 
-    continueStatement  ->  CONTINUE .   (rule 60)
+    classMethodDefineStatement  ->  VOID CLASS_IDENTIFIER NAME_SPACE IDENTIFIER LPAREN formParams RPAREN . LBRACE functionStatements RBRACE   (rule 59)
 
-    $default	reduce using rule 60 (continueStatement)
+    LBRACE	shift, and go to state 188
 
 
 
 state 156
 
-    foreachStatement  ->  FOREACH . LPAREN IDENTIFIER IN leftValue RPAREN LBRACE functionStatements RBRACE   (rule 47)
+    breakStatement  ->  BREAK .   (rule 60)
 
-    LPAREN	shift, and go to state 187
+    $default	reduce using rule 60 (breakStatement)
 
 
 
 state 157
 
-    ifStatement  ->  IF . LPAREN expression RPAREN LBRACE functionStatements RBRACE elifParts elsePart   (rule 40)
+    continueStatement  ->  CONTINUE .   (rule 61)
 
-    LPAREN	shift, and go to state 188
+    $default	reduce using rule 61 (continueStatement)
 
 
 
 state 158
 
-    whileStatement  ->  WHILE . LPAREN expression RPAREN LBRACE functionStatements RBRACE   (rule 46)
+    foreachStatement  ->  FOREACH . LPAREN IDENTIFIER IN leftValue RPAREN LBRACE functionStatements RBRACE   (rule 48)
 
     LPAREN	shift, and go to state 189
 
@@ -2206,37 +2214,53 @@ state 158
 
 state 159
 
+    ifStatement  ->  IF . LPAREN expression RPAREN LBRACE functionStatements RBRACE elifParts elsePart   (rule 41)
+
+    LPAREN	shift, and go to state 190
+
+
+
+state 160
+
+    whileStatement  ->  WHILE . LPAREN expression RPAREN LBRACE functionStatements RBRACE   (rule 47)
+
+    LPAREN	shift, and go to state 191
+
+
+
+state 161
+
     functionStatement  ->  SEMICOLON .   (rule 25)
 
     $default	reduce using rule 25 (functionStatement)
 
 
 
-state 160
+state 162
 
-    functionDefineStatement  ->  VOID IDENTIFIER LPAREN formParams RPAREN LBRACE functionStatements . RBRACE   (rule 55)
+    functionDefineStatement  ->  VOID IDENTIFIER LPAREN formParams RPAREN LBRACE functionStatements . RBRACE   (rule 56)
 
-    RBRACE	shift, and go to state 190
+    RBRACE	shift, and go to state 192
 
 
 
-state 161
+state 163
 
     functionStatements  ->  functionStatement . functionStatements   (rule 12)
 
-    BREAK	shift, and go to state 154
+    BREAK	shift, and go to state 156
     CHAR	shift, and go to state 1
-    CONTINUE	shift, and go to state 155
+    CONTINUE	shift, and go to state 157
     DOUBLE	shift, and go to state 3
-    FOREACH	shift, and go to state 156
-    IF  	shift, and go to state 157
+    FOREACH	shift, and go to state 158
+    IF  	shift, and go to state 159
     INT 	shift, and go to state 4
     RETURN	shift, and go to state 5
-    WHILE	shift, and go to state 158
+    WHILE	shift, and go to state 160
     DECIMAL_LITERAL	shift, and go to state 20
     DECIMAL_FLOATING_POINT_LITERAL	shift, and go to state 21
     LPAREN	shift, and go to state 22
-    SEMICOLON	shift, and go to state 159
+    SEMICOLON	shift, and go to state 161
     BANG	shift, and go to state 23
     MINUS	shift, and go to state 24
     CLASS_IDENTIFIER	shift, and go to state 8
@@ -2246,50 +2270,34 @@ state 161
 
     $default	reduce using rule 11 (functionStatements)
 
-    functionStatements	go to state 191
-    functionStatement	go to state 161
-    varDeclareStatement	go to state 162
-    varDefineStatement	go to state 163
-    varAssignStatement	go to state 164
-    arrayDeclareStatement	go to state 165
-    arrayDefineStatement	go to state 166
-    arrayAssignStatement	go to state 167
-    ifStatement	go to state 168
-    whileStatement	go to state 169
-    foreachStatement	go to state 170
-    breakStatement	go to state 171
-    continueStatement	go to state 172
-    returnStatement	go to state 173
-    expression	go to state 174
+    functionStatements	go to state 193
+    functionStatement	go to state 163
+    varDeclareStatement	go to state 164
+    varDefineStatement	go to state 165
+    varAssignStatement	go to state 166
+    arrayDeclareStatement	go to state 167
+    arrayDefineStatement	go to state 168
+    arrayAssignStatement	go to state 169
+    ifStatement	go to state 170
+    whileStatement	go to state 171
+    foreachStatement	go to state 172
+    breakStatement	go to state 173
+    continueStatement	go to state 174
+    returnStatement	go to state 175
+    expression	go to state 176
     compareExpression	go to state 29
     mathExpression	go to state 30
     term	go to state 31
     factor	go to state 32
-    leftValue	go to state 175
-    arrayType	go to state 176
-    type	go to state 177
-
-
-
-state 162
-
-    functionStatement  ->  varDeclareStatement . SEMICOLON   (rule 13)
-
-    SEMICOLON	shift, and go to state 192
-
-
-
-state 163
-
-    functionStatement  ->  varDefineStatement . SEMICOLON   (rule 14)
-
-    SEMICOLON	shift, and go to state 193
+    leftValue	go to state 177
+    arrayType	go to state 178
+    type	go to state 179
 
 
 
 state 164
 
-    functionStatement  ->  varAssignStatement . SEMICOLON   (rule 15)
+    functionStatement  ->  varDeclareStatement . SEMICOLON   (rule 13)
 
     SEMICOLON	shift, and go to state 194
 
@@ -2297,7 +2305,7 @@ state 164
 
 state 165
 
-    functionStatement  ->  arrayDeclareStatement . SEMICOLON   (rule 16)
+    functionStatement  ->  varDefineStatement . SEMICOLON   (rule 14)
 
     SEMICOLON	shift, and go to state 195
 
@@ -2305,7 +2313,7 @@ state 165
 
 state 166
 
-    functionStatement  ->  arrayDefineStatement . SEMICOLON   (rule 17)
+    functionStatement  ->  varAssignStatement . SEMICOLON   (rule 15)
 
     SEMICOLON	shift, and go to state 196
 
@@ -2313,7 +2321,7 @@ state 166
 
 state 167
 
-    functionStatement  ->  arrayAssignStatement . SEMICOLON   (rule 18)
+    functionStatement  ->  arrayDeclareStatement . SEMICOLON   (rule 16)
 
     SEMICOLON	shift, and go to state 197
 
@@ -2321,13 +2329,29 @@ state 167
 
 state 168
 
+    functionStatement  ->  arrayDefineStatement . SEMICOLON   (rule 17)
+
+    SEMICOLON	shift, and go to state 198
+
+
+
+state 169
+
+    functionStatement  ->  arrayAssignStatement . SEMICOLON   (rule 18)
+
+    SEMICOLON	shift, and go to state 199
+
+
+
+state 170
+
     functionStatement  ->  ifStatement .   (rule 19)
 
     $default	reduce using rule 19 (functionStatement)
 
 
 
-state 169
+state 171
 
     functionStatement  ->  whileStatement .   (rule 20)
 
@@ -2335,7 +2359,7 @@ state 169
 
 
 
-state 170
+state 172
 
     functionStatement  ->  foreachStatement .   (rule 21)
 
@@ -2343,25 +2367,9 @@ state 170
 
 
 
-state 171
-
-    functionStatement  ->  breakStatement . SEMICOLON   (rule 22)
-
-    SEMICOLON	shift, and go to state 198
-
-
-
-state 172
-
-    functionStatement  ->  continueStatement . SEMICOLON   (rule 23)
-
-    SEMICOLON	shift, and go to state 199
-
-
-
 state 173
 
-    functionStatement  ->  returnStatement . SEMICOLON   (rule 24)
+    functionStatement  ->  breakStatement . SEMICOLON   (rule 22)
 
     SEMICOLON	shift, and go to state 200
 
@@ -2369,76 +2377,77 @@ state 173
 
 state 174
 
+    functionStatement  ->  continueStatement . SEMICOLON   (rule 23)
+
+    SEMICOLON	shift, and go to state 201
+
+
+
+state 175
+
+    functionStatement  ->  returnStatement . SEMICOLON   (rule 24)
+
+    SEMICOLON	shift, and go to state 202
+
+
+
+state 176
+
     varAssignStatement  ->  expression .   (rule 36)
 
     $default	reduce using rule 36 (varAssignStatement)
 
 
 
-state 175
+state 177
 
     varAssignStatement  ->  leftValue . ASSIGN expression   (rule 34)
     varAssignStatement  ->  leftValue . LBRACKET expression RBRACKET ASSIGN expression   (rule 35)
     arrayAssignStatement  ->  leftValue . ASSIGN type LBRACKET expression RBRACKET   (rule 39)
-    factor  ->  leftValue .   (rule 90)
-    factor  ->  leftValue . LBRACKET expression RBRACKET   (rule 91)
-    factor  ->  leftValue . LPAREN factParams RPAREN   (rule 92)
+    arrayAssignStatement  ->  leftValue . ASSIGN MY_NULL   (rule 40)
+    factor  ->  leftValue .   (rule 93)
+    factor  ->  leftValue . LBRACKET expression RBRACKET   (rule 94)
+    factor  ->  leftValue . LPAREN factParams RPAREN   (rule 95)
 
     LPAREN	shift, and go to state 66
-    LBRACKET	shift, and go to state 201
-    ASSIGN	shift, and go to state 202
+    LBRACKET	shift, and go to state 203
+    ASSIGN	shift, and go to state 204
 
-    $default	reduce using rule 90 (factor)
-
-
-
-state 176
-
-    arrayDeclareStatement  ->  arrayType . IDENTIFIER   (rule 37)
-    arrayDefineStatement  ->  arrayType . IDENTIFIER ASSIGN type LBRACKET expression RBRACKET   (rule 38)
-
-    IDENTIFIER	shift, and go to state 203
-
-
-
-state 177
-
-    varDeclareStatement  ->  type . IDENTIFIER   (rule 32)
-    varDefineStatement  ->  type . IDENTIFIER ASSIGN expression   (rule 33)
-    arrayType  ->  type . LBRACKET RBRACKET   (rule 104)
-
-    LBRACKET	shift, and go to state 43
-    IDENTIFIER	shift, and go to state 204
+    $default	reduce using rule 93 (factor)
 
 
 
 state 178
 
-    formParamSet  ->  COMMA formParam formParamSet .   (rule 66)
+    arrayDeclareStatement  ->  arrayType . IDENTIFIER   (rule 37)
+    arrayDefineStatement  ->  arrayType . IDENTIFIER ASSIGN type LBRACKET expression RBRACKET   (rule 38)
 
-    $default	reduce using rule 66 (formParamSet)
+    IDENTIFIER	shift, and go to state 205
 
 
 
 state 179
 
-    classMethodDefineStatement  ->  arrayType CLASS_IDENTIFIER NAME_SPACE IDENTIFIER LPAREN formParams RPAREN . LBRACE functionStatements RBRACE   (rule 57)
+    varDeclareStatement  ->  type . IDENTIFIER   (rule 32)
+    varDefineStatement  ->  type . IDENTIFIER ASSIGN expression   (rule 33)
+    arrayType  ->  type . LBRACKET RBRACKET   (rule 107)
 
-    LBRACE	shift, and go to state 205
+    LBRACKET	shift, and go to state 43
+    IDENTIFIER	shift, and go to state 206
 
 
 
 state 180
 
-    functionDefineStatement  ->  arrayType IDENTIFIER LPAREN formParams RPAREN LBRACE functionStatements . RBRACE   (rule 54)
+    formParamSet  ->  COMMA formParam formParamSet .   (rule 67)
 
-    RBRACE	shift, and go to state 206
+    $default	reduce using rule 67 (formParamSet)
 
 
 
 state 181
 
-    classMethodDefineStatement  ->  type CLASS_IDENTIFIER NAME_SPACE IDENTIFIER LPAREN formParams RPAREN . LBRACE functionStatements RBRACE   (rule 56)
+    classMethodDefineStatement  ->  arrayType CLASS_IDENTIFIER NAME_SPACE IDENTIFIER LPAREN formParams RPAREN . LBRACE functionStatements RBRACE   (rule 58)
 
     LBRACE	shift, and go to state 207
 
@@ -2446,7 +2455,7 @@ state 181
 
 state 182
 
-    functionDefineStatement  ->  type IDENTIFIER LPAREN formParams RPAREN LBRACE functionStatements . RBRACE   (rule 53)
+    functionDefineStatement  ->  arrayType IDENTIFIER LPAREN formParams RPAREN LBRACE functionStatements . RBRACE   (rule 55)
 
     RBRACE	shift, and go to state 208
 
@@ -2454,45 +2463,61 @@ state 182
 
 state 183
 
-    functionDeclareStatement  ->  VOID IDENTIFIER LPAREN formParams RPAREN .   (rule 52)
+    classMethodDefineStatement  ->  type CLASS_IDENTIFIER NAME_SPACE IDENTIFIER LPAREN formParams RPAREN . LBRACE functionStatements RBRACE   (rule 57)
 
-    $default	reduce using rule 52 (functionDeclareStatement)
+    LBRACE	shift, and go to state 209
 
 
 
 state 184
 
-    functionDeclareStatement  ->  arrayType IDENTIFIER LPAREN formParams RPAREN .   (rule 51)
+    functionDefineStatement  ->  type IDENTIFIER LPAREN formParams RPAREN LBRACE functionStatements . RBRACE   (rule 54)
 
-    $default	reduce using rule 51 (functionDeclareStatement)
+    RBRACE	shift, and go to state 210
 
 
 
 state 185
 
-    functionDeclareStatement  ->  type IDENTIFIER LPAREN formParams RPAREN .   (rule 50)
+    functionDeclareStatement  ->  VOID IDENTIFIER LPAREN formParams RPAREN .   (rule 53)
 
-    $default	reduce using rule 50 (functionDeclareStatement)
+    $default	reduce using rule 53 (functionDeclareStatement)
 
 
 
 state 186
 
-    classMethodDefineStatement  ->  VOID CLASS_IDENTIFIER NAME_SPACE IDENTIFIER LPAREN formParams RPAREN LBRACE . functionStatements RBRACE   (rule 58)
+    functionDeclareStatement  ->  arrayType IDENTIFIER LPAREN formParams RPAREN .   (rule 52)
 
-    BREAK	shift, and go to state 154
+    $default	reduce using rule 52 (functionDeclareStatement)
+
+
+
+state 187
+
+    functionDeclareStatement  ->  type IDENTIFIER LPAREN formParams RPAREN .   (rule 51)
+
+    $default	reduce using rule 51 (functionDeclareStatement)
+
+
+
+state 188
+
+    classMethodDefineStatement  ->  VOID CLASS_IDENTIFIER NAME_SPACE IDENTIFIER LPAREN formParams RPAREN LBRACE . functionStatements RBRACE   (rule 59)
+
+    BREAK	shift, and go to state 156
     CHAR	shift, and go to state 1
-    CONTINUE	shift, and go to state 155
+    CONTINUE	shift, and go to state 157
     DOUBLE	shift, and go to state 3
-    FOREACH	shift, and go to state 156
-    IF  	shift, and go to state 157
+    FOREACH	shift, and go to state 158
+    IF  	shift, and go to state 159
     INT 	shift, and go to state 4
     RETURN	shift, and go to state 5
-    WHILE	shift, and go to state 158
+    WHILE	shift, and go to state 160
     DECIMAL_LITERAL	shift, and go to state 20
     DECIMAL_FLOATING_POINT_LITERAL	shift, and go to state 21
     LPAREN	shift, and go to state 22
-    SEMICOLON	shift, and go to state 159
+    SEMICOLON	shift, and go to state 161
     BANG	shift, and go to state 23
     MINUS	shift, and go to state 24
     CLASS_IDENTIFIER	shift, and go to state 8
@@ -2502,175 +2527,42 @@ state 186
 
     $default	reduce using rule 11 (functionStatements)
 
-    functionStatements	go to state 209
-    functionStatement	go to state 161
-    varDeclareStatement	go to state 162
-    varDefineStatement	go to state 163
-    varAssignStatement	go to state 164
-    arrayDeclareStatement	go to state 165
-    arrayDefineStatement	go to state 166
-    arrayAssignStatement	go to state 167
-    ifStatement	go to state 168
-    whileStatement	go to state 169
-    foreachStatement	go to state 170
-    breakStatement	go to state 171
-    continueStatement	go to state 172
-    returnStatement	go to state 173
-    expression	go to state 174
+    functionStatements	go to state 211
+    functionStatement	go to state 163
+    varDeclareStatement	go to state 164
+    varDefineStatement	go to state 165
+    varAssignStatement	go to state 166
+    arrayDeclareStatement	go to state 167
+    arrayDefineStatement	go to state 168
+    arrayAssignStatement	go to state 169
+    ifStatement	go to state 170
+    whileStatement	go to state 171
+    foreachStatement	go to state 172
+    breakStatement	go to state 173
+    continueStatement	go to state 174
+    returnStatement	go to state 175
+    expression	go to state 176
     compareExpression	go to state 29
     mathExpression	go to state 30
     term	go to state 31
     factor	go to state 32
-    leftValue	go to state 175
-    arrayType	go to state 176
-    type	go to state 177
-
-
-
-state 187
-
-    foreachStatement  ->  FOREACH LPAREN . IDENTIFIER IN leftValue RPAREN LBRACE functionStatements RBRACE   (rule 47)
-
-    IDENTIFIER	shift, and go to state 210
-
-
-
-state 188
-
-    ifStatement  ->  IF LPAREN . expression RPAREN LBRACE functionStatements RBRACE elifParts elsePart   (rule 40)
-
-    DECIMAL_LITERAL	shift, and go to state 20
-    DECIMAL_FLOATING_POINT_LITERAL	shift, and go to state 21
-    LPAREN	shift, and go to state 22
-    BANG	shift, and go to state 23
-    MINUS	shift, and go to state 24
-    STRING_LITERAL	shift, and go to state 25
-    IDENTIFIER	shift, and go to state 26
-    CHAR_LITERAL	shift, and go to state 27
-
-    expression	go to state 211
-    compareExpression	go to state 29
-    mathExpression	go to state 30
-    term	go to state 31
-    factor	go to state 32
-    leftValue	go to state 33
+    leftValue	go to state 177
+    arrayType	go to state 178
+    type	go to state 179
 
 
 
 state 189
 
-    whileStatement  ->  WHILE LPAREN . expression RPAREN LBRACE functionStatements RBRACE   (rule 46)
+    foreachStatement  ->  FOREACH LPAREN . IDENTIFIER IN leftValue RPAREN LBRACE functionStatements RBRACE   (rule 48)
 
-    DECIMAL_LITERAL	shift, and go to state 20
-    DECIMAL_FLOATING_POINT_LITERAL	shift, and go to state 21
-    LPAREN	shift, and go to state 22
-    BANG	shift, and go to state 23
-    MINUS	shift, and go to state 24
-    STRING_LITERAL	shift, and go to state 25
-    IDENTIFIER	shift, and go to state 26
-    CHAR_LITERAL	shift, and go to state 27
-
-    expression	go to state 212
-    compareExpression	go to state 29
-    mathExpression	go to state 30
-    term	go to state 31
-    factor	go to state 32
-    leftValue	go to state 33
+    IDENTIFIER	shift, and go to state 212
 
 
 
 state 190
 
-    functionDefineStatement  ->  VOID IDENTIFIER LPAREN formParams RPAREN LBRACE functionStatements RBRACE .   (rule 55)
-
-    $default	reduce using rule 55 (functionDefineStatement)
-
-
-
-state 191
-
-    functionStatements  ->  functionStatement functionStatements .   (rule 12)
-
-    $default	reduce using rule 12 (functionStatements)
-
-
-
-state 192
-
-    functionStatement  ->  varDeclareStatement SEMICOLON .   (rule 13)
-
-    $default	reduce using rule 13 (functionStatement)
-
-
-
-state 193
-
-    functionStatement  ->  varDefineStatement SEMICOLON .   (rule 14)
-
-    $default	reduce using rule 14 (functionStatement)
-
-
-
-state 194
-
-    functionStatement  ->  varAssignStatement SEMICOLON .   (rule 15)
-
-    $default	reduce using rule 15 (functionStatement)
-
-
-
-state 195
-
-    functionStatement  ->  arrayDeclareStatement SEMICOLON .   (rule 16)
-
-    $default	reduce using rule 16 (functionStatement)
-
-
-
-state 196
-
-    functionStatement  ->  arrayDefineStatement SEMICOLON .   (rule 17)
-
-    $default	reduce using rule 17 (functionStatement)
-
-
-
-state 197
-
-    functionStatement  ->  arrayAssignStatement SEMICOLON .   (rule 18)
-
-    $default	reduce using rule 18 (functionStatement)
-
-
-
-state 198
-
-    functionStatement  ->  breakStatement SEMICOLON .   (rule 22)
-
-    $default	reduce using rule 22 (functionStatement)
-
-
-
-state 199
-
-    functionStatement  ->  continueStatement SEMICOLON .   (rule 23)
-
-    $default	reduce using rule 23 (functionStatement)
-
-
-
-state 200
-
-    functionStatement  ->  returnStatement SEMICOLON .   (rule 24)
-
-    $default	reduce using rule 24 (functionStatement)
-
-
-
-state 201
-
-    varAssignStatement  ->  leftValue LBRACKET . expression RBRACKET ASSIGN expression   (rule 35)
-    factor  ->  leftValue LBRACKET . expression RBRACKET   (rule 91)
+    ifStatement  ->  IF LPAREN . expression RPAREN LBRACE functionStatements RBRACE elifParts elsePart   (rule 41)
 
     DECIMAL_LITERAL	shift, and go to state 20
     DECIMAL_FLOATING_POINT_LITERAL	shift, and go to state 21
@@ -2690,20 +2582,15 @@ state 201
 
 
 
-state 202
+state 191
 
-    varAssignStatement  ->  leftValue ASSIGN . expression   (rule 34)
-    arrayAssignStatement  ->  leftValue ASSIGN . type LBRACKET expression RBRACKET   (rule 39)
+    whileStatement  ->  WHILE LPAREN . expression RPAREN LBRACE functionStatements RBRACE   (rule 47)
 
-    CHAR	shift, and go to state 1
-    DOUBLE	shift, and go to state 3
-    INT 	shift, and go to state 4
     DECIMAL_LITERAL	shift, and go to state 20
     DECIMAL_FLOATING_POINT_LITERAL	shift, and go to state 21
     LPAREN	shift, and go to state 22
     BANG	shift, and go to state 23
     MINUS	shift, and go to state 24
-    CLASS_IDENTIFIER	shift, and go to state 8
     STRING_LITERAL	shift, and go to state 25
     IDENTIFIER	shift, and go to state 26
     CHAR_LITERAL	shift, and go to state 27
@@ -2714,108 +2601,189 @@ state 202
     term	go to state 31
     factor	go to state 32
     leftValue	go to state 33
-    type	go to state 215
+
+
+
+state 192
+
+    functionDefineStatement  ->  VOID IDENTIFIER LPAREN formParams RPAREN LBRACE functionStatements RBRACE .   (rule 56)
+
+    $default	reduce using rule 56 (functionDefineStatement)
+
+
+
+state 193
+
+    functionStatements  ->  functionStatement functionStatements .   (rule 12)
+
+    $default	reduce using rule 12 (functionStatements)
+
+
+
+state 194
+
+    functionStatement  ->  varDeclareStatement SEMICOLON .   (rule 13)
+
+    $default	reduce using rule 13 (functionStatement)
+
+
+
+state 195
+
+    functionStatement  ->  varDefineStatement SEMICOLON .   (rule 14)
+
+    $default	reduce using rule 14 (functionStatement)
+
+
+
+state 196
+
+    functionStatement  ->  varAssignStatement SEMICOLON .   (rule 15)
+
+    $default	reduce using rule 15 (functionStatement)
+
+
+
+state 197
+
+    functionStatement  ->  arrayDeclareStatement SEMICOLON .   (rule 16)
+
+    $default	reduce using rule 16 (functionStatement)
+
+
+
+state 198
+
+    functionStatement  ->  arrayDefineStatement SEMICOLON .   (rule 17)
+
+    $default	reduce using rule 17 (functionStatement)
+
+
+
+state 199
+
+    functionStatement  ->  arrayAssignStatement SEMICOLON .   (rule 18)
+
+    $default	reduce using rule 18 (functionStatement)
+
+
+
+state 200
+
+    functionStatement  ->  breakStatement SEMICOLON .   (rule 22)
+
+    $default	reduce using rule 22 (functionStatement)
+
+
+
+state 201
+
+    functionStatement  ->  continueStatement SEMICOLON .   (rule 23)
+
+    $default	reduce using rule 23 (functionStatement)
+
+
+
+state 202
+
+    functionStatement  ->  returnStatement SEMICOLON .   (rule 24)
+
+    $default	reduce using rule 24 (functionStatement)
 
 
 
 state 203
 
-    arrayDeclareStatement  ->  arrayType IDENTIFIER .   (rule 37)
-    arrayDefineStatement  ->  arrayType IDENTIFIER . ASSIGN type LBRACKET expression RBRACKET   (rule 38)
+    varAssignStatement  ->  leftValue LBRACKET . expression RBRACKET ASSIGN expression   (rule 35)
+    factor  ->  leftValue LBRACKET . expression RBRACKET   (rule 94)
 
-    ASSIGN	shift, and go to state 216
+    DECIMAL_LITERAL	shift, and go to state 20
+    DECIMAL_FLOATING_POINT_LITERAL	shift, and go to state 21
+    LPAREN	shift, and go to state 22
+    BANG	shift, and go to state 23
+    MINUS	shift, and go to state 24
+    STRING_LITERAL	shift, and go to state 25
+    IDENTIFIER	shift, and go to state 26
+    CHAR_LITERAL	shift, and go to state 27
 
-    $default	reduce using rule 37 (arrayDeclareStatement)
+    expression	go to state 215
+    compareExpression	go to state 29
+    mathExpression	go to state 30
+    term	go to state 31
+    factor	go to state 32
+    leftValue	go to state 33
 
 
 
 state 204
 
-    varDeclareStatement  ->  type IDENTIFIER .   (rule 32)
-    varDefineStatement  ->  type IDENTIFIER . ASSIGN expression   (rule 33)
+    varAssignStatement  ->  leftValue ASSIGN . expression   (rule 34)
+    arrayAssignStatement  ->  leftValue ASSIGN . type LBRACKET expression RBRACKET   (rule 39)
+    arrayAssignStatement  ->  leftValue ASSIGN . MY_NULL   (rule 40)
 
-    ASSIGN	shift, and go to state 217
+    CHAR	shift, and go to state 1
+    DOUBLE	shift, and go to state 3
+    INT 	shift, and go to state 4
+    MY_NULL	shift, and go to state 216
+    DECIMAL_LITERAL	shift, and go to state 20
+    DECIMAL_FLOATING_POINT_LITERAL	shift, and go to state 21
+    LPAREN	shift, and go to state 22
+    BANG	shift, and go to state 23
+    MINUS	shift, and go to state 24
+    CLASS_IDENTIFIER	shift, and go to state 8
+    STRING_LITERAL	shift, and go to state 25
+    IDENTIFIER	shift, and go to state 26
+    CHAR_LITERAL	shift, and go to state 27
 
-    $default	reduce using rule 32 (varDeclareStatement)
+    expression	go to state 217
+    compareExpression	go to state 29
+    mathExpression	go to state 30
+    term	go to state 31
+    factor	go to state 32
+    leftValue	go to state 33
+    type	go to state 218
 
 
 
 state 205
 
-    classMethodDefineStatement  ->  arrayType CLASS_IDENTIFIER NAME_SPACE IDENTIFIER LPAREN formParams RPAREN LBRACE . functionStatements RBRACE   (rule 57)
+    arrayDeclareStatement  ->  arrayType IDENTIFIER .   (rule 37)
+    arrayDefineStatement  ->  arrayType IDENTIFIER . ASSIGN type LBRACKET expression RBRACKET   (rule 38)
 
-    BREAK	shift, and go to state 154
-    CHAR	shift, and go to state 1
-    CONTINUE	shift, and go to state 155
-    DOUBLE	shift, and go to state 3
-    FOREACH	shift, and go to state 156
-    IF  	shift, and go to state 157
-    INT 	shift, and go to state 4
-    RETURN	shift, and go to state 5
-    WHILE	shift, and go to state 158
-    DECIMAL_LITERAL	shift, and go to state 20
-    DECIMAL_FLOATING_POINT_LITERAL	shift, and go to state 21
-    LPAREN	shift, and go to state 22
-    SEMICOLON	shift, and go to state 159
-    BANG	shift, and go to state 23
-    MINUS	shift, and go to state 24
-    CLASS_IDENTIFIER	shift, and go to state 8
-    STRING_LITERAL	shift, and go to state 25
-    IDENTIFIER	shift, and go to state 26
-    CHAR_LITERAL	shift, and go to state 27
+    ASSIGN	shift, and go to state 219
 
-    $default	reduce using rule 11 (functionStatements)
-
-    functionStatements	go to state 218
-    functionStatement	go to state 161
-    varDeclareStatement	go to state 162
-    varDefineStatement	go to state 163
-    varAssignStatement	go to state 164
-    arrayDeclareStatement	go to state 165
-    arrayDefineStatement	go to state 166
-    arrayAssignStatement	go to state 167
-    ifStatement	go to state 168
-    whileStatement	go to state 169
-    foreachStatement	go to state 170
-    breakStatement	go to state 171
-    continueStatement	go to state 172
-    returnStatement	go to state 173
-    expression	go to state 174
-    compareExpression	go to state 29
-    mathExpression	go to state 30
-    term	go to state 31
-    factor	go to state 32
-    leftValue	go to state 175
-    arrayType	go to state 176
-    type	go to state 177
+    $default	reduce using rule 37 (arrayDeclareStatement)
 
 
 
 state 206
 
-    functionDefineStatement  ->  arrayType IDENTIFIER LPAREN formParams RPAREN LBRACE functionStatements RBRACE .   (rule 54)
+    varDeclareStatement  ->  type IDENTIFIER .   (rule 32)
+    varDefineStatement  ->  type IDENTIFIER . ASSIGN expression   (rule 33)
 
-    $default	reduce using rule 54 (functionDefineStatement)
+    ASSIGN	shift, and go to state 220
+
+    $default	reduce using rule 32 (varDeclareStatement)
 
 
 
 state 207
 
-    classMethodDefineStatement  ->  type CLASS_IDENTIFIER NAME_SPACE IDENTIFIER LPAREN formParams RPAREN LBRACE . functionStatements RBRACE   (rule 56)
+    classMethodDefineStatement  ->  arrayType CLASS_IDENTIFIER NAME_SPACE IDENTIFIER LPAREN formParams RPAREN LBRACE . functionStatements RBRACE   (rule 58)
 
-    BREAK	shift, and go to state 154
+    BREAK	shift, and go to state 156
     CHAR	shift, and go to state 1
-    CONTINUE	shift, and go to state 155
+    CONTINUE	shift, and go to state 157
     DOUBLE	shift, and go to state 3
-    FOREACH	shift, and go to state 156
-    IF  	shift, and go to state 157
+    FOREACH	shift, and go to state 158
+    IF  	shift, and go to state 159
     INT 	shift, and go to state 4
     RETURN	shift, and go to state 5
-    WHILE	shift, and go to state 158
+    WHILE	shift, and go to state 160
     DECIMAL_LITERAL	shift, and go to state 20
     DECIMAL_FLOATING_POINT_LITERAL	shift, and go to state 21
     LPAREN	shift, and go to state 22
-    SEMICOLON	shift, and go to state 159
+    SEMICOLON	shift, and go to state 161
     BANG	shift, and go to state 23
     MINUS	shift, and go to state 24
     CLASS_IDENTIFIER	shift, and go to state 8
@@ -2825,81 +2793,148 @@ state 207
 
     $default	reduce using rule 11 (functionStatements)
 
-    functionStatements	go to state 219
-    functionStatement	go to state 161
-    varDeclareStatement	go to state 162
-    varDefineStatement	go to state 163
-    varAssignStatement	go to state 164
-    arrayDeclareStatement	go to state 165
-    arrayDefineStatement	go to state 166
-    arrayAssignStatement	go to state 167
-    ifStatement	go to state 168
-    whileStatement	go to state 169
-    foreachStatement	go to state 170
-    breakStatement	go to state 171
-    continueStatement	go to state 172
-    returnStatement	go to state 173
-    expression	go to state 174
+    functionStatements	go to state 221
+    functionStatement	go to state 163
+    varDeclareStatement	go to state 164
+    varDefineStatement	go to state 165
+    varAssignStatement	go to state 166
+    arrayDeclareStatement	go to state 167
+    arrayDefineStatement	go to state 168
+    arrayAssignStatement	go to state 169
+    ifStatement	go to state 170
+    whileStatement	go to state 171
+    foreachStatement	go to state 172
+    breakStatement	go to state 173
+    continueStatement	go to state 174
+    returnStatement	go to state 175
+    expression	go to state 176
     compareExpression	go to state 29
     mathExpression	go to state 30
     term	go to state 31
     factor	go to state 32
-    leftValue	go to state 175
-    arrayType	go to state 176
-    type	go to state 177
+    leftValue	go to state 177
+    arrayType	go to state 178
+    type	go to state 179
 
 
 
 state 208
 
-    functionDefineStatement  ->  type IDENTIFIER LPAREN formParams RPAREN LBRACE functionStatements RBRACE .   (rule 53)
+    functionDefineStatement  ->  arrayType IDENTIFIER LPAREN formParams RPAREN LBRACE functionStatements RBRACE .   (rule 55)
 
-    $default	reduce using rule 53 (functionDefineStatement)
+    $default	reduce using rule 55 (functionDefineStatement)
 
 
 
 state 209
 
-    classMethodDefineStatement  ->  VOID CLASS_IDENTIFIER NAME_SPACE IDENTIFIER LPAREN formParams RPAREN LBRACE functionStatements . RBRACE   (rule 58)
+    classMethodDefineStatement  ->  type CLASS_IDENTIFIER NAME_SPACE IDENTIFIER LPAREN formParams RPAREN LBRACE . functionStatements RBRACE   (rule 57)
 
-    RBRACE	shift, and go to state 220
+    BREAK	shift, and go to state 156
+    CHAR	shift, and go to state 1
+    CONTINUE	shift, and go to state 157
+    DOUBLE	shift, and go to state 3
+    FOREACH	shift, and go to state 158
+    IF  	shift, and go to state 159
+    INT 	shift, and go to state 4
+    RETURN	shift, and go to state 5
+    WHILE	shift, and go to state 160
+    DECIMAL_LITERAL	shift, and go to state 20
+    DECIMAL_FLOATING_POINT_LITERAL	shift, and go to state 21
+    LPAREN	shift, and go to state 22
+    SEMICOLON	shift, and go to state 161
+    BANG	shift, and go to state 23
+    MINUS	shift, and go to state 24
+    CLASS_IDENTIFIER	shift, and go to state 8
+    STRING_LITERAL	shift, and go to state 25
+    IDENTIFIER	shift, and go to state 26
+    CHAR_LITERAL	shift, and go to state 27
+
+    $default	reduce using rule 11 (functionStatements)
+
+    functionStatements	go to state 222
+    functionStatement	go to state 163
+    varDeclareStatement	go to state 164
+    varDefineStatement	go to state 165
+    varAssignStatement	go to state 166
+    arrayDeclareStatement	go to state 167
+    arrayDefineStatement	go to state 168
+    arrayAssignStatement	go to state 169
+    ifStatement	go to state 170
+    whileStatement	go to state 171
+    foreachStatement	go to state 172
+    breakStatement	go to state 173
+    continueStatement	go to state 174
+    returnStatement	go to state 175
+    expression	go to state 176
+    compareExpression	go to state 29
+    mathExpression	go to state 30
+    term	go to state 31
+    factor	go to state 32
+    leftValue	go to state 177
+    arrayType	go to state 178
+    type	go to state 179
 
 
 
 state 210
 
-    foreachStatement  ->  FOREACH LPAREN IDENTIFIER . IN leftValue RPAREN LBRACE functionStatements RBRACE   (rule 47)
+    functionDefineStatement  ->  type IDENTIFIER LPAREN formParams RPAREN LBRACE functionStatements RBRACE .   (rule 54)
 
-    IN  	shift, and go to state 221
+    $default	reduce using rule 54 (functionDefineStatement)
 
 
 
 state 211
 
-    ifStatement  ->  IF LPAREN expression . RPAREN LBRACE functionStatements RBRACE elifParts elsePart   (rule 40)
+    classMethodDefineStatement  ->  VOID CLASS_IDENTIFIER NAME_SPACE IDENTIFIER LPAREN formParams RPAREN LBRACE functionStatements . RBRACE   (rule 59)
 
-    RPAREN	shift, and go to state 222
+    RBRACE	shift, and go to state 223
 
 
 
 state 212
 
-    whileStatement  ->  WHILE LPAREN expression . RPAREN LBRACE functionStatements RBRACE   (rule 46)
+    foreachStatement  ->  FOREACH LPAREN IDENTIFIER . IN leftValue RPAREN LBRACE functionStatements RBRACE   (rule 48)
 
-    RPAREN	shift, and go to state 223
+    IN  	shift, and go to state 224
 
 
 
 state 213
 
-    varAssignStatement  ->  leftValue LBRACKET expression . RBRACKET ASSIGN expression   (rule 35)
-    factor  ->  leftValue LBRACKET expression . RBRACKET   (rule 91)
+    ifStatement  ->  IF LPAREN expression . RPAREN LBRACE functionStatements RBRACE elifParts elsePart   (rule 41)
 
-    RBRACKET	shift, and go to state 224
+    RPAREN	shift, and go to state 225
 
 
 
 state 214
+
+    whileStatement  ->  WHILE LPAREN expression . RPAREN LBRACE functionStatements RBRACE   (rule 47)
+
+    RPAREN	shift, and go to state 226
+
+
+
+state 215
+
+    varAssignStatement  ->  leftValue LBRACKET expression . RBRACKET ASSIGN expression   (rule 35)
+    factor  ->  leftValue LBRACKET expression . RBRACKET   (rule 94)
+
+    RBRACKET	shift, and go to state 227
+
+
+
+state 216
+
+    arrayAssignStatement  ->  leftValue ASSIGN MY_NULL .   (rule 40)
+
+    $default	reduce using rule 40 (arrayAssignStatement)
+
+
+
+state 217
 
     varAssignStatement  ->  leftValue ASSIGN expression .   (rule 34)
 
@@ -2907,15 +2942,15 @@ state 214
 
 
 
-state 215
+state 218
 
     arrayAssignStatement  ->  leftValue ASSIGN type . LBRACKET expression RBRACKET   (rule 39)
 
-    LBRACKET	shift, and go to state 225
+    LBRACKET	shift, and go to state 228
 
 
 
-state 216
+state 219
 
     arrayDefineStatement  ->  arrayType IDENTIFIER ASSIGN . type LBRACKET expression RBRACKET   (rule 38)
 
@@ -2924,11 +2959,11 @@ state 216
     INT 	shift, and go to state 4
     CLASS_IDENTIFIER	shift, and go to state 8
 
-    type	go to state 226
+    type	go to state 229
 
 
 
-state 217
+state 220
 
     varDefineStatement  ->  type IDENTIFIER ASSIGN . expression   (rule 33)
 
@@ -2941,7 +2976,7 @@ state 217
     IDENTIFIER	shift, and go to state 26
     CHAR_LITERAL	shift, and go to state 27
 
-    expression	go to state 227
+    expression	go to state 230
     compareExpression	go to state 29
     mathExpression	go to state 30
     term	go to state 31
@@ -2950,68 +2985,68 @@ state 217
 
 
 
-state 218
-
-    classMethodDefineStatement  ->  arrayType CLASS_IDENTIFIER NAME_SPACE IDENTIFIER LPAREN formParams RPAREN LBRACE functionStatements . RBRACE   (rule 57)
-
-    RBRACE	shift, and go to state 228
-
-
-
-state 219
-
-    classMethodDefineStatement  ->  type CLASS_IDENTIFIER NAME_SPACE IDENTIFIER LPAREN formParams RPAREN LBRACE functionStatements . RBRACE   (rule 56)
-
-    RBRACE	shift, and go to state 229
-
-
-
-state 220
-
-    classMethodDefineStatement  ->  VOID CLASS_IDENTIFIER NAME_SPACE IDENTIFIER LPAREN formParams RPAREN LBRACE functionStatements RBRACE .   (rule 58)
-
-    $default	reduce using rule 58 (classMethodDefineStatement)
-
-
-
 state 221
 
-    foreachStatement  ->  FOREACH LPAREN IDENTIFIER IN . leftValue RPAREN LBRACE functionStatements RBRACE   (rule 47)
+    classMethodDefineStatement  ->  arrayType CLASS_IDENTIFIER NAME_SPACE IDENTIFIER LPAREN formParams RPAREN LBRACE functionStatements . RBRACE   (rule 58)
 
-    IDENTIFIER	shift, and go to state 26
-
-    leftValue	go to state 230
+    RBRACE	shift, and go to state 231
 
 
 
 state 222
 
-    ifStatement  ->  IF LPAREN expression RPAREN . LBRACE functionStatements RBRACE elifParts elsePart   (rule 40)
+    classMethodDefineStatement  ->  type CLASS_IDENTIFIER NAME_SPACE IDENTIFIER LPAREN formParams RPAREN LBRACE functionStatements . RBRACE   (rule 57)
 
-    LBRACE	shift, and go to state 231
+    RBRACE	shift, and go to state 232
 
 
 
 state 223
 
-    whileStatement  ->  WHILE LPAREN expression RPAREN . LBRACE functionStatements RBRACE   (rule 46)
+    classMethodDefineStatement  ->  VOID CLASS_IDENTIFIER NAME_SPACE IDENTIFIER LPAREN formParams RPAREN LBRACE functionStatements RBRACE .   (rule 59)
 
-    LBRACE	shift, and go to state 232
+    $default	reduce using rule 59 (classMethodDefineStatement)
 
 
 
 state 224
 
-    varAssignStatement  ->  leftValue LBRACKET expression RBRACKET . ASSIGN expression   (rule 35)
-    factor  ->  leftValue LBRACKET expression RBRACKET .   (rule 91)
+    foreachStatement  ->  FOREACH LPAREN IDENTIFIER IN . leftValue RPAREN LBRACE functionStatements RBRACE   (rule 48)
 
-    ASSIGN	shift, and go to state 233
+    IDENTIFIER	shift, and go to state 26
 
-    $default	reduce using rule 91 (factor)
+    leftValue	go to state 233
 
 
 
 state 225
+
+    ifStatement  ->  IF LPAREN expression RPAREN . LBRACE functionStatements RBRACE elifParts elsePart   (rule 41)
+
+    LBRACE	shift, and go to state 234
+
+
+
+state 226
+
+    whileStatement  ->  WHILE LPAREN expression RPAREN . LBRACE functionStatements RBRACE   (rule 47)
+
+    LBRACE	shift, and go to state 235
+
+
+
+state 227
+
+    varAssignStatement  ->  leftValue LBRACKET expression RBRACKET . ASSIGN expression   (rule 35)
+    factor  ->  leftValue LBRACKET expression RBRACKET .   (rule 94)
+
+    ASSIGN	shift, and go to state 236
+
+    $default	reduce using rule 94 (factor)
+
+
+
+state 228
 
     arrayAssignStatement  ->  leftValue ASSIGN type LBRACKET . expression RBRACKET   (rule 39)
 
@@ -3024,7 +3059,7 @@ state 225
     IDENTIFIER	shift, and go to state 26
     CHAR_LITERAL	shift, and go to state 27
 
-    expression	go to state 234
+    expression	go to state 237
     compareExpression	go to state 29
     mathExpression	go to state 30
     term	go to state 31
@@ -3033,15 +3068,15 @@ state 225
 
 
 
-state 226
+state 229
 
     arrayDefineStatement  ->  arrayType IDENTIFIER ASSIGN type . LBRACKET expression RBRACKET   (rule 38)
 
-    LBRACKET	shift, and go to state 235
+    LBRACKET	shift, and go to state 238
 
 
 
-state 227
+state 230
 
     varDefineStatement  ->  type IDENTIFIER ASSIGN expression .   (rule 33)
 
@@ -3049,98 +3084,47 @@ state 227
 
 
 
-state 228
-
-    classMethodDefineStatement  ->  arrayType CLASS_IDENTIFIER NAME_SPACE IDENTIFIER LPAREN formParams RPAREN LBRACE functionStatements RBRACE .   (rule 57)
-
-    $default	reduce using rule 57 (classMethodDefineStatement)
-
-
-
-state 229
-
-    classMethodDefineStatement  ->  type CLASS_IDENTIFIER NAME_SPACE IDENTIFIER LPAREN formParams RPAREN LBRACE functionStatements RBRACE .   (rule 56)
-
-    $default	reduce using rule 56 (classMethodDefineStatement)
-
-
-
-state 230
-
-    foreachStatement  ->  FOREACH LPAREN IDENTIFIER IN leftValue . RPAREN LBRACE functionStatements RBRACE   (rule 47)
-
-    RPAREN	shift, and go to state 236
-
-
-
 state 231
 
-    ifStatement  ->  IF LPAREN expression RPAREN LBRACE . functionStatements RBRACE elifParts elsePart   (rule 40)
+    classMethodDefineStatement  ->  arrayType CLASS_IDENTIFIER NAME_SPACE IDENTIFIER LPAREN formParams RPAREN LBRACE functionStatements RBRACE .   (rule 58)
 
-    BREAK	shift, and go to state 154
-    CHAR	shift, and go to state 1
-    CONTINUE	shift, and go to state 155
-    DOUBLE	shift, and go to state 3
-    FOREACH	shift, and go to state 156
-    IF  	shift, and go to state 157
-    INT 	shift, and go to state 4
-    RETURN	shift, and go to state 5
-    WHILE	shift, and go to state 158
-    DECIMAL_LITERAL	shift, and go to state 20
-    DECIMAL_FLOATING_POINT_LITERAL	shift, and go to state 21
-    LPAREN	shift, and go to state 22
-    SEMICOLON	shift, and go to state 159
-    BANG	shift, and go to state 23
-    MINUS	shift, and go to state 24
-    CLASS_IDENTIFIER	shift, and go to state 8
-    STRING_LITERAL	shift, and go to state 25
-    IDENTIFIER	shift, and go to state 26
-    CHAR_LITERAL	shift, and go to state 27
-
-    $default	reduce using rule 11 (functionStatements)
-
-    functionStatements	go to state 237
-    functionStatement	go to state 161
-    varDeclareStatement	go to state 162
-    varDefineStatement	go to state 163
-    varAssignStatement	go to state 164
-    arrayDeclareStatement	go to state 165
-    arrayDefineStatement	go to state 166
-    arrayAssignStatement	go to state 167
-    ifStatement	go to state 168
-    whileStatement	go to state 169
-    foreachStatement	go to state 170
-    breakStatement	go to state 171
-    continueStatement	go to state 172
-    returnStatement	go to state 173
-    expression	go to state 174
-    compareExpression	go to state 29
-    mathExpression	go to state 30
-    term	go to state 31
-    factor	go to state 32
-    leftValue	go to state 175
-    arrayType	go to state 176
-    type	go to state 177
+    $default	reduce using rule 58 (classMethodDefineStatement)
 
 
 
 state 232
 
-    whileStatement  ->  WHILE LPAREN expression RPAREN LBRACE . functionStatements RBRACE   (rule 46)
+    classMethodDefineStatement  ->  type CLASS_IDENTIFIER NAME_SPACE IDENTIFIER LPAREN formParams RPAREN LBRACE functionStatements RBRACE .   (rule 57)
 
-    BREAK	shift, and go to state 154
+    $default	reduce using rule 57 (classMethodDefineStatement)
+
+
+
+state 233
+
+    foreachStatement  ->  FOREACH LPAREN IDENTIFIER IN leftValue . RPAREN LBRACE functionStatements RBRACE   (rule 48)
+
+    RPAREN	shift, and go to state 239
+
+
+
+state 234
+
+    ifStatement  ->  IF LPAREN expression RPAREN LBRACE . functionStatements RBRACE elifParts elsePart   (rule 41)
+
+    BREAK	shift, and go to state 156
     CHAR	shift, and go to state 1
-    CONTINUE	shift, and go to state 155
+    CONTINUE	shift, and go to state 157
     DOUBLE	shift, and go to state 3
-    FOREACH	shift, and go to state 156
-    IF  	shift, and go to state 157
+    FOREACH	shift, and go to state 158
+    IF  	shift, and go to state 159
     INT 	shift, and go to state 4
     RETURN	shift, and go to state 5
-    WHILE	shift, and go to state 158
+    WHILE	shift, and go to state 160
     DECIMAL_LITERAL	shift, and go to state 20
     DECIMAL_FLOATING_POINT_LITERAL	shift, and go to state 21
     LPAREN	shift, and go to state 22
-    SEMICOLON	shift, and go to state 159
+    SEMICOLON	shift, and go to state 161
     BANG	shift, and go to state 23
     MINUS	shift, and go to state 24
     CLASS_IDENTIFIER	shift, and go to state 8
@@ -3150,32 +3134,83 @@ state 232
 
     $default	reduce using rule 11 (functionStatements)
 
-    functionStatements	go to state 238
-    functionStatement	go to state 161
-    varDeclareStatement	go to state 162
-    varDefineStatement	go to state 163
-    varAssignStatement	go to state 164
-    arrayDeclareStatement	go to state 165
-    arrayDefineStatement	go to state 166
-    arrayAssignStatement	go to state 167
-    ifStatement	go to state 168
-    whileStatement	go to state 169
-    foreachStatement	go to state 170
-    breakStatement	go to state 171
-    continueStatement	go to state 172
-    returnStatement	go to state 173
-    expression	go to state 174
+    functionStatements	go to state 240
+    functionStatement	go to state 163
+    varDeclareStatement	go to state 164
+    varDefineStatement	go to state 165
+    varAssignStatement	go to state 166
+    arrayDeclareStatement	go to state 167
+    arrayDefineStatement	go to state 168
+    arrayAssignStatement	go to state 169
+    ifStatement	go to state 170
+    whileStatement	go to state 171
+    foreachStatement	go to state 172
+    breakStatement	go to state 173
+    continueStatement	go to state 174
+    returnStatement	go to state 175
+    expression	go to state 176
     compareExpression	go to state 29
     mathExpression	go to state 30
     term	go to state 31
     factor	go to state 32
-    leftValue	go to state 175
-    arrayType	go to state 176
-    type	go to state 177
+    leftValue	go to state 177
+    arrayType	go to state 178
+    type	go to state 179
 
 
 
-state 233
+state 235
+
+    whileStatement  ->  WHILE LPAREN expression RPAREN LBRACE . functionStatements RBRACE   (rule 47)
+
+    BREAK	shift, and go to state 156
+    CHAR	shift, and go to state 1
+    CONTINUE	shift, and go to state 157
+    DOUBLE	shift, and go to state 3
+    FOREACH	shift, and go to state 158
+    IF  	shift, and go to state 159
+    INT 	shift, and go to state 4
+    RETURN	shift, and go to state 5
+    WHILE	shift, and go to state 160
+    DECIMAL_LITERAL	shift, and go to state 20
+    DECIMAL_FLOATING_POINT_LITERAL	shift, and go to state 21
+    LPAREN	shift, and go to state 22
+    SEMICOLON	shift, and go to state 161
+    BANG	shift, and go to state 23
+    MINUS	shift, and go to state 24
+    CLASS_IDENTIFIER	shift, and go to state 8
+    STRING_LITERAL	shift, and go to state 25
+    IDENTIFIER	shift, and go to state 26
+    CHAR_LITERAL	shift, and go to state 27
+
+    $default	reduce using rule 11 (functionStatements)
+
+    functionStatements	go to state 241
+    functionStatement	go to state 163
+    varDeclareStatement	go to state 164
+    varDefineStatement	go to state 165
+    varAssignStatement	go to state 166
+    arrayDeclareStatement	go to state 167
+    arrayDefineStatement	go to state 168
+    arrayAssignStatement	go to state 169
+    ifStatement	go to state 170
+    whileStatement	go to state 171
+    foreachStatement	go to state 172
+    breakStatement	go to state 173
+    continueStatement	go to state 174
+    returnStatement	go to state 175
+    expression	go to state 176
+    compareExpression	go to state 29
+    mathExpression	go to state 30
+    term	go to state 31
+    factor	go to state 32
+    leftValue	go to state 177
+    arrayType	go to state 178
+    type	go to state 179
+
+
+
+state 236
 
     varAssignStatement  ->  leftValue LBRACKET expression RBRACKET ASSIGN . expression   (rule 35)
 
@@ -3188,7 +3223,7 @@ state 233
     IDENTIFIER	shift, and go to state 26
     CHAR_LITERAL	shift, and go to state 27
 
-    expression	go to state 239
+    expression	go to state 242
     compareExpression	go to state 29
     mathExpression	go to state 30
     term	go to state 31
@@ -3197,15 +3232,15 @@ state 233
 
 
 
-state 234
+state 237
 
     arrayAssignStatement  ->  leftValue ASSIGN type LBRACKET expression . RBRACKET   (rule 39)
 
-    RBRACKET	shift, and go to state 240
+    RBRACKET	shift, and go to state 243
 
 
 
-state 235
+state 238
 
     arrayDefineStatement  ->  arrayType IDENTIFIER ASSIGN type LBRACKET . expression RBRACKET   (rule 38)
 
@@ -3218,7 +3253,7 @@ state 235
     IDENTIFIER	shift, and go to state 26
     CHAR_LITERAL	shift, and go to state 27
 
-    expression	go to state 241
+    expression	go to state 244
     compareExpression	go to state 29
     mathExpression	go to state 30
     term	go to state 31
@@ -3227,31 +3262,31 @@ state 235
 
 
 
-state 236
-
-    foreachStatement  ->  FOREACH LPAREN IDENTIFIER IN leftValue RPAREN . LBRACE functionStatements RBRACE   (rule 47)
-
-    LBRACE	shift, and go to state 242
-
-
-
-state 237
-
-    ifStatement  ->  IF LPAREN expression RPAREN LBRACE functionStatements . RBRACE elifParts elsePart   (rule 40)
-
-    RBRACE	shift, and go to state 243
-
-
-
-state 238
-
-    whileStatement  ->  WHILE LPAREN expression RPAREN LBRACE functionStatements . RBRACE   (rule 46)
-
-    RBRACE	shift, and go to state 244
-
-
-
 state 239
+
+    foreachStatement  ->  FOREACH LPAREN IDENTIFIER IN leftValue RPAREN . LBRACE functionStatements RBRACE   (rule 48)
+
+    LBRACE	shift, and go to state 245
+
+
+
+state 240
+
+    ifStatement  ->  IF LPAREN expression RPAREN LBRACE functionStatements . RBRACE elifParts elsePart   (rule 41)
+
+    RBRACE	shift, and go to state 246
+
+
+
+state 241
+
+    whileStatement  ->  WHILE LPAREN expression RPAREN LBRACE functionStatements . RBRACE   (rule 47)
+
+    RBRACE	shift, and go to state 247
+
+
+
+state 242
 
     varAssignStatement  ->  leftValue LBRACKET expression RBRACKET ASSIGN expression .   (rule 35)
 
@@ -3259,7 +3294,7 @@ state 239
 
 
 
-state 240
+state 243
 
     arrayAssignStatement  ->  leftValue ASSIGN type LBRACKET expression RBRACKET .   (rule 39)
 
@@ -3267,31 +3302,31 @@ state 240
 
 
 
-state 241
+state 244
 
     arrayDefineStatement  ->  arrayType IDENTIFIER ASSIGN type LBRACKET expression . RBRACKET   (rule 38)
 
-    RBRACKET	shift, and go to state 245
+    RBRACKET	shift, and go to state 248
 
 
 
-state 242
+state 245
 
-    foreachStatement  ->  FOREACH LPAREN IDENTIFIER IN leftValue RPAREN LBRACE . functionStatements RBRACE   (rule 47)
+    foreachStatement  ->  FOREACH LPAREN IDENTIFIER IN leftValue RPAREN LBRACE . functionStatements RBRACE   (rule 48)
 
-    BREAK	shift, and go to state 154
+    BREAK	shift, and go to state 156
     CHAR	shift, and go to state 1
-    CONTINUE	shift, and go to state 155
+    CONTINUE	shift, and go to state 157
     DOUBLE	shift, and go to state 3
-    FOREACH	shift, and go to state 156
-    IF  	shift, and go to state 157
+    FOREACH	shift, and go to state 158
+    IF  	shift, and go to state 159
     INT 	shift, and go to state 4
     RETURN	shift, and go to state 5
-    WHILE	shift, and go to state 158
+    WHILE	shift, and go to state 160
     DECIMAL_LITERAL	shift, and go to state 20
     DECIMAL_FLOATING_POINT_LITERAL	shift, and go to state 21
     LPAREN	shift, and go to state 22
-    SEMICOLON	shift, and go to state 159
+    SEMICOLON	shift, and go to state 161
     BANG	shift, and go to state 23
     MINUS	shift, and go to state 24
     CLASS_IDENTIFIER	shift, and go to state 8
@@ -3301,53 +3336,53 @@ state 242
 
     $default	reduce using rule 11 (functionStatements)
 
-    functionStatements	go to state 246
-    functionStatement	go to state 161
-    varDeclareStatement	go to state 162
-    varDefineStatement	go to state 163
-    varAssignStatement	go to state 164
-    arrayDeclareStatement	go to state 165
-    arrayDefineStatement	go to state 166
-    arrayAssignStatement	go to state 167
-    ifStatement	go to state 168
-    whileStatement	go to state 169
-    foreachStatement	go to state 170
-    breakStatement	go to state 171
-    continueStatement	go to state 172
-    returnStatement	go to state 173
-    expression	go to state 174
+    functionStatements	go to state 249
+    functionStatement	go to state 163
+    varDeclareStatement	go to state 164
+    varDefineStatement	go to state 165
+    varAssignStatement	go to state 166
+    arrayDeclareStatement	go to state 167
+    arrayDefineStatement	go to state 168
+    arrayAssignStatement	go to state 169
+    ifStatement	go to state 170
+    whileStatement	go to state 171
+    foreachStatement	go to state 172
+    breakStatement	go to state 173
+    continueStatement	go to state 174
+    returnStatement	go to state 175
+    expression	go to state 176
     compareExpression	go to state 29
     mathExpression	go to state 30
     term	go to state 31
     factor	go to state 32
-    leftValue	go to state 175
-    arrayType	go to state 176
-    type	go to state 177
+    leftValue	go to state 177
+    arrayType	go to state 178
+    type	go to state 179
 
 
 
-state 243
+state 246
 
-    ifStatement  ->  IF LPAREN expression RPAREN LBRACE functionStatements RBRACE . elifParts elsePart   (rule 40)
+    ifStatement  ->  IF LPAREN expression RPAREN LBRACE functionStatements RBRACE . elifParts elsePart   (rule 41)
 
-    ELIF	shift, and go to state 247
+    ELIF	shift, and go to state 250
 
-    $default	reduce using rule 41 (elifParts)
+    $default	reduce using rule 42 (elifParts)
 
-    elifParts	go to state 248
-    elifPart	go to state 249
-
-
-
-state 244
-
-    whileStatement  ->  WHILE LPAREN expression RPAREN LBRACE functionStatements RBRACE .   (rule 46)
-
-    $default	reduce using rule 46 (whileStatement)
+    elifParts	go to state 251
+    elifPart	go to state 252
 
 
 
-state 245
+state 247
+
+    whileStatement  ->  WHILE LPAREN expression RPAREN LBRACE functionStatements RBRACE .   (rule 47)
+
+    $default	reduce using rule 47 (whileStatement)
+
+
+
+state 248
 
     arrayDefineStatement  ->  arrayType IDENTIFIER ASSIGN type LBRACKET expression RBRACKET .   (rule 38)
 
@@ -3355,58 +3390,58 @@ state 245
 
 
 
-state 246
-
-    foreachStatement  ->  FOREACH LPAREN IDENTIFIER IN leftValue RPAREN LBRACE functionStatements . RBRACE   (rule 47)
-
-    RBRACE	shift, and go to state 250
-
-
-
-state 247
-
-    elifPart  ->  ELIF . LPAREN expression RPAREN LBRACE functionStatements RBRACE   (rule 43)
-
-    LPAREN	shift, and go to state 251
-
-
-
-state 248
-
-    ifStatement  ->  IF LPAREN expression RPAREN LBRACE functionStatements RBRACE elifParts . elsePart   (rule 40)
-
-    ELSE	shift, and go to state 252
-
-    $default	reduce using rule 44 (elsePart)
-
-    elsePart	go to state 253
-
-
-
 state 249
 
-    elifParts  ->  elifPart . elifParts   (rule 42)
+    foreachStatement  ->  FOREACH LPAREN IDENTIFIER IN leftValue RPAREN LBRACE functionStatements . RBRACE   (rule 48)
 
-    ELIF	shift, and go to state 247
-
-    $default	reduce using rule 41 (elifParts)
-
-    elifParts	go to state 254
-    elifPart	go to state 249
+    RBRACE	shift, and go to state 253
 
 
 
 state 250
 
-    foreachStatement  ->  FOREACH LPAREN IDENTIFIER IN leftValue RPAREN LBRACE functionStatements RBRACE .   (rule 47)
+    elifPart  ->  ELIF . LPAREN expression RPAREN LBRACE functionStatements RBRACE   (rule 44)
 
-    $default	reduce using rule 47 (foreachStatement)
+    LPAREN	shift, and go to state 254
 
 
 
 state 251
 
-    elifPart  ->  ELIF LPAREN . expression RPAREN LBRACE functionStatements RBRACE   (rule 43)
+    ifStatement  ->  IF LPAREN expression RPAREN LBRACE functionStatements RBRACE elifParts . elsePart   (rule 41)
+
+    ELSE	shift, and go to state 255
+
+    $default	reduce using rule 45 (elsePart)
+
+    elsePart	go to state 256
+
+
+
+state 252
+
+    elifParts  ->  elifPart . elifParts   (rule 43)
+
+    ELIF	shift, and go to state 250
+
+    $default	reduce using rule 42 (elifParts)
+
+    elifParts	go to state 257
+    elifPart	go to state 252
+
+
+
+state 253
+
+    foreachStatement  ->  FOREACH LPAREN IDENTIFIER IN leftValue RPAREN LBRACE functionStatements RBRACE .   (rule 48)
+
+    $default	reduce using rule 48 (foreachStatement)
+
+
+
+state 254
+
+    elifPart  ->  ELIF LPAREN . expression RPAREN LBRACE functionStatements RBRACE   (rule 44)
 
     DECIMAL_LITERAL	shift, and go to state 20
     DECIMAL_FLOATING_POINT_LITERAL	shift, and go to state 21
@@ -3417,7 +3452,7 @@ state 251
     IDENTIFIER	shift, and go to state 26
     CHAR_LITERAL	shift, and go to state 27
 
-    expression	go to state 255
+    expression	go to state 258
     compareExpression	go to state 29
     mathExpression	go to state 30
     term	go to state 31
@@ -3426,122 +3461,55 @@ state 251
 
 
 
-state 252
-
-    elsePart  ->  ELSE . LBRACE functionStatements RBRACE   (rule 45)
-
-    LBRACE	shift, and go to state 256
-
-
-
-state 253
-
-    ifStatement  ->  IF LPAREN expression RPAREN LBRACE functionStatements RBRACE elifParts elsePart .   (rule 40)
-
-    $default	reduce using rule 40 (ifStatement)
-
-
-
-state 254
-
-    elifParts  ->  elifPart elifParts .   (rule 42)
-
-    $default	reduce using rule 42 (elifParts)
-
-
-
 state 255
 
-    elifPart  ->  ELIF LPAREN expression . RPAREN LBRACE functionStatements RBRACE   (rule 43)
-
-    RPAREN	shift, and go to state 257
-
-
-
-state 256
-
-    elsePart  ->  ELSE LBRACE . functionStatements RBRACE   (rule 45)
-
-    BREAK	shift, and go to state 154
-    CHAR	shift, and go to state 1
-    CONTINUE	shift, and go to state 155
-    DOUBLE	shift, and go to state 3
-    FOREACH	shift, and go to state 156
-    IF  	shift, and go to state 157
-    INT 	shift, and go to state 4
-    RETURN	shift, and go to state 5
-    WHILE	shift, and go to state 158
-    DECIMAL_LITERAL	shift, and go to state 20
-    DECIMAL_FLOATING_POINT_LITERAL	shift, and go to state 21
-    LPAREN	shift, and go to state 22
-    SEMICOLON	shift, and go to state 159
-    BANG	shift, and go to state 23
-    MINUS	shift, and go to state 24
-    CLASS_IDENTIFIER	shift, and go to state 8
-    STRING_LITERAL	shift, and go to state 25
-    IDENTIFIER	shift, and go to state 26
-    CHAR_LITERAL	shift, and go to state 27
-
-    $default	reduce using rule 11 (functionStatements)
-
-    functionStatements	go to state 258
-    functionStatement	go to state 161
-    varDeclareStatement	go to state 162
-    varDefineStatement	go to state 163
-    varAssignStatement	go to state 164
-    arrayDeclareStatement	go to state 165
-    arrayDefineStatement	go to state 166
-    arrayAssignStatement	go to state 167
-    ifStatement	go to state 168
-    whileStatement	go to state 169
-    foreachStatement	go to state 170
-    breakStatement	go to state 171
-    continueStatement	go to state 172
-    returnStatement	go to state 173
-    expression	go to state 174
-    compareExpression	go to state 29
-    mathExpression	go to state 30
-    term	go to state 31
-    factor	go to state 32
-    leftValue	go to state 175
-    arrayType	go to state 176
-    type	go to state 177
-
-
-
-state 257
-
-    elifPart  ->  ELIF LPAREN expression RPAREN . LBRACE functionStatements RBRACE   (rule 43)
+    elsePart  ->  ELSE . LBRACE functionStatements RBRACE   (rule 46)
 
     LBRACE	shift, and go to state 259
 
 
 
+state 256
+
+    ifStatement  ->  IF LPAREN expression RPAREN LBRACE functionStatements RBRACE elifParts elsePart .   (rule 41)
+
+    $default	reduce using rule 41 (ifStatement)
+
+
+
+state 257
+
+    elifParts  ->  elifPart elifParts .   (rule 43)
+
+    $default	reduce using rule 43 (elifParts)
+
+
+
 state 258
 
-    elsePart  ->  ELSE LBRACE functionStatements . RBRACE   (rule 45)
+    elifPart  ->  ELIF LPAREN expression . RPAREN LBRACE functionStatements RBRACE   (rule 44)
 
-    RBRACE	shift, and go to state 260
+    RPAREN	shift, and go to state 260
 
 
 
 state 259
 
-    elifPart  ->  ELIF LPAREN expression RPAREN LBRACE . functionStatements RBRACE   (rule 43)
+    elsePart  ->  ELSE LBRACE . functionStatements RBRACE   (rule 46)
 
-    BREAK	shift, and go to state 154
+    BREAK	shift, and go to state 156
     CHAR	shift, and go to state 1
-    CONTINUE	shift, and go to state 155
+    CONTINUE	shift, and go to state 157
     DOUBLE	shift, and go to state 3
-    FOREACH	shift, and go to state 156
-    IF  	shift, and go to state 157
+    FOREACH	shift, and go to state 158
+    IF  	shift, and go to state 159
     INT 	shift, and go to state 4
     RETURN	shift, and go to state 5
-    WHILE	shift, and go to state 158
+    WHILE	shift, and go to state 160
     DECIMAL_LITERAL	shift, and go to state 20
     DECIMAL_FLOATING_POINT_LITERAL	shift, and go to state 21
     LPAREN	shift, and go to state 22
-    SEMICOLON	shift, and go to state 159
+    SEMICOLON	shift, and go to state 161
     BANG	shift, and go to state 23
     MINUS	shift, and go to state 24
     CLASS_IDENTIFIER	shift, and go to state 8
@@ -3552,66 +3520,133 @@ state 259
     $default	reduce using rule 11 (functionStatements)
 
     functionStatements	go to state 261
-    functionStatement	go to state 161
-    varDeclareStatement	go to state 162
-    varDefineStatement	go to state 163
-    varAssignStatement	go to state 164
-    arrayDeclareStatement	go to state 165
-    arrayDefineStatement	go to state 166
-    arrayAssignStatement	go to state 167
-    ifStatement	go to state 168
-    whileStatement	go to state 169
-    foreachStatement	go to state 170
-    breakStatement	go to state 171
-    continueStatement	go to state 172
-    returnStatement	go to state 173
-    expression	go to state 174
+    functionStatement	go to state 163
+    varDeclareStatement	go to state 164
+    varDefineStatement	go to state 165
+    varAssignStatement	go to state 166
+    arrayDeclareStatement	go to state 167
+    arrayDefineStatement	go to state 168
+    arrayAssignStatement	go to state 169
+    ifStatement	go to state 170
+    whileStatement	go to state 171
+    foreachStatement	go to state 172
+    breakStatement	go to state 173
+    continueStatement	go to state 174
+    returnStatement	go to state 175
+    expression	go to state 176
     compareExpression	go to state 29
     mathExpression	go to state 30
     term	go to state 31
     factor	go to state 32
-    leftValue	go to state 175
-    arrayType	go to state 176
-    type	go to state 177
+    leftValue	go to state 177
+    arrayType	go to state 178
+    type	go to state 179
 
 
 
 state 260
 
-    elsePart  ->  ELSE LBRACE functionStatements RBRACE .   (rule 45)
+    elifPart  ->  ELIF LPAREN expression RPAREN . LBRACE functionStatements RBRACE   (rule 44)
 
-    $default	reduce using rule 45 (elsePart)
+    LBRACE	shift, and go to state 262
 
 
 
 state 261
 
-    elifPart  ->  ELIF LPAREN expression RPAREN LBRACE functionStatements . RBRACE   (rule 43)
+    elsePart  ->  ELSE LBRACE functionStatements . RBRACE   (rule 46)
 
-    RBRACE	shift, and go to state 262
+    RBRACE	shift, and go to state 263
 
 
 
 state 262
 
-    elifPart  ->  ELIF LPAREN expression RPAREN LBRACE functionStatements RBRACE .   (rule 43)
+    elifPart  ->  ELIF LPAREN expression RPAREN LBRACE . functionStatements RBRACE   (rule 44)
 
-    $default	reduce using rule 43 (elifPart)
+    BREAK	shift, and go to state 156
+    CHAR	shift, and go to state 1
+    CONTINUE	shift, and go to state 157
+    DOUBLE	shift, and go to state 3
+    FOREACH	shift, and go to state 158
+    IF  	shift, and go to state 159
+    INT 	shift, and go to state 4
+    RETURN	shift, and go to state 5
+    WHILE	shift, and go to state 160
+    DECIMAL_LITERAL	shift, and go to state 20
+    DECIMAL_FLOATING_POINT_LITERAL	shift, and go to state 21
+    LPAREN	shift, and go to state 22
+    SEMICOLON	shift, and go to state 161
+    BANG	shift, and go to state 23
+    MINUS	shift, and go to state 24
+    CLASS_IDENTIFIER	shift, and go to state 8
+    STRING_LITERAL	shift, and go to state 25
+    IDENTIFIER	shift, and go to state 26
+    CHAR_LITERAL	shift, and go to state 27
+
+    $default	reduce using rule 11 (functionStatements)
+
+    functionStatements	go to state 264
+    functionStatement	go to state 163
+    varDeclareStatement	go to state 164
+    varDefineStatement	go to state 165
+    varAssignStatement	go to state 166
+    arrayDeclareStatement	go to state 167
+    arrayDefineStatement	go to state 168
+    arrayAssignStatement	go to state 169
+    ifStatement	go to state 170
+    whileStatement	go to state 171
+    foreachStatement	go to state 172
+    breakStatement	go to state 173
+    continueStatement	go to state 174
+    returnStatement	go to state 175
+    expression	go to state 176
+    compareExpression	go to state 29
+    mathExpression	go to state 30
+    term	go to state 31
+    factor	go to state 32
+    leftValue	go to state 177
+    arrayType	go to state 178
+    type	go to state 179
 
 
 
 state 263
 
-    $   	go to state 264
+    elsePart  ->  ELSE LBRACE functionStatements RBRACE .   (rule 46)
+
+    $default	reduce using rule 46 (elsePart)
 
 
 
 state 264
 
-    $   	go to state 265
+    elifPart  ->  ELIF LPAREN expression RPAREN LBRACE functionStatements . RBRACE   (rule 44)
+
+    RBRACE	shift, and go to state 265
 
 
 
 state 265
+
+    elifPart  ->  ELIF LPAREN expression RPAREN LBRACE functionStatements RBRACE .   (rule 44)
+
+    $default	reduce using rule 44 (elifPart)
+
+
+
+state 266
+
+    $   	go to state 267
+
+
+
+state 267
+
+    $   	go to state 268
+
+
+
+state 268
 
     $default	accept

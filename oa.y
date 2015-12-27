@@ -173,6 +173,9 @@ arrayAssignStatement
 	:leftValue ASSIGN type LBRACKET expression RBRACKET{
 		$$ = createArrayAssign($1, $3, $5);
 	}
+	|leftValue ASSIGN MY_NULL{
+		$$ = createArrayAssign($1, NULL, NULL);
+	}
 	;
 
 	
@@ -341,8 +344,14 @@ compareExpression
 	:mathExpression EQ mathExpression{
 		$$ = createExpression($1, $3, OA_EXP_EQ);
 	}
+	|mathExpression EQ MY_NULL{
+		$$ = createExpression($1, NULL, OA_EXP_EQ);
+	}
 	|mathExpression NE mathExpression{
 		$$ = createExpression($1, $3, OA_EXP_NE);
+	}
+	|mathExpression NE MY_NULL{
+		$$ = createExpression($1, NULL, OA_EXP_EQ);
 	}
 	|mathExpression GT mathExpression{
 		$$ = createExpression($1, $3, OA_EXP_GT);

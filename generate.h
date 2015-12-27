@@ -70,8 +70,8 @@ void replaceUtilForeachEXP(struct Expression* seg, char* namein, LeftValue* name
 //---------------------tree node part---------------------
 void g_parseNodeList(std::string &result, struct TreeNode* seg, std::string name);
 void g_parseTreeNode(std::string &result, struct TreeNode *seg);
-void g_parseVarDeclareNode(std::string &result, struct VarDeclareNode *seg);
-void g_parseVarDefineNode(std::string &result, struct VarDefineNode *seg);
+void g_parseVarDeclareNode(std::string &result, struct VarDeclareNode *seg, bool check = true);
+void g_parseVarDefineNode(std::string &result, struct VarDefineNode *seg, bool check = true);
 void g_parseVarAssignNode(std::string &result, struct VarAssignNode *seg);
 void g_parseArrayDeclareNode(std::string &result, struct ArrayDeclareNode *seg);
 void g_parseArrayDefineNode(std::string &result, struct ArrayDefineNode *seg);

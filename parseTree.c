@@ -191,14 +191,19 @@ struct TreeNode *createArrayAssign(struct LeftValue *name, char *type, struct Ex
 	//name, type is malloced by caller
 	struct ArrayAssignNode *varNode = (struct ArrayAssignNode*)malloc(sizeof(struct ArrayAssignNode));
 	varNode->name = name;
-	int newSize = strlen(type) + 3;
-	char *newType = (char*)malloc(newSize);
-	strcpy(newType, type);
-	newType[newSize - 3] = '[';
-	newType[newSize - 2] = ']';
-	newType[newSize - 1] = '\0';
-	free(type);
-	varNode->type = newType;
+	if (type != NULL) {
+		int newSize = strlen(type) + 3;
+		char *newType = (char*)malloc(newSize);
+		strcpy(newType, type);
+		newType[newSize - 3] = '[';
+		newType[newSize - 2] = ']';
+		newType[newSize - 1] = '\0';
+		free(type);
+		varNode->type = newType;
+	}
+	else{
+		varNode->type = NULL;
+	}
 	varNode->exp = exp;
 
 	struct TreeNode *node = (struct TreeNode*)malloc(sizeof(struct TreeNode));
@@ -301,7 +306,7 @@ struct TreeNode *createClassDefine(char *type, char *typeParent, struct TreeNode
 struct TreeNode *createFunctionDeclare(char *type, char *name, struct FormParam *formParams) {
 	//void @func(int @a, int @b)
 	struct FunctionDeclareNode *functionDeclareNode = (struct FunctionDeclareNode*)malloc(sizeof(struct FunctionDeclareNode));
-	if (type = NULL) {
+	if (type == NULL) {
 		char *voidType = (char*)malloc(sizeof(char) * 5);
 		strcpy(voidType, "void");
 		voidType[4] = '\0';
@@ -349,7 +354,7 @@ struct TreeNode *createClassMethodDefine(char *type, char *name, struct FormPara
 	//int #A::@func(int @a, int @b)
 	struct ClassMethodDefineNode *classMethodDefineNode = (struct ClassMethodDefineNode*)malloc(sizeof(struct ClassMethodDefineNode));
 
-	if (type = NULL) {
+	if (type == NULL) {
 		char *voidType = (char*)malloc(sizeof(char) * 5);
 		strcpy(voidType, "void");
 		voidType[4] = '\0';
