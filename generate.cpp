@@ -270,6 +270,7 @@ void g_parseVarAssignNode(std::string& result, VarAssignNode* seg) {
 		//class
 		std::string classType = getVar('%' + std::string(lv->name).substr(1))->type.substr(1);
 		std::string allocaTableName = '%' + std::string(lv->name).substr(1);
+		int temAdded = 0;
 		while (lv->next != NULL) {
 			OaClass *oaClass = &(oaClasses.find(classType)->second);
 			member = findMemberInClass('%' + std::string(lv->next->name).substr(1), oaClass);
@@ -277,7 +278,6 @@ void g_parseVarAssignNode(std::string& result, VarAssignNode* seg) {
 				allocaTableName += '.' + member->name;
 			}
 			bool inParent = false;
-			int temAdded = 0;
 			while (member == NULL && oaClass->parent != "") {
 				allocaTableName += '.' + oaClass->parent;
 				result += '%' + myItoa(temVarNo++) + " = load %class." + oaClass->name + "*, %class." + oaClass->name + "** %" + std::string(lv->name).substr(1) + ", align 4\n";
@@ -297,6 +297,7 @@ void g_parseVarAssignNode(std::string& result, VarAssignNode* seg) {
 				result += '%' + myItoa(temVarNo++) + " = load %class." + oaClass->name + "*, %class." + oaClass->name + "** %" + std::string(lv->name).substr(1) + ", align 4\n";
 			}
 			result += '%' + myItoa(temVarNo++) + " = getelementptr inbounds %class." + oaClass->name + ", %class." + oaClass->name + "* %" + myItoa(temVarNo - 2) + ", i32 0, i32 " + myItoa(member->pos) + "\n";
+			if (member->type[0] == '#') temAdded = allocaClass(allocaTableName, member->type.substr(1), oaClasses.find(member->type.substr(1))->second.align);
 			classType = std::string(member->type).substr(1);
 			lv = lv->next;
 			inDeeperClass = true;
@@ -511,6 +512,7 @@ void g_parseArrayAssignNode(std::string&result, ArrayAssignNode*seg) {
 		std::string classType = getVar('%' + std::string(lv->name).substr(1))->type.substr(1);
 		std::string allocaTableName = '%' + std::string(lv->name).substr(1);
 		bool inDeeperClass = false;
+		int temAdded = 0;
 		while (lv->next != NULL) {
 			oaClass = &(oaClasses.find(classType)->second);
 			member = findMemberInClass('%' + std::string(lv->next->name).substr(1), oaClass);
@@ -518,7 +520,6 @@ void g_parseArrayAssignNode(std::string&result, ArrayAssignNode*seg) {
 				allocaTableName += '.' + member->name;
 			}
 			bool inParent = false;
-			int temAdded = 0;
 			while (member == NULL && oaClass->parent != "") {
 				allocaTableName += '.' + oaClass->parent;
 				result += '%' + myItoa(temVarNo++) + " = load %class." + oaClass->name + "*, %class." + oaClass->name + "** %" + std::string(lv->name).substr(1) + ", align 4\n";
@@ -537,6 +538,7 @@ void g_parseArrayAssignNode(std::string&result, ArrayAssignNode*seg) {
 				result += '%' + myItoa(temVarNo++) + " = load %class." + oaClass->name + "*, %class." + oaClass->name + "** %" + std::string(lv->name).substr(1) + ", align 4\n";
 			}
 			result += '%' + myItoa(temVarNo++) + " = getelementptr inbounds %class." + oaClass->name + ", %class." + oaClass->name + "* %" + myItoa(temVarNo - 2) + ", i32 0, i32 " + myItoa(member->pos) + "\n";
+			if (member->type[0] == '#' && inParent == false) temAdded = allocaClass(allocaTableName, member->type.substr(1), oaClasses.find(member->type.substr(1))->second.align);
 			classType = std::string(member->type).substr(1);
 			lv = lv->next;
 			inDeeperClass = true;
@@ -1694,6 +1696,7 @@ struct OaVar* g_parseLeftValue(std::string&result, LeftValue* seg) {
 		std::string classType = tmpVar->type.substr(1);
 		std::string allocaTableName = '%' + std::string(lv->name).substr(1);
 		bool inDeeperClass = false;
+		int temAdded = 0;
 		while (lv->next != NULL) {
 			OaClass *oaClass = &(oaClasses.find(classType)->second);
 			member = findMemberInClass('%' + std::string(lv->next->name).substr(1), oaClass);
@@ -1701,7 +1704,6 @@ struct OaVar* g_parseLeftValue(std::string&result, LeftValue* seg) {
 				allocaTableName += '.' + member->name;
 			}
 			bool inParent = false;
-			int temAdded = 0;
 			while (member == NULL && oaClass->parent != "") {
 				allocaTableName += '.' + oaClass->parent;
 				result += '%' + myItoa(temVarNo++) + " = load %class." + oaClass->name + "*, %class." + oaClass->name + "** %" + std::string(lv->name).substr(1) + ", align 4\n";
@@ -1721,6 +1723,7 @@ struct OaVar* g_parseLeftValue(std::string&result, LeftValue* seg) {
 			}
 
 			result += '%' + myItoa(temVarNo++) + " = getelementptr inbounds %class." + oaClass->name + ", %class." + oaClass->name + "* %" + myItoa(temVarNo - 2) + ", i32 0, i32 " + myItoa(member->pos) + "\n";
+			if (member->type[0] == '#' && inParent == false) temAdded = allocaClass(allocaTableName, member->type.substr(1), oaClasses.find(member->type.substr(1))->second.align);
 			classType = std::string(member->type).substr(1);
 			lv = lv->next;
 			inDeeperClass = true;
@@ -2341,8 +2344,8 @@ int allocaClass(std::string name, std::string type, int align, bool useNo) {
 	if (classAllocaTable.find(name) != classAllocaTable.end()) return 0;
 	result += '%' + myItoa(temVarNo++) + " = alloca %class." + type + ", align " + myItoa(align) + "\n";
 	result += "store %class." + type + "* " + '%' + myItoa(temVarNo - 1) + ", %class." + type + "** ";
-	if(useNo) result += '%' + myItoa(temVarNo - 2) + '\n';
-	else result += name + '\n';
+	if (useNo) result += '%' + myItoa(temVarNo - 2) + '\n';
+	else  result += name + '\n';
 	classAllocaTable.insert(std::pair<std::string, int>(name, 0));
 	return 1;
 }
