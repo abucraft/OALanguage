@@ -56,7 +56,7 @@ struct OaClass {
 
 
 OaClassMember *findMemberInClass(std::string member, OaClass *oaClass);
-
+int allocaClass(std::string name, std::string type, int align, bool useNo = true);
 
 
 void zeroClassArrayLength(const std::string &name, const std::string &classType);

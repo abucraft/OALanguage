@@ -99,11 +99,13 @@ void g_parseTreeNode(std::string& result, TreeNode* seg) {
 	case FUNCTION_DEFINE_NODE:
 		inGlobal = false;
 		g_parseFunctionDefineNode(result, seg->functionDefineNode);
+		classAllocaTable.clear();
 		inGlobal = true;
 		break;
 	case CLASS_METHOD_DEFINE_NODE:
 		inGlobal = false;
 		g_parseClassMethodDefineNode(result, seg->classMethodDefineNode);
+		classAllocaTable.clear();
 		inGlobal = true;
 		break;
 	case BREAK_NODE:
@@ -212,9 +214,7 @@ void g_parseVarDeclareNode(std::string& result, struct VarDeclareNode* seg, bool
 			result += temVar->name + " ";
 			result += "= " + std::string("alloca %class." + temVar->type.substr(1) + "*, ");
 			result += "align 4\n";
-			
-			result += '%' + myItoa(temVarNo++) + " = alloca %class." + temVar->type.substr(1) + ", align " + myItoa(temVar->align) + "\n";
-			result += "store %class." + temVar->type.substr(1) + "* " + '%' + myItoa(temVarNo - 1) + ", %class." + temVar->type.substr(1) + "** " + temVar->name + '\n';
+			allocaClass(temVar->name, temVar->type.substr(1), temVar->align, false);
 			//let initial array length be zero
 			std::string classType = std::string(temVar->type).substr(1);
 			std::string className = std::string(temVar->name);
@@ -269,13 +269,20 @@ void g_parseVarAssignNode(std::string& result, VarAssignNode* seg) {
 	if (lv->next != NULL) {
 		//class
 		std::string classType = getVar('%' + std::string(lv->name).substr(1))->type.substr(1);
+		std::string allocaTableName = '%' + std::string(lv->name).substr(1);
 		while (lv->next != NULL) {
 			OaClass *oaClass = &(oaClasses.find(classType)->second);
 			member = findMemberInClass('%' + std::string(lv->next->name).substr(1), oaClass);
+			if (member != NULL) {
+				allocaTableName += '.' + member->name;
+			}
 			bool inParent = false;
+			int temAdded = 0;
 			while (member == NULL && oaClass->parent != "") {
+				allocaTableName += '.' + oaClass->parent;
 				result += '%' + myItoa(temVarNo++) + " = load %class." + oaClass->name + "*, %class." + oaClass->name + "** %" + std::string(lv->name).substr(1) + ", align 4\n";
 				result += '%' + myItoa(temVarNo++) + " = getelementptr inbounds %class." + oaClass->name + ", %class." + oaClass->name + "* %" + myItoa(temVarNo - 2) + ", i32 0, i32 0\n";
+				temAdded = allocaClass(allocaTableName, oaClass->parent, oaClasses.find(oaClass->parent)->second.align);
 				classType = oaClass->parent;
 				oaClass = &(oaClasses.find(oaClass->parent)->second);
 				member = findMemberInClass('%' + std::string(lv->next->name).substr(1), oaClass);
@@ -283,7 +290,7 @@ void g_parseVarAssignNode(std::string& result, VarAssignNode* seg) {
 			}
 			if (member == NULL) { panic("in parseVarAssign: no member in class"); return; }
 			if (inParent || inDeeperClass) {
-				result += '%' + myItoa(temVarNo++) + " = load %class." + oaClass->name + "*, %class." + oaClass->name + "** %" + myItoa(temVarNo - 2) + ", align 4\n";
+				result += '%' + myItoa(temVarNo++) + " = load %class." + oaClass->name + "*, %class." + oaClass->name + "** %" + myItoa(temVarNo - 2 - temAdded) + ", align 4\n";
 			}
 			else
 			{
@@ -347,7 +354,6 @@ void g_parseVarAssignNode(std::string& result, VarAssignNode* seg) {
 	if (seg->expOfVar != NULL) {
 		struct OaVar* idxVar = g_parseExpression(result, seg->expOfVar);
 		result += "%" + myItoa(temVarNo++) + " = ";
-		//load i32, i32* %first, align 4
 		result += "load " + temVar->type + ", " + temVar->type + "* " + temVar->name + ", ";
 		result += "align 8" + endLine;
 		tmpName = "%" + myItoa(temVarNo - 1);
@@ -497,21 +503,27 @@ void g_parseArrayAssignNode(std::string&result, ArrayAssignNode*seg) {
 	if (seg == NULL) {
 		return;
 	}
-
 	LeftValue *lv = seg->name;
 	OaClassMember *member = NULL;
 	OaClass *oaClass = NULL;
 	if (lv->next != NULL) {
 		//class
 		std::string classType = getVar('%' + std::string(lv->name).substr(1))->type.substr(1);
+		std::string allocaTableName = '%' + std::string(lv->name).substr(1);
 		bool inDeeperClass = false;
 		while (lv->next != NULL) {
 			oaClass = &(oaClasses.find(classType)->second);
 			member = findMemberInClass('%' + std::string(lv->next->name).substr(1), oaClass);
+			if (member != NULL) {
+				allocaTableName += '.' + member->name;
+			}
 			bool inParent = false;
+			int temAdded = 0;
 			while (member == NULL && oaClass->parent != "") {
+				allocaTableName += '.' + oaClass->parent;
 				result += '%' + myItoa(temVarNo++) + " = load %class." + oaClass->name + "*, %class." + oaClass->name + "** %" + std::string(lv->name).substr(1) + ", align 4\n";
 				result += '%' + myItoa(temVarNo++) + " = getelementptr inbounds %class." + oaClass->name + ", %class." + oaClass->name + "* %" + myItoa(temVarNo - 2) + ", i32 0, i32 0\n";
+				temAdded = allocaClass(allocaTableName, oaClass->parent, oaClasses.find(oaClass->parent)->second.align);
 				classType = oaClass->parent;
 				oaClass = &(oaClasses.find(oaClass->parent)->second);
 				member = findMemberInClass('%' + std::string(lv->next->name).substr(1), oaClass);
@@ -519,7 +531,7 @@ void g_parseArrayAssignNode(std::string&result, ArrayAssignNode*seg) {
 			}
 			if (member == NULL) { panic("in parseArrayAssign: no member in class"); return; }
 			if (inParent || inDeeperClass) {
-				result += '%' + myItoa(temVarNo++) + " = load %class." + oaClass->name + "*, %class." + oaClass->name + "** %" + myItoa(temVarNo - 2) + ", align 4\n";
+				result += '%' + myItoa(temVarNo++) + " = load %class." + oaClass->name + "*, %class." + oaClass->name + "** %" + myItoa(temVarNo - 2 - temAdded) + ", align 4\n";
 			}
 			else {
 				result += '%' + myItoa(temVarNo++) + " = load %class." + oaClass->name + "*, %class." + oaClass->name + "** %" + std::string(lv->name).substr(1) + ", align 4\n";
@@ -1680,14 +1692,21 @@ struct OaVar* g_parseLeftValue(std::string&result, LeftValue* seg) {
 		OaVar *tmpVar = getVar('%' + std::string(lv->name).substr(1));
 		if (tmpVar == NULL) return NULL;
 		std::string classType = tmpVar->type.substr(1);
+		std::string allocaTableName = '%' + std::string(lv->name).substr(1);
 		bool inDeeperClass = false;
 		while (lv->next != NULL) {
 			OaClass *oaClass = &(oaClasses.find(classType)->second);
 			member = findMemberInClass('%' + std::string(lv->next->name).substr(1), oaClass);
+			if (member != NULL) {
+				allocaTableName += '.' + member->name;
+			}
 			bool inParent = false;
+			int temAdded = 0;
 			while (member == NULL && oaClass->parent != "") {
+				allocaTableName += '.' + oaClass->parent;
 				result += '%' + myItoa(temVarNo++) + " = load %class." + oaClass->name + "*, %class." + oaClass->name + "** %" + std::string(lv->name).substr(1) + ", align 4\n";
 				result += '%' + myItoa(temVarNo++) + " = getelementptr inbounds %class." + oaClass->name + ", %class." + oaClass->name + "* %" + myItoa(temVarNo - 2) + ", i32 0, i32 0\n";
+				temAdded = allocaClass(allocaTableName, oaClass->parent, oaClasses.find(oaClass->parent)->second.align);
 				classType = oaClass->parent;
 				oaClass = &(oaClasses.find(oaClass->parent)->second);
 				member = findMemberInClass('%' + std::string(lv->next->name).substr(1), oaClass);
@@ -1695,7 +1714,7 @@ struct OaVar* g_parseLeftValue(std::string&result, LeftValue* seg) {
 			}
 			if (member == NULL) { panic("Error in parseLeftValue: no member in class"); return NULL; }
 			if (inParent || inDeeperClass) {
-				result += '%' + myItoa(temVarNo++) + " = load %class." + oaClass->name + "*, %class." + oaClass->name + "** %" + myItoa(temVarNo - 2) + ", align 4\n";
+				result += '%' + myItoa(temVarNo++) + " = load %class." + oaClass->name + "*, %class." + oaClass->name + "** %" + myItoa(temVarNo - 2 - temAdded) + ", align 4\n";
 			}
 			else {
 				result += '%' + myItoa(temVarNo++) + " = load %class." + oaClass->name + "*, %class." + oaClass->name + "** %" + std::string(lv->name).substr(1) + ", align 4\n";
@@ -2228,6 +2247,7 @@ void freeArray(std::string index, std::string type, int align){
 std::string mallocArray(std::string index, std::string type, int align, std::string size) {
 	//index: contain %: register
 	//index: not conain %: in allVars
+
 	hasMalloc = true;
 	if (size[0] != '%') {
 		int newSize = atoi(size.c_str());
@@ -2317,6 +2337,16 @@ void zeroClassArrayLength(const std::string &name, const std::string &classType)
 */
 }
 
+int allocaClass(std::string name, std::string type, int align, bool useNo) {
+	if (classAllocaTable.find(name) != classAllocaTable.end()) return 0;
+	result += '%' + myItoa(temVarNo++) + " = alloca %class." + type + ", align " + myItoa(align) + "\n";
+	result += "store %class." + type + "* " + '%' + myItoa(temVarNo - 1) + ", %class." + type + "** ";
+	if(useNo) result += '%' + myItoa(temVarNo - 2) + '\n';
+	else result += name + '\n';
+	classAllocaTable.insert(std::pair<std::string, int>(name, 0));
+	return 1;
+}
+
 void panic(const std::string &wrongInfo) {
 	compilePass = false;
 	compileLog = "Error[Line " + myItoa(lineno) + "]:" + wrongInfo;
@@ -2387,4 +2417,6 @@ int main(int argc, char** argv) {
 	else {
 		std::cout << compileLog << std::endl;
 	}
+
+	std::cin.get();
 }
